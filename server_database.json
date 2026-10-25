@@ -1,0 +1,636 @@
+{
+  "users": [
+    {
+      "id": "user_hungnv",
+      "fullName": "Nguyễn Văn Hùng",
+      "verified": true,
+      "role": "Kỹ Sư IT & Công Trình",
+      "bio": "Thức khuya & mê cà phê • Đang cải thiện giấc ngủ sâu NREM 💤",
+      "age": "30 tuổi (Nam)",
+      "gender": "Nam",
+      "occupation": "Kỹ Sư IT & Công Trình",
+      "phone": "0981 234 567",
+      "email": "hung.nguyen@example.com",
+      "password": "123456",
+      "targetBedtime": "23:00",
+      "wakeTime": "06:30",
+      "fitnessLevel": "Trung bình",
+      "healthConditions": [
+        "Đau mỏi cổ vai gáy",
+        "Căng thẳng deadline",
+        "Ngồi nhiều máy tính"
+      ],
+      "avatarType": "programmer_laptop",
+      "createdAt": "2026-10-20T08:00:00.000Z",
+      "lastLoginAt": "2026-10-25T02:49:05.635Z",
+      "streakDays": 5
+    },
+    {
+      "id": "user_maitt",
+      "fullName": "Trần Thị Mai",
+      "verified": true,
+      "role": "Trưởng Phòng Nhân Sự",
+      "bio": "Dễ thức giấc nửa đêm • Mục tiêu ngủ thẳng giấc 7 tiếng 🌸",
+      "age": "38 tuổi (Nữ)",
+      "gender": "Nữ",
+      "occupation": "Trưởng Phòng Nhân Sự",
+      "phone": "0912 345 678",
+      "email": "mai.tran@example.com",
+      "password": "123456",
+      "targetBedtime": "22:00",
+      "wakeTime": "06:00",
+      "fitnessLevel": "Khá",
+      "healthConditions": [
+        "Khó ngủ sau 1h sáng",
+        "Áp lực công việc",
+        "Bốc hỏa tiền mãn kinh nhẹ"
+      ],
+      "avatarType": "woman_professional",
+      "createdAt": "2026-10-21T09:30:00.000Z",
+      "lastLoginAt": "2026-10-24T18:15:00.000Z",
+      "streakDays": 8
+    },
+    {
+      "id": "user_hoanglm",
+      "fullName": "Lê Minh Hoàng",
+      "verified": true,
+      "role": "Bác Sĩ Nội Trú Y Khoa",
+      "bio": "Trực cấp cứu đêm • Cần ngủ bù khoa học và phục hồi trí não 🩺",
+      "age": "34 tuổi (Nam)",
+      "gender": "Nam",
+      "occupation": "Bác Sĩ Nội Trú Y Khoa",
+      "phone": "0988 999 111",
+      "password": "123456",
+      "targetBedtime": "22:30",
+      "wakeTime": "06:00",
+      "fitnessLevel": "Rất tốt",
+      "healthConditions": [
+        "Trực đêm bệnh viện",
+        "Áp lực tinh thần cao"
+      ],
+      "avatarType": "doctor_health",
+      "streakDays": 12,
+      "createdAt": "2026-10-22T10:00:00.000Z",
+      "lastLoginAt": "2026-10-24T21:00:00.000Z"
+    },
+    {
+      "id": "user_1792896601",
+      "fullName": "Thắm",
+      "phone": "0376724162",
+      "password": "2502",
+      "email": "",
+      "verified": true,
+      "role": "sinh viên",
+      "bio": "Mục tiêu cải thiện chất lượng giấc ngủ sâu NREM 💤",
+      "age": "22",
+      "gender": "Khác",
+      "occupation": "sinh viên",
+      "targetBedtime": "23:00",
+      "wakeTime": "06:30",
+      "fitnessLevel": "Trung bình",
+      "healthConditions": [
+        "Sức khỏe ổn định"
+      ],
+      "avatarType": "programmer_laptop",
+      "createdAt": "2026-10-25T09:50:01.567520",
+      "lastLoginAt": "2026-10-25T09:50:01.567550"
+    },
+    {
+      "id": "user_1792898754",
+      "fullName": "mavis",
+      "phone": "0123456789",
+      "password": "123456",
+      "email": "",
+      "verified": true,
+      "role": "giáo viên",
+      "bio": "Mục tiêu cải thiện chất lượng giấc ngủ sâu NREM 💤",
+      "age": "28 tuổi",
+      "gender": "Khác",
+      "occupation": "giáo viên",
+      "targetBedtime": "23:00",
+      "wakeTime": "06:30",
+      "fitnessLevel": "Trung bình",
+      "healthConditions": [
+        "Sức khỏe ổn định"
+      ],
+      "avatarType": "woman_professional",
+      "createdAt": "2026-10-25T10:25:54.785142",
+      "lastLoginAt": "2026-10-25T10:25:54.785151"
+    },
+    {
+      "id": "user_1792899546",
+      "fullName": "Trần Văn Nam",
+      "phone": "0977112233",
+      "password": "123456",
+      "email": "",
+      "verified": true,
+      "role": "Kiến Trúc Sư",
+      "bio": "Mục tiêu cải thiện chất lượng giấc ngủ sâu NREM 💤",
+      "age": "28 tuổi",
+      "gender": "Khác",
+      "occupation": "Kiến Trúc Sư",
+      "targetBedtime": "23:00",
+      "wakeTime": "06:30",
+      "fitnessLevel": "Trung bình",
+      "healthConditions": [
+        "Sức khỏe ổn định"
+      ],
+      "avatarType": "programmer_laptop",
+      "createdAt": "2026-10-25T10:39:06.795906",
+      "lastLoginAt": "2026-10-25T03:39:06.824Z"
+    }
+  ],
+  "activeUserId": "user_1792899546",
+  "serviceUsage": [
+    {
+      "id": 1792899546795,
+      "userId": "user_1792899546",
+      "userName": "Trần Văn Nam",
+      "serviceType": "AUTH_REGISTER",
+      "title": "Đăng ký thành viên mới",
+      "detail": "Thành viên mới Trần Văn Nam (0977112233) đã tạo tài khoản và đồng bộ thành công.",
+      "timestamp": "2026-10-25T10:39:06.795936",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792898754785,
+      "userId": "user_1792898754",
+      "userName": "mavis",
+      "serviceType": "AUTH_REGISTER",
+      "title": "Đăng ký thành viên mới",
+      "detail": "Thành viên mới mavis (0123456789) đã tạo tài khoản và đồng bộ thành công.",
+      "timestamp": "2026-10-25T10:25:54.785186",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792896601567,
+      "userId": "user_1792896601",
+      "userName": "Thắm",
+      "serviceType": "AUTH_REGISTER",
+      "title": "Đăng ký thành viên mới",
+      "detail": "Thành viên mới Thắm (0376724162) đã tạo tài khoản và đồng bộ thành công.",
+      "timestamp": "2026-10-25T09:50:01.567576",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792893531167,
+      "userId": "user_maitt",
+      "userName": "Trần Thị Mai",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Trần Thị Mai đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:58:51.167921",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893531163,
+      "userId": "user_maitt",
+      "userName": "Trần Thị Mai",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Trần Thị Mai đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:58:51.163299",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893531158,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:58:51.158555",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893531156,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:58:51.156172",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893531153,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:58:51.153738",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893531150,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:58:51.150758",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893531145,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:58:51.145920",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893457863,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:57:37.863403",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893361394,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:56:01.394709",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893296993,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:54:56.993877",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792893296990,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T08:54:56.990901",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792899547222,
+      "userId": "user_1792899546",
+      "serviceType": "AUTH_REGISTER",
+      "title": "Đăng ký tài khoản thành viên mới",
+      "detail": "Tài khoản Trần Văn Nam (0977112233) đã được tạo thành công.",
+      "metadata": {},
+      "icon": "fa-solid fa-user-shield",
+      "badgeColor": "emerald",
+      "timestamp": "2026-10-25T03:39:06.863Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792899547649,
+      "userId": "user_1792899546",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đổi tài khoản đăng nhập",
+      "detail": "Đã chuyển sang tài khoản Trần Văn Nam (Kiến Trúc Sư).",
+      "metadata": {},
+      "icon": "fa-solid fa-user-shield",
+      "badgeColor": "emerald",
+      "timestamp": "2026-10-25T03:39:06.827Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792898755265,
+      "userId": "user_1792898754",
+      "serviceType": "AUTH_REGISTER",
+      "title": "Đăng ký tài khoản thành viên mới",
+      "detail": "Tài khoản mavis (0123456789) đã được tạo thành công.",
+      "metadata": {},
+      "icon": "fa-solid fa-user-shield",
+      "badgeColor": "emerald",
+      "timestamp": "2026-10-25T03:25:54.819Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792898674313,
+      "userId": null,
+      "serviceType": "AUTH_LOGOUT",
+      "title": "Đăng xuất tài khoản",
+      "detail": "Người dùng Thắm đã đăng xuất khỏi thiết bị.",
+      "metadata": {},
+      "icon": "fa-solid fa-user-shield",
+      "badgeColor": "emerald",
+      "timestamp": "2026-10-25T03:24:34.089Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792898658064,
+      "userId": "user_1792896601",
+      "serviceType": "SOUND_PLAY",
+      "title": "Phát âm thanh thư giãn",
+      "detail": "Bật kênh âm thanh: Sóng Não Delta 4Hz ru ngủ",
+      "metadata": {},
+      "icon": "fa-solid fa-headphones",
+      "badgeColor": "cyan",
+      "timestamp": "2026-10-25T03:24:17.247Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792898644410,
+      "userId": "user_1792896601",
+      "serviceType": "AI_CHATBOT_RAG",
+      "title": "Hỏi đáp Trợ lý AI Giấc ngủ (Đồng bộ hồ sơ)",
+      "detail": "Câu hỏi: \"tôi là ai...\" - Đã đồng bộ hồ sơ Thắm.",
+      "metadata": {},
+      "icon": "fa-solid fa-circle-check",
+      "badgeColor": "indigo",
+      "timestamp": "2026-10-25T03:24:03.967Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792898409636,
+      "userId": "user_hungnv",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đổi tài khoản đăng nhập",
+      "detail": "Đã chuyển sang tài khoản Nguyễn Văn Hùng (Kỹ Sư IT & Công Trình).",
+      "metadata": {},
+      "icon": "fa-solid fa-user-shield",
+      "badgeColor": "emerald",
+      "timestamp": "2026-10-25T03:20:08.754Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792897365386,
+      "userId": null,
+      "serviceType": "AUTH_LOGOUT",
+      "title": "Đăng xuất tài khoản",
+      "detail": "Người dùng Thắm đã đăng xuất khỏi thiết bị.",
+      "metadata": {},
+      "icon": "fa-solid fa-user-shield",
+      "badgeColor": "emerald",
+      "timestamp": "2026-10-25T03:02:44.829Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792897227842,
+      "userId": "user_1792896601",
+      "serviceType": "DIAGNOSIS_5PILLARS",
+      "title": "Hoàn thành chẩn đoán 5 trụ cột y khoa",
+      "detail": "Điểm số giấc ngủ dự báo: 25%. Lịch vi-hành động đã sẵn sàng.",
+      "metadata": {},
+      "icon": "fa-solid fa-heart-pulse",
+      "badgeColor": "indigo",
+      "timestamp": "2026-10-25T03:00:27.357Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792897113147,
+      "userId": "user_1792896601",
+      "serviceType": "DIAGNOSIS_5PILLARS",
+      "title": "Hoàn thành chẩn đoán 5 trụ cột y khoa",
+      "detail": "Điểm số giấc ngủ dự báo: 25%. Lịch vi-hành động đã sẵn sàng.",
+      "metadata": {},
+      "icon": "fa-solid fa-heart-pulse",
+      "badgeColor": "indigo",
+      "timestamp": "2026-10-25T02:58:32.262Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792896601913,
+      "userId": "user_1792896601",
+      "serviceType": "AUTH_REGISTER",
+      "title": "Đăng ký tài khoản thành viên mới",
+      "detail": "Tài khoản Thắm (0376724162) đã được tạo thành công.",
+      "metadata": {},
+      "icon": "fa-solid fa-user-shield",
+      "badgeColor": "emerald",
+      "timestamp": "2026-10-25T02:50:01.653Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792867124990,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T01:38:44.990466",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 1792866048359,
+      "userId": "user_1792866048",
+      "userName": "Lê Minh Hoàng",
+      "serviceType": "AUTH_REGISTER",
+      "title": "Đăng ký thành viên mới",
+      "detail": "Thành viên mới Lê Minh Hoàng (0933 888 777) đã tạo tài khoản và đồng bộ thành công.",
+      "timestamp": "2026-10-25T01:20:48.359445",
+      "device": "Web Browser"
+    },
+    {
+      "id": 1792866048356,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập tài khoản",
+      "detail": "Người dùng Nguyễn Văn Hùng đã đăng nhập thành công vào hệ thống.",
+      "timestamp": "2026-10-25T01:20:48.356054",
+      "device": "Web/Mobile"
+    },
+    {
+      "id": 3,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AI_CHATBOT_GEMINI",
+      "title": "Hỏi đáp Trợ lý AI Gemini",
+      "detail": "Hỏi về thực phẩm ăn tối hỗ trợ giấc ngủ tự nhiên.",
+      "timestamp": "2026-10-24T20:15:00.000Z",
+      "device": "Mobile App (PWA)"
+    },
+    {
+      "id": 2,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "DIAGNOSIS_5PILLARS",
+      "title": "Khảo sát 5 Trụ Cột Y Khoa",
+      "detail": "Điểm dự báo giấc ngủ 68%. Mức độ stress trung bình, đau cổ vai gáy.",
+      "timestamp": "2026-10-24T19:30:00.000Z",
+      "device": "Mobile App (PWA)"
+    },
+    {
+      "id": 1,
+      "userId": "user_hungnv",
+      "userName": "Nguyễn Văn Hùng",
+      "serviceType": "AUTH_LOGIN",
+      "title": "Đăng nhập hệ thống",
+      "detail": "Tài khoản Nguyễn Văn Hùng đã đăng nhập và đồng bộ từ thiết bị.",
+      "timestamp": "2026-10-24T18:00:00.000Z",
+      "device": "Web Browser"
+    },
+    {
+      "id": 4,
+      "userId": "user_hungnv",
+      "serviceType": "CALENDAR_SCAN",
+      "title": "Quét lịch công việc & Xuất .ics",
+      "detail": "Phát hiện 3 khe trống trong ngày, xếp lịch 3 vi-hành động 2-5 phút đồng bộ Google Calendar.",
+      "timestamp": "2026-10-24T17:37:20.435Z",
+      "icon": "fa-solid fa-calendar-check",
+      "badgeColor": "amber",
+      "device": "Web Browser"
+    }
+  ],
+  "diagnoses": [
+    {
+      "userId": "user_1792864664",
+      "userName": "Phạm Quốc Dũng",
+      "score": 72,
+      "pillars": {
+        "p1_stress": 45,
+        "p2_env": 30,
+        "p3_lifestyle": 25,
+        "p4_physio": 20,
+        "p5_health": 40
+      },
+      "summary": "Nhịp sinh học cần tối ưu giờ cà phê và tư thế làm việc.",
+      "customAnswers": {
+        "physical_pain": "Đau vùng thắt lưng L4-L5 khi ngồi vẽ bản vẽ lâu",
+        "caffeine_usage": "Uống 2 ly cold brew lúc 14h chiều"
+      },
+      "device": "Mobile App (PWA)",
+      "id": 1792864664255,
+      "timestamp": "2026-10-25T00:57:44.255020"
+    },
+    {
+      "id": 1792897112262,
+      "userId": "user_1792896601",
+      "userName": "Thắm",
+      "score": 25,
+      "pillars": {
+        "p1_stress": 50,
+        "p2_env": 75,
+        "p3_lifestyle": 100,
+        "p4_physio": 90,
+        "p5_health": 80
+      },
+      "answers": {
+        "stress_level": [
+          "medium"
+        ],
+        "mood_state": [
+          "good"
+        ],
+        "env_light": [
+          "dark"
+        ],
+        "env_temp": [
+          "custom",
+          "hot"
+        ],
+        "env_noise": [
+          "noisy"
+        ],
+        "caffeine_usage": [
+          "late_high"
+        ],
+        "alcohol_nicotine": [
+          "none"
+        ],
+        "dinner_habit": [
+          "heavy_late"
+        ],
+        "bed_phone": [
+          "lướt_tiktok_fb"
+        ],
+        "age_group": [
+          "middle_aged"
+        ],
+        "hormone_state": [
+          "menopause_hotflash"
+        ],
+        "physical_pain": [
+          "neck_back_pain"
+        ],
+        "chronic_condition": [
+          "gerd"
+        ]
+      },
+      "customAnswers": {},
+      "device": "Web Browser",
+      "timestamp": "2026-10-25T02:58:32.262Z"
+    },
+    {
+      "id": 1792897227356,
+      "userId": "user_1792896601",
+      "userName": "Thắm",
+      "score": 25,
+      "pillars": {
+        "p1_stress": 100,
+        "p2_env": 100,
+        "p3_lifestyle": 80,
+        "p4_physio": 90,
+        "p5_health": 45
+      },
+      "answers": {
+        "stress_level": [
+          "medium",
+          "low",
+          "high"
+        ],
+        "mood_state": [
+          "good",
+          "brain_fog",
+          "anxious"
+        ],
+        "env_light": [
+          "dark",
+          "screen_heavy",
+          "light_polluted"
+        ],
+        "env_temp": [
+          "ideal",
+          "hot",
+          "too_cold"
+        ],
+        "env_noise": [
+          "quiet",
+          "noisy"
+        ],
+        "caffeine_usage": [
+          "morning_only"
+        ],
+        "alcohol_nicotine": [
+          "alcohol_dinner",
+          "nicotine"
+        ],
+        "dinner_habit": [
+          "light_early"
+        ],
+        "bed_phone": [
+          "lướt_tiktok_fb"
+        ],
+        "age_group": [
+          "middle_aged"
+        ],
+        "hormone_state": [
+          "menopause_hotflash"
+        ],
+        "physical_pain": [
+          "neck_back_pain"
+        ],
+        "chronic_condition": [
+          "none"
+        ]
+      },
+      "customAnswers": {},
+      "device": "Web Browser",
+      "timestamp": "2026-10-25T03:00:27.356Z"
+    }
+  ]
+}

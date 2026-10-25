@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mavis chúc bạn ngủ ngon - Bảng Điều Khiển Quản Trị Sáng Lập (Founder Portal)</title>
+  <meta name="description" content="Trung tâm quản lý cơ sở dữ liệu người dùng, khảo sát 5 trụ cột y khoa và giám sát an toàn AI cho Founder Mavis chúc bạn ngủ ngon. Bạn ngủ ngon, Mavis hạnh phúc.">
+
+  <!-- Google Fonts: Be Vietnam Pro -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-primary: #090E17;
+      --bg-surface: #0F172A;
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --bg-card-hover: rgba(51, 65, 85, 0.8);
+      --border-color: rgba(148, 163, 184, 0.15);
+      --border-accent: rgba(56, 189, 248, 0.4);
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --primary: #38BDF8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --accent: #818CF8;
+      --emerald: #34D399;
+      --emerald-glow: rgba(52, 211, 153, 0.2);
+      --amber: #FBBF24;
+      --rose: #F43F5E;
+      --purple: #A855F7;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --font-main: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-main);
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Glow Background */
+    .ambient-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
+    }
+    .glow-1 {
+      top: -100px;
+      left: 10%;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, #38BDF8, #6366F1);
+    }
+    .glow-2 {
+      bottom: -150px;
+      right: 5%;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, #8B5CF6, #EC4899);
+    }
+
+    /* PIN Lock Screen */
+    #pin-lock-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(9, 14, 23, 0.94);
+      backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      padding: 1.5rem;
+    }
+    .pin-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px var(--primary-glow);
+      position: relative;
+    }
+    .pin-icon-wrap {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(129, 140, 248, 0.2));
+      border: 1px solid var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: var(--primary);
+      margin: 0 auto 1.5rem auto;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+    .pin-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #F8FAFC 30%, #38BDF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .pin-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1.8rem;
+    }
+    .pin-input {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-align: center;
+      background: rgba(2, 6, 23, 0.6);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--primary);
+      outline: none;
+      transition: all 0.25s ease;
+      margin-bottom: 1.2rem;
+    }
+    .pin-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+    .btn-unlock {
+      width: 100%;
+      padding: 0.9rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #0284C7, #6366F1);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+    }
+    .btn-unlock:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(2, 132, 199, 0.6);
+    }
+    .pin-hint {
+      margin-top: 1.2rem;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    /* Main Dashboard Layout */
+    .dashboard-layout {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Navigation Bar */
+    .admin-navbar {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .brand-logo-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284C7, #4F46E5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.3rem;
+      box-shadow: 0 0 20px rgba(2, 132, 199, 0.4);
+    }
+    .brand-titles h1 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .founder-badge {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #FBBF24;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .brand-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .nav-center-tabs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(2, 6, 23, 0.5);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+    .tab-nav-btn {
+      padding: 0.6rem 1.1rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    .tab-nav-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .tab-nav-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, #0284C7, #4F46E5);
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.3);
+    }
+
+    .nav-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .sync-status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.85rem;
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #34D399;
+    }
+    .status-dot-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #34D399;
+      box-shadow: 0 0 8px #34D399;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .btn-action-ghost {
+      padding: 0.55rem 0.95rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: rgba(30, 41, 59, 0.5);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-action-ghost:hover {
+      background: rgba(51, 65, 85, 0.8);
+      border-color: var(--primary);
+    }
+    .btn-link-app {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .btn-link-app:hover {
+      background: rgba(56, 189, 248, 0.25);
+    }
+
+    /* Content Area */
+    .admin-main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Top Stats Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+    .kpi-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .kpi-icon.sky { background: rgba(56, 189, 248, 0.15); color: #38BDF8; }
+    .kpi-icon.indigo { background: rgba(129, 140, 248, 0.15); color: #818CF8; }
+    .kpi-icon.emerald { background: rgba(52, 211, 153, 0.15); color: #34D399; }
+    .kpi-icon.amber { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
+    .kpi-icon.rose { background: rgba(244, 63, 94, 0.15); color: #F43F5E; }
+
+    .kpi-info h3 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.35rem;
+    }
+    .kpi-number {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+    }
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 0.3rem;
+    }
+
+    /* Section Cards */
+    .section-box {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .section-title i {
+      color: var(--primary);
+    }
+    .section-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    /* Search and Filter Bar */
+    .search-input-wrap {
+      position: relative;
+      min-width: 260px;
+    }
+    .search-input-wrap i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    .search-input {
+      width: 100%;
+      padding: 0.6rem 1rem 0.6rem 2.5rem;
+      background: rgba(2, 6, 23, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+
+    /* Data Table */
+    .table-responsive {
+      overflow-x: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+    .data-table th {
+      background: rgba(2, 6, 23, 0.6);
+      padding: 0.9rem 1.1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+    .data-table td {
+      padding: 1rem 1.1rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      vertical-align: middle;
+    }
+    .data-table tr:hover td {
+      background: rgba(51, 65, 85, 0.3);
+    }
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .user-avatar-mini {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0284C7, #6366F1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .user-name-text {
+      font-weight: 700;
+      color: #fff;
+      display: block;
+    }
+    .user-sub-text {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-sky { background: rgba(56, 189, 248, 0.15); color: #38BDF8; }
+    .badge-emerald { background: rgba(52, 211, 153, 0.15); color: #34D399; }
+    .badge-amber { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
+    .badge-rose { background: rgba(244, 63, 94, 0.15); color: #F43F5E; }
+    .badge-purple { background: rgba(168, 85, 247, 0.15); color: #C084FC; }
+
+    /* Action buttons in table */
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-row-action {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: rgba(30, 41, 59, 0.6);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      transition: all 0.2s;
+    }
+    .btn-row-action:hover {
+      background: rgba(51, 65, 85, 0.9);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .btn-row-action.delete:hover {
+      background: rgba(244, 63, 94, 0.2);
+      border-color: var(--rose);
+      color: var(--rose);
+    }
+
+    /* Diagnosis & Survey Custom Answers Card */
+    .custom-answer-badge {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 6px;
+      padding: 0.4rem 0.65rem;
+      font-size: 0.8rem;
+      color: #FDE047;
+      display: inline-block;
+      margin: 0.2rem 0;
+    }
+    .diag-item-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      transition: all 0.2s;
+    }
+    .diag-item-card:hover {
+      border-color: var(--border-accent);
+      background: rgba(30, 41, 59, 0.4);
+    }
+    .diag-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    .diag-score-circle {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .score-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+    }
+    .score-high { background: rgba(52, 211, 153, 0.2); color: #34D399; border: 2px solid #34D399; }
+    .score-mid { background: rgba(245, 158, 11, 0.2); color: #FBBF24; border: 2px solid #FBBF24; }
+    .score-low { background: rgba(244, 63, 94, 0.2); color: #F43F5E; border: 2px solid #F43F5E; }
+
+    .pillars-pill-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+    }
+    .pillar-tag {
+      background: rgba(2, 6, 23, 0.6);
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Modal Styles */
+    .admin-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 1.5rem;
+    }
+    .admin-modal-overlay.active {
+      display: flex;
+    }
+    .admin-modal-content {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      max-width: 650px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+    }
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+    .btn-close-modal:hover { color: #fff; }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(2, 6, 23, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+    }
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.8rem;
+      margin-top: 1.8rem;
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.2rem;
+    }
+    .btn-submit-modal {
+      padding: 0.75rem 1.4rem;
+      background: linear-gradient(135deg, #0284C7, #4F46E5);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-cancel-modal {
+      padding: 0.75rem 1.2rem;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    /* Guardrail Highlight in Logs */
+    .log-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      font-size: 0.85rem;
+    }
+    .log-item.guardrail-alert {
+      background: rgba(244, 63, 94, 0.08);
+      border-left: 3px solid var(--rose);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    .log-icon-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .admin-navbar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1rem;
+      }
+      .nav-center-tabs {
+        overflow-x: auto;
+      }
+      .admin-main {
+        padding: 1rem;
+      }
+      .form-row-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient background lighting -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- PIN LOCK OVERLAY (Security Check for Founder) -->
+  <div id="pin-lock-overlay">
+    <div class="pin-card">
+      <div class="pin-icon-wrap">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h2 class="pin-title">Founder Admin Portal</h2>
+      <p class="pin-desc">
+        Khu vực bảo mật dành riêng cho Người Sáng Lập SleepSync AI. Vui lòng nhập mã PIN để xác thực quyền quản trị.
+      </p>
+      <form id="pin-login-form">
+        <input type="password" id="admin-pin-input" class="pin-input" placeholder="••••" maxlength="8" autofocus autocomplete="off">
+        <button type="submit" class="btn-unlock">
+          <i class="fa-solid fa-lock-open"></i>
+          <span>Mở Khóa Quản Trị</span>
+        </button>
+      </form>
+      <p class="pin-hint">
+        <i class="fa-solid fa-circle-info"></i> Mã PIN mặc định của hệ thống: <strong>2026</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD MAIN LAYOUT -->
+  <div class="dashboard-layout">
+    
+    <!-- Top Navigation Bar -->
+    <header class="admin-navbar">
+      <div class="brand-section">
+        <div class="brand-logo-icon">
+          <i class="fa-solid fa-moon"></i>
+        </div>
+        <div class="brand-titles">
+          <h1>Mavis Database <span class="founder-badge"><i class="fa-solid fa-crown"></i> Founder</span></h1>
+          <p class="brand-sub">Mavis chúc bạn ngủ ngon • "Bạn ngủ ngon, Mavis hạnh phúc"</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-center-tabs">
+        <button class="tab-nav-btn active" data-tab="tab-overview">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Tổng Quan</span>
+        </button>
+        <button class="tab-nav-btn" data-tab="tab-users">
+          <i class="fa-solid fa-users"></i>
+          <span>Người Dùng (<span id="tab-user-count">0</span>)</span>
+        </button>
+        <button class="tab-nav-btn" data-tab="tab-diagnoses">
+          <i class="fa-solid fa-notes-medical"></i>
+          <span>Khảo Sát Y Khoa</span>
+        </button>
+        <button class="tab-nav-btn" data-tab="tab-logs">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Nhật Ký & An Toàn AI</span>
+        </button>
+        <button class="tab-nav-btn" data-tab="tab-backup">
+          <i class="fa-solid fa-cloud-arrow-down"></i>
+          <span>Sao Lưu & Đồng Bộ</span>
+        </button>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="nav-right-actions">
+        <div class="sync-status-indicator" title="Máy chủ đồng bộ Cloud đang kết nối thời gian thực">
+          <span class="status-dot-pulse"></span>
+          <span>Cloud Active</span>
+        </div>
+        <a href="index.html" class="btn-action-ghost btn-link-app" target="_blank" title="Mở giao diện ứng dụng SleepSync">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>Mở Ứng Dụng</span>
+        </a>
+        <button id="btn-lock-screen" class="btn-action-ghost" title="Khóa màn hình quản trị">
+          <i class="fa-solid fa-lock"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Workspace -->
+    <main class="admin-main">
+
+      <!-- ============================================ -->
+      <!-- TAB 1: TỔNG QUAN (KPIs & Metrics) -->
+      <!-- ============================================ -->
+      <div id="tab-overview" class="tab-pane active">
+        <!-- KPI Cards Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon sky">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="kpi-info">
+              <h3>Tổng Người Dùng</h3>
+              <div class="kpi-number" id="kpi-total-users">0</div>
+              <div class="kpi-sub">Đồng bộ Web & Mobile PWA</div>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon indigo">
+              <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <div class="kpi-info">
+              <h3>Lượt Chẩn Đoán 5 Trụ Cột</h3>
+              <div class="kpi-number" id="kpi-total-diags">0</div>
+              <div class="kpi-sub">Đánh giá nhịp sinh học & giấc ngủ</div>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon emerald">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <div class="kpi-info">
+              <h3>Phiên Chatbot AI Gemini</h3>
+              <div class="kpi-number" id="kpi-total-chats">0</div>
+              <div class="kpi-sub">Khoa học thần kinh & RAG</div>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon rose">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="kpi-info">
+              <h3>AI Guardrail Bảo Vệ</h3>
+              <div class="kpi-number" id="kpi-total-guardrails">0</div>
+              <div class="kpi-sub">Lần chặn hỏi thuốc & TPCN</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Architecture & Cloud Sync Status -->
+        <div class="section-box">
+          <div class="section-header">
+            <h2 class="section-title"><i class="fa-solid fa-server"></i> Trạng Thái Đồng Bộ Đám Mây (Cloud Architecture)</h2>
+            <button class="btn-action-ghost" id="btn-refresh-all-data"><i class="fa-solid fa-arrows-rotate"></i> Làm Mới Dữ Liệu</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; color: var(--text-muted); font-size: 0.9rem;">
+            <div style="background: rgba(2, 6, 23, 0.4); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <h4 style="color: #fff; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-laptop-code" style="color: var(--primary);"></i> Web Platform
+              </h4>
+              <p>Chạy trực tiếp trên trình duyệt máy tính, giao diện trực quan, đồng bộ 2 chiều tức thì với cơ sở dữ liệu JSON trung tâm.</p>
+            </div>
+            <div style="background: rgba(2, 6, 23, 0.4); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <h4 style="color: #fff; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-mobile-screen-button" style="color: #34D399;"></i> Mobile App (PWA)
+              </h4>
+              <p>Cài đặt thành ứng dụng độc lập trên iOS (Add to Home Screen) và Android (Install App), Service Worker hỗ trợ mở app tức thì và lưu trữ offline.</p>
+            </div>
+            <div style="background: rgba(2, 6, 23, 0.4); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <h4 style="color: #fff; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-cloud" style="color: #818CF8;"></i> One-Account Sync Engine
+              </h4>
+              <p>Người dùng đăng nhập bằng 1 số điện thoại hoặc ID trên bất kỳ thiết bị nào, dữ liệu hồ sơ, kết quả test và lịch trình tự động hợp nhất về 1 nguồn duy nhất.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Registered Users Quick Preview -->
+        <div class="section-box">
+          <div class="section-header">
+            <h2 class="section-title"><i class="fa-solid fa-user-clock"></i> Người Dùng Hoạt Động Gần Đây</h2>
+            <button class="btn-action-ghost" id="btn-goto-users-tab">Xem Toàn Bộ Bảng Người Dùng &rarr;</button>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Người Dùng</th>
+                  <th>Số Điện Thoại / Email</th>
+                  <th>Nghề Nghiệp</th>
+                  <th>Mục Tiêu Giờ Ngủ</th>
+                  <th>Tình Trạng Sức Khỏe</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="overview-users-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 2: QUẢN LÝ NGƯỜI DÙNG (Users Database) -->
+      <!-- ============================================ -->
+      <div id="tab-users" class="tab-pane">
+        <div class="section-box">
+          <div class="section-header">
+            <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+              <h2 class="section-title"><i class="fa-solid fa-database"></i> Cơ Sở Dữ Liệu Người Dùng</h2>
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="user-search-input" class="search-input" placeholder="Tìm theo tên, SĐT, nghề nghiệp...">
+              </div>
+            </div>
+            <div class="section-actions">
+              <button class="btn-submit-modal" id="btn-open-create-user-modal">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>Thêm Người Dùng Mới</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table" id="main-users-table">
+              <thead>
+                <tr>
+                  <th>ID / Thành Viên</th>
+                  <th>Liên Hệ (SĐT)</th>
+                  <th>Tuổi / Giới Tính</th>
+                  <th>Nghề Nghiệp</th>
+                  <th>Giờ Ngủ Mục Tiêu</th>
+                  <th>Tiền Sử & Bệnh Lý</th>
+                  <th>Thời Gian Tạo</th>
+                  <th style="text-align: right;">Hành Động</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-tbody">
+                <!-- Populated via API -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 3: DỮ LIỆU KHẢO SÁT & CÂU HỎI "KHÁC" -->
+      <!-- ============================================ -->
+      <div id="tab-diagnoses" class="tab-pane">
+        <div class="section-box">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title"><i class="fa-solid fa-clipboard-question"></i> Hồ Sơ Khảo Sát 5 Trụ Cột Y Khoa</h2>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem;">
+                Theo dõi kết quả chẩn đoán nhịp sinh học, điểm số giấc ngủ và <strong>đặc biệt là các câu trả lời do người dùng tự điền ở mục "Khác"</strong>.
+              </p>
+            </div>
+            <button class="btn-action-ghost" id="btn-refresh-diagnoses"><i class="fa-solid fa-arrows-rotate"></i> Làm mới</button>
+          </div>
+
+          <div id="diagnoses-list-container">
+            <!-- Dynamic diagnoses cards populated here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 4: NHẬT KÝ & GIÁM SÁT AN TOÀN AI GUARDRAIL -->
+      <!-- ============================================ -->
+      <div id="tab-logs" class="tab-pane">
+        <div class="section-box">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title"><i class="fa-solid fa-shield-virus"></i> Nhật Ký Hoạt Động & Giám Sát An Toàn AI</h2>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem;">
+                Kiểm toán toàn bộ tương tác AI, đăng nhập hệ thống và các cảnh báo vi phạm chính sách y tế (hỏi thuốc/TPCN).
+              </p>
+            </div>
+            <div class="section-actions">
+              <select id="log-filter-select" class="form-select" style="width: auto; padding: 0.5rem 1rem;">
+                <option value="ALL">Tất cả nhật ký</option>
+                <option value="GUARDRAIL">Chỉ xem vi phạm AI Guardrail</option>
+                <option value="AI_CHAT">Hỏi đáp AI Gemini</option>
+                <option value="DIAGNOSIS">Chẩn đoán 5 trụ cột</option>
+                <option value="AUTH">Đăng nhập & Tài khoản</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="logs-stream-container">
+            <!-- Populated via API -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- TAB 5: SAO LƯU & XUẤT DỮ LIỆU -->
+      <!-- ============================================ -->
+      <div id="tab-backup" class="tab-pane">
+        <div class="section-box">
+          <div class="section-header">
+            <h2 class="section-title"><i class="fa-solid fa-file-export"></i> Xuất & Khôi Phục Dữ Liệu Dành Cho Founder</h2>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+            <!-- Export JSON -->
+            <div style="background: rgba(2, 6, 23, 0.4); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="font-size: 2rem; color: var(--primary); margin-bottom: 0.8rem;"><i class="fa-solid fa-file-code"></i></div>
+              <h3 style="margin-bottom: 0.5rem;">Sao Lưu Database Đầy Đủ (JSON)</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.2rem;">
+                Tải xuống toàn bộ cơ sở dữ liệu gồm danh sách người dùng, các bài khảo sát, nhật ký sử dụng và cấu hình dưới định dạng JSON nguyên bản.
+              </p>
+              <button class="btn-submit-modal" id="btn-export-full-json">
+                <i class="fa-solid fa-download"></i>
+                <span>Tải Toàn Bộ Database (.json)</span>
+              </button>
+            </div>
+
+            <!-- Export Users CSV -->
+            <div style="background: rgba(2, 6, 23, 0.4); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="font-size: 2rem; color: #34D399; margin-bottom: 0.8rem;"><i class="fa-solid fa-file-csv"></i></div>
+              <h3 style="margin-bottom: 0.5rem;">Xuất Danh Sách Người Dùng (CSV / Excel)</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.2rem;">
+                Xuất danh sách khách hàng dưới dạng bảng CSV tương thích với Microsoft Excel, Google Sheets để làm báo cáo thống kê hoặc chăm sóc khách hàng.
+              </p>
+              <button class="btn-submit-modal" id="btn-export-users-csv" style="background: linear-gradient(135deg, #059669, #10B981);">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Xuất Bảng Người Dùng (.csv)</span>
+              </button>
+            </div>
+
+            <!-- Restore / Seed DB -->
+            <div style="background: rgba(2, 6, 23, 0.4); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <div style="font-size: 2rem; color: var(--amber); margin-bottom: 0.8rem;"><i class="fa-solid fa-rotate-left"></i></div>
+              <h3 style="margin-bottom: 0.5rem;">Khôi Phục Database Mặc Định</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.2rem;">
+                Đặt lại cơ sở dữ liệu về bộ tài khoản mẫu ban đầu (Nguyễn Văn Hùng & Trần Thị Mai). Sử dụng khi muốn kiểm thử lại từ đầu.
+              </p>
+              <button class="btn-cancel-modal" id="btn-reset-database-seed" style="border-color: var(--amber); color: var(--amber);">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Khôi Phục Mẫu Ban Đầu</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL: ADD / EDIT USER -->
+  <div class="admin-modal-overlay" id="user-modal-overlay">
+    <div class="admin-modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="user-modal-title">Thêm Người Dùng Mới</h3>
+        <button class="btn-close-modal" id="btn-close-user-modal">&times;</button>
+      </div>
+      <form id="user-edit-form">
+        <input type="hidden" id="user-form-id">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Họ và Tên (*)</label>
+            <input type="text" id="user-form-name" class="form-input" required placeholder="Ví dụ: Lê Minh Hoàng">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số Điện Thoại (*)</label>
+            <input type="text" id="user-form-phone" class="form-input" required placeholder="0988 888 888">
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Nghề Nghiệp / Vị Trí</label>
+            <input type="text" id="user-form-role" class="form-input" placeholder="Kỹ sư phần mềm / Bác sĩ">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tuổi & Giới Tính</label>
+            <input type="text" id="user-form-age" class="form-input" placeholder="32 tuổi (Nam)">
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Giờ Đi Ngủ Mục Tiêu</label>
+            <input type="time" id="user-form-bedtime" class="form-input" value="23:00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Giờ Thức Dậy Dự Kiến</label>
+            <input type="time" id="user-form-waketime" class="form-input" value="06:30">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mật Khẩu Đăng Nhập (Mặc định: 123456)</label>
+          <input type="text" id="user-form-pwd" class="form-input" placeholder="123456">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tiền Sử Bệnh / Tình Trạng Sức Khỏe (Cách nhau bằng dấu phẩy)</label>
+          <input type="text" id="user-form-conditions" class="form-input" placeholder="Đau mỏi vai gáy, Mất ngủ sau 1h sáng, Ngồi nhiều máy tính">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tiểu Sử / Ghi Chú Cá Nhân</label>
+          <textarea id="user-form-bio" class="form-textarea" rows="2" placeholder="Mục tiêu cải thiện giấc ngủ sâu NREM..."></textarea>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel-modal" id="btn-cancel-user-modal">Hủy</button>
+          <button type="submit" class="btn-submit-modal"><i class="fa-solid fa-floppy-disk"></i> Lưu Người Dùng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPT ENGINE -->
+  <script>
+    // Founder Access Credentials
+    const FOUNDER_PIN = '2026';
+    const SESSION_KEY = 'sleepsync_founder_auth';
+
+    // State
+    let adminDb = {
+      users: [],
+      diagnoses: [],
+      serviceUsage: [],
+      stats: {}
+    };
+
+    // DOM Elements
+    const pinOverlay = document.getElementById('pin-lock-overlay');
+    const pinForm = document.getElementById('pin-login-form');
+    const pinInput = document.getElementById('admin-pin-input');
+    const btnLockScreen = document.getElementById('btn-lock-screen');
+    const tabBtns = document.querySelectorAll('.tab-nav-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    // Init Auth
+    function checkAuth() {
+      const isAuthed = sessionStorage.getItem(SESSION_KEY) === 'true';
+      if (isAuthed) {
+        pinOverlay.style.display = 'none';
+        loadDashboardData();
+      } else {
+        pinOverlay.style.display = 'flex';
+        pinInput.focus();
+      }
+    }
+
+    pinForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entered = pinInput.value.trim();
+      if (entered === FOUNDER_PIN) {
+        sessionStorage.setItem(SESSION_KEY, 'true');
+        pinOverlay.style.display = 'none';
+        loadDashboardData();
+      } else {
+        alert('Mã PIN không chính xác! Vui lòng thử lại với mã 2026.');
+        pinInput.value = '';
+        pinInput.focus();
+      }
+    });
+
+    btnLockScreen.addEventListener('click', () => {
+      sessionStorage.removeItem(SESSION_KEY);
+      pinInput.value = '';
+      pinOverlay.style.display = 'flex';
+    });
+
+    // Tab Navigation
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabPanes.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(target).classList.add('active');
+      });
+    });
+
+    document.getElementById('btn-goto-users-tab').addEventListener('click', () => {
+      document.querySelector('[data-tab="tab-users"]').click();
+    });
+
+    // Load Data from REST API
+    async function loadDashboardData() {
+      try {
+        // Fetch stats
+        const resStats = await fetch('/api/stats');
+        const dataStats = await resStats.json();
+        if (dataStats.success) {
+          adminDb.stats = dataStats.stats;
+          renderKpis(dataStats.stats);
+        }
+
+        // Fetch users
+        const resUsers = await fetch('/api/users');
+        const dataUsers = await resUsers.json();
+        if (dataUsers.success) {
+          adminDb.users = dataUsers.users || [];
+          document.getElementById('tab-user-count').textContent = adminDb.users.length;
+          renderUsersTable(adminDb.users);
+          renderOverviewUsers(adminDb.users);
+        }
+
+        // Fetch diagnoses
+        const resDiags = await fetch('/api/diagnoses');
+        const dataDiags = await resDiags.json();
+        if (dataDiags.success) {
+          adminDb.diagnoses = dataDiags.diagnoses || [];
+          renderDiagnosesList(adminDb.diagnoses);
+        }
+
+        // Fetch logs
+        const resLogs = await fetch('/api/logs');
+        const dataLogs = await resLogs.json();
+        if (dataLogs.success) {
+          adminDb.serviceUsage = dataLogs.logs || [];
+          renderLogs(adminDb.serviceUsage);
+        }
+
+      } catch (err) {
+        console.warn('[Founder Admin] API error, loading local fallback:', err);
+      }
+    }
+
+    // Render KPIs
+    function renderKpis(stats) {
+      document.getElementById('kpi-total-users').textContent = stats.totalUsers || adminDb.users.length;
+      document.getElementById('kpi-total-diags').textContent = stats.totalDiagnoses || adminDb.diagnoses.length;
+      document.getElementById('kpi-total-chats').textContent = stats.totalAiChats || 0;
+      document.getElementById('kpi-total-guardrails').textContent = stats.totalGuardrailBlocks || 0;
+    }
+
+    // Render Overview Users
+    function renderOverviewUsers(users) {
+      const tbody = document.getElementById('overview-users-tbody');
+      tbody.innerHTML = users.slice(0, 5).map(u => `
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar-mini">${u.avatarType === 'woman_professional' ? '👩‍💼' : '👨‍💻'}</div>
+              <div>
+                <span class="user-name-text">${u.fullName}</span>
+                <span class="user-sub-text">${u.id}</span>
+              </div>
+            </div>
+          </td>
+          <td>${u.phone || 'Chưa cập nhật'}</td>
+          <td>${u.occupation || u.role}</td>
+          <td><span class="badge-tag badge-sky"><i class="fa-regular fa-clock"></i> ${u.targetBedtime || '23:00'} - ${u.wakeTime || '06:30'}</span></td>
+          <td>
+            ${(u.healthConditions || []).slice(0, 2).map(c => `<span class="badge-tag badge-amber">${c}</span>`).join(' ')}
+          </td>
+          <td><span class="badge-tag badge-emerald"><i class="fa-solid fa-check"></i> Hoạt động</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // Render Users Table
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('users-table-tbody');
+      if (!users || users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-dim);">Chưa có người dùng nào.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar-mini">${u.avatarType === 'woman_professional' ? '👩‍💼' : '👨‍💻'}</div>
+              <div>
+                <span class="user-name-text">${u.fullName} ${u.verified ? '<i class="fa-solid fa-circle-check" style="color:#38BDF8;"></i>' : ''}</span>
+                <span class="user-sub-text">${u.id}</span>
+              </div>
+            </div>
+          </td>
+          <td>${u.phone || '—'}</td>
+          <td>${u.age || '—'}</td>
+          <td>${u.occupation || u.role}</td>
+          <td><span class="badge-tag badge-sky">${u.targetBedtime || '23:00'} &rarr; ${u.wakeTime || '06:30'}</span></td>
+          <td>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+              ${(u.healthConditions || []).map(c => `<span class="badge-tag badge-amber">${c}</span>`).join('')}
+            </div>
+          </td>
+          <td style="font-size: 0.78rem; color: var(--text-dim);">${formatDateTime(u.createdAt)}</td>
+          <td style="text-align: right;">
+            <div class="row-actions" style="justify-content: flex-end;">
+              <button class="btn-row-action" title="Chỉnh sửa" onclick="openEditUserModal('${u.id}')">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn-row-action delete" title="Xóa người dùng" onclick="deleteUser('${u.id}', '${u.fullName}')">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Search Users Filter
+    document.getElementById('user-search-input').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase().trim();
+      const filtered = adminDb.users.filter(u => 
+        (u.fullName && u.fullName.toLowerCase().includes(term)) ||
+        (u.phone && u.phone.toLowerCase().includes(term)) ||
+        (u.occupation && u.occupation.toLowerCase().includes(term)) ||
+        (u.id && u.id.toLowerCase().includes(term))
+      );
+      renderUsersTable(filtered);
+    });
+
+    // Render Diagnoses List (Highlighting Custom Answers from "Khác")
+    function renderDiagnosesList(diagnoses) {
+      const container = document.getElementById('diagnoses-list-container');
+      if (!diagnoses || diagnoses.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 3rem; color: var(--text-dim);">
+            <i class="fa-solid fa-file-waveform" style="font-size: 2.5rem; margin-bottom: 0.8rem; opacity: 0.4; display: block;"></i>
+            Chưa có bài khảo sát nào được gửi lên server. Hãy thực hiện khảo sát trên Web hoặc Mobile App!
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = diagnoses.map(d => {
+        const score = d.score || 70;
+        const scoreClass = score >= 75 ? 'score-high' : (score >= 50 ? 'score-mid' : 'score-low');
+        const customAnswers = d.customAnswers || {};
+        const customEntries = Object.entries(customAnswers).filter(([_, v]) => v && v.trim().length > 0);
+
+        return `
+          <div class="diag-item-card">
+            <div class="diag-card-top">
+              <div class="diag-score-circle">
+                <div class="score-circle ${scoreClass}">${score}%</div>
+                <div>
+                  <h4 style="color: #fff; font-size: 1rem;">Khảo sát từ User: <strong>${d.userName || d.userId || 'Người dùng'}</strong></h4>
+                  <span style="font-size: 0.78rem; color: var(--text-dim);"><i class="fa-regular fa-clock"></i> ${formatDateTime(d.timestamp)} • Thiết bị: ${d.device || 'Đồng bộ Cloud'}</span>
+                </div>
+              </div>
+              <div class="pillars-pill-row">
+                <span class="pillar-tag">🧠 Tâm lý: <strong>${d.pillars ? d.pillars.p1_stress : 30}/100</strong></span>
+                <span class="pillar-tag">🏠 Môi trường: <strong>${d.pillars ? d.pillars.p2_env : 20}/100</strong></span>
+                <span class="pillar-tag">☕ Lối sống: <strong>${d.pillars ? d.pillars.p3_lifestyle : 20}/100</strong></span>
+                <span class="pillar-tag">🧬 Sinh lý: <strong>${d.pillars ? d.pillars.p4_physio : 15}/100</strong></span>
+                <span class="pillar-tag">🩺 Bệnh lý: <strong>${d.pillars ? d.pillars.p5_health : 10}/100</strong></span>
+              </div>
+            </div>
+
+            <!-- Custom answers typed by users in "Khác" -->
+            ${customEntries.length > 0 ? `
+              <div style="background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 0.8rem 1rem;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #FBBF24; margin-bottom: 0.4rem;">
+                  <i class="fa-solid fa-pen-fancy"></i> Ý KIẾN TỰ ĐIỀN TỪ MỤC "KHÁC" CỦA NGƯỜI DÙNG:
+                </div>
+                ${customEntries.map(([k, val]) => `
+                  <div class="custom-answer-badge">
+                    <strong>${k}:</strong> "${val}"
+                  </div>
+                `).join(' ')}
+              </div>
+            ` : '<div style="font-size: 0.8rem; color: var(--text-dim);"><em>Người dùng chọn các phương án có sẵn (Không có nội dung tự điền bổ sung).</em></div>'}
+
+            <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+              ${d.summary || 'Đã hoàn tất phân tích nhịp sinh học và tạo lịch vi-hành động.'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Render Logs Stream
+    function renderLogs(logs) {
+      const container = document.getElementById('logs-stream-container');
+      const filter = document.getElementById('log-filter-select').value;
+
+      let filtered = logs;
+      if (filter === 'GUARDRAIL') {
+        filtered = logs.filter(l => (l.serviceType || '').includes('GUARDRAIL'));
+      } else if (filter === 'AI_CHAT') {
+        filtered = logs.filter(l => (l.serviceType || '').includes('AI_CHAT'));
+      } else if (filter === 'DIAGNOSIS') {
+        filtered = logs.filter(l => (l.serviceType || '').includes('DIAGNOSIS'));
+      } else if (filter === 'AUTH') {
+        filtered = logs.filter(l => (l.serviceType || '').includes('AUTH'));
+      }
+
+      if (!filtered || filtered.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--text-dim);">Không có bản ghi nhật ký phù hợp với bộ lọc.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(l => {
+        const isGuardrail = (l.serviceType || '').includes('GUARDRAIL');
+        const iconColor = isGuardrail ? '#F43F5E' : '#38BDF8';
+        const bgIcon = isGuardrail ? 'rgba(244, 63, 94, 0.2)' : 'rgba(56, 189, 248, 0.15)';
+
+        return `
+          <div class="log-item ${isGuardrail ? 'guardrail-alert' : ''}">
+            <div class="log-icon-circle" style="background: ${bgIcon}; color: ${iconColor};">
+              <i class="${isGuardrail ? 'fa-solid fa-triangle-exclamation' : (l.icon || 'fa-solid fa-bell')}"></i>
+            </div>
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <strong style="color: ${isGuardrail ? '#FDA4AF' : '#fff'}; font-size: 0.9rem;">${l.title || 'Nhật ký dịch vụ'}</strong>
+                <span style="font-size: 0.75rem; color: var(--text-dim);">${formatDateTime(l.timestamp)}</span>
+              </div>
+              <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.4;">${l.detail || ''}</p>
+              <div style="margin-top: 0.35rem; font-size: 0.75rem; color: var(--text-dim);">
+                <span>Người dùng: <strong>${l.userName || l.userId || 'Khách'}</strong></span> • 
+                <span>Thiết bị: <strong>${l.device || 'Đồng bộ Cloud'}</strong></span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.getElementById('log-filter-select').addEventListener('change', () => {
+      renderLogs(adminDb.serviceUsage);
+    });
+
+    // Date formatting helper
+    function formatDateTime(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleString('vi-VN', {
+        hour: '2-digit', minute: '2-digit',
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      });
+    }
+
+    // Refresh All Data button
+    document.getElementById('btn-refresh-all-data').addEventListener('click', () => {
+      loadDashboardData();
+      alert('Đã cập nhật dữ liệu mới nhất từ Cloud Server!');
+    });
+    document.getElementById('btn-refresh-diagnoses').addEventListener('click', () => {
+      loadDashboardData();
+    });
+
+    // ============================================
+    // USER MODAL LOGIC (ADD / EDIT / DELETE)
+    // ============================================
+    const userModal = document.getElementById('user-modal-overlay');
+    const userForm = document.getElementById('user-edit-form');
+    const userModalTitle = document.getElementById('user-modal-title');
+
+    document.getElementById('btn-open-create-user-modal').addEventListener('click', () => {
+      userForm.reset();
+      document.getElementById('user-form-id').value = '';
+      userModalTitle.textContent = 'Thêm Người Dùng Mới';
+      userModal.classList.add('active');
+    });
+
+    document.getElementById('btn-close-user-modal').addEventListener('click', () => userModal.classList.remove('active'));
+    document.getElementById('btn-cancel-user-modal').addEventListener('click', () => userModal.classList.remove('active'));
+
+    window.openEditUserModal = function(id) {
+      const user = adminDb.users.find(u => u.id === id);
+      if (!user) return;
+
+      document.getElementById('user-form-id').value = user.id;
+      document.getElementById('user-form-name').value = user.fullName || '';
+      document.getElementById('user-form-phone').value = user.phone || '';
+      document.getElementById('user-form-pwd').value = user.password || '123456';
+      document.getElementById('user-form-role').value = user.occupation || user.role || '';
+      document.getElementById('user-form-age').value = user.age || '';
+      document.getElementById('user-form-bedtime').value = user.targetBedtime || '23:00';
+      document.getElementById('user-form-waketime').value = user.wakeTime || '06:30';
+      document.getElementById('user-form-conditions').value = (user.healthConditions || []).join(', ');
+      document.getElementById('user-form-bio').value = user.bio || '';
+
+      userModalTitle.textContent = `Chỉnh Sửa Người Dùng: ${user.fullName}`;
+      userModal.classList.add('active');
+    };
+
+    userForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('user-form-id').value.trim();
+      const fullName = document.getElementById('user-form-name').value.trim();
+      const phone = document.getElementById('user-form-phone').value.trim();
+      const password = document.getElementById('user-form-pwd').value.trim() || '123456';
+      const role = document.getElementById('user-form-role').value.trim();
+      const age = document.getElementById('user-form-age').value.trim();
+      const targetBedtime = document.getElementById('user-form-bedtime').value;
+      const wakeTime = document.getElementById('user-form-waketime').value;
+      const condStr = document.getElementById('user-form-conditions').value.trim();
+      const bio = document.getElementById('user-form-bio').value.trim();
+
+      const conditions = condStr ? condStr.split(',').map(s => s.trim()).filter(Boolean) : ['Sức khỏe ổn định'];
+
+      const payload = {
+        id: id || undefined,
+        fullName,
+        phone,
+        password,
+        role: role || 'Thành viên SleepSync',
+        occupation: role || 'Thành viên SleepSync',
+        age: age || '30 tuổi',
+        targetBedtime: targetBedtime || '23:00',
+        wakeTime: wakeTime || '06:30',
+        healthConditions: conditions,
+        bio: bio || 'Mục tiêu cải thiện chất lượng giấc ngủ'
+      };
+
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.success) {
+          userModal.classList.remove('active');
+          loadDashboardData();
+          alert('Đã lưu thông tin người dùng thành công!');
+        } else {
+          alert('Lỗi: ' + (result.message || 'Không thể lưu người dùng'));
+        }
+      } catch (err) {
+        alert('Không thể kết nối đến máy chủ API: ' + err.message);
+      }
+    });
+
+    window.deleteUser = async function(userId, userName) {
+      if (confirm(`Bạn có chắc chắn muốn xóa người dùng "${userName}" (ID: ${userId}) khỏi cơ sở dữ liệu?`)) {
+        try {
+          const res = await fetch('/api/users/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId })
+          });
+          const result = await res.json();
+          if (result.success) {
+            loadDashboardData();
+            alert('Đã xóa người dùng thành công!');
+          } else {
+            alert('Lỗi: ' + (result.message || 'Không thể xóa'));
+          }
+        } catch (err) {
+          alert('Không thể kết nối server: ' + err.message);
+        }
+      }
+    };
+
+    // ============================================
+    // BACKUP & EXPORT ACTIONS
+    // ============================================
+    // 1. Export JSON Full
+    document.getElementById('btn-export-full-json').addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/export');
+        const dbData = await res.json();
+        const jsonStr = JSON.stringify(dbData, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `SleepSync_Founder_Database_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert('Lỗi xuất dữ liệu: ' + err.message);
+      }
+    });
+
+    // 2. Export Users CSV
+    document.getElementById('btn-export-users-csv').addEventListener('click', () => {
+      if (!adminDb.users || adminDb.users.length === 0) {
+        alert('Không có dữ liệu người dùng để xuất!');
+        return;
+      }
+
+      const headers = ['ID', 'HoVaTen', 'SoDienThoai', 'Tuoi', 'NgheNghiep', 'GioNguMucTieu', 'GioThucDay', 'BenhLyTienSu', 'NgayTao'];
+      const rows = adminDb.users.map(u => [
+        `"${u.id}"`,
+        `"${u.fullName || ''}"`,
+        `"${u.phone || ''}"`,
+        `"${u.age || ''}"`,
+        `"${u.occupation || u.role || ''}"`,
+        `"${u.targetBedtime || ''}"`,
+        `"${u.wakeTime || ''}"`,
+        `"${(u.healthConditions || []).join('; ')}"`,
+        `"${u.createdAt || ''}"`
+      ]);
+
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SleepSync_Users_Export_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // 3. Reset Seed Data
+    document.getElementById('btn-reset-database-seed').addEventListener('click', async () => {
+      if (confirm('CẢNH BÁO: Bạn có chắc chắn muốn đặt lại cơ sở dữ liệu về mẫu ban đầu? Toàn bộ người dùng tạo thêm sẽ bị xóa.')) {
+        try {
+          const res = await fetch('/api/reset', { method: 'POST' });
+          const result = await res.json();
+          if (result.success) {
+            loadDashboardData();
+            alert('Đã thiết lập lại cơ sở dữ liệu về mẫu ban đầu thành công!');
+          }
+        } catch (err) {
+          alert('Lỗi kết nối: ' + err.message);
+        }
+      }
+    });
+
+    // Auto-check authentication on load & continuous realtime dashboard refresh
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      // Continuous Realtime Dashboard Refresh every 10 seconds
+      setInterval(() => {
+        if (sessionStorage.getItem(SESSION_KEY) === 'true') {
+          loadDashboardData();
+        }
+      }, 10000);
+    });
+  </script>
+</body>
+</html>
