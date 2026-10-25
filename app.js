@@ -1111,25 +1111,80 @@ async function runCompleteDiagnosis() {
   loading.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   progressBar.style.width = '25%';
-  stepTitle.textContent = "1/3. Phân tích tương quan 5 trụ cột y khoa...";
-  stepDesc.textContent = "Đánh giá mức độ kích hoạt Adrenaline/Cortisol, ức chế Melatonin do ánh sáng, và đào thải Caffeine...";
+  stepTitle.textContent = "1/3. Phân tích tương quan 5 trụ cột y khoa & ngôn ngữ tự nhiên...";
+  stepDesc.textContent = "Đánh giá mức độ kích hoạt Adrenaline/Cortisol, đào thải Caffeine và trích xuất câu trả lời tự điền...";
+
+  // Start the AI analysis API call in parallel
+  const aiPayload = {
+    answers: AppState.answers || {},
+    customAnswers: AppState.customAnswers || {},
+    user: AppState.currentUser || null,
+    currentTime: new Date().toISOString(),
+    device: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'Mobile Web' : 'Desktop Web'
+  };
+
+  const aiPromise = fetch('/api/ai/analyze-sleep', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(aiPayload)
+  })
+    .then(async res => {
+      if (res.ok) {
+        return await res.json();
+      }
+      return null;
+    })
+    .catch(err => {
+      console.warn('AI Server API fetch error, will fallback:', err);
+      return null;
+    });
+
   await sleep(650);
 
   progressBar.style.width = '65%';
-  stepTitle.textContent = "2/3. Quét lịch biểu công việc & Định vị khoảng trống...";
-  stepDesc.textContent = "Xác định khe trống 11:30, 15:30 và 17:30 để bố trí các vi-hành động 2-5 phút...";
+  stepTitle.textContent = "2/3. Động cơ AI phân tích ngữ cảnh thời gian thực & nhịp sinh học...";
+  stepDesc.textContent = "Khớp các ghi chú riêng với nhịp Melatonin và lập vi-hành động cấp cứu giấc ngủ...";
   await sleep(700);
 
   progressBar.style.width = '95%';
-  stepTitle.textContent = "3/3. Hoàn tất phác đồ & Lời khuyên theo thời gian thực...";
+  stepTitle.textContent = "3/3. Hoàn tất phác đồ cá nhân hóa...";
   stepDesc.textContent = "Tối ưu hóa thực đơn ăn tối nhanh và các biện pháp giảm trào ngược/đau cơ...";
-  await sleep(500);
+
+  // Await AI server response or fallback
+  const apiResponse = await aiPromise;
+  await sleep(400);
 
   progressBar.style.width = '100%';
-  await sleep(250);
+  await sleep(200);
 
-  // Compute Clinical Scores
-  const result = computeClinicalAnalysis(AppState.answers);
+  let result;
+  if (apiResponse && apiResponse.success && apiResponse.analysis) {
+    const aiData = apiResponse.analysis;
+    result = {
+      predictedScore: aiData.predictedScore,
+      verdictTitle: aiData.verdictTitle,
+      verdictDesc: aiData.verdictDesc,
+      latency: aiData.latency || aiData.latencyMinutes || 25,
+      deepSleepPct: aiData.deepSleepPct || 16,
+      remSleepPct: aiData.remSleepPct || 19,
+      pillars: aiData.pillars || { p1_stress: 50, p2_env: 30, p3_lifestyle: 50, p4_physio: 30, p5_health: 20 },
+      realtimeAdvice: aiData.realtimeActionNow || '',
+      realtimeActionNow: aiData.realtimeActionNow || '',
+      customInsights: aiData.customInsights || [],
+      microSchedule: aiData.microSchedule || [],
+      nutritionAdvice: aiData.nutritionAdvice || {
+        dinnerItems: [],
+        targetedHealth: '',
+        deskExercises: []
+      },
+      aiEngine: aiData.aiEngine || 'Local Semantic NLP Engine',
+      aiEngineBadge: aiData.aiEngineBadge || 'Động Cơ Kép (Dual-Engine AI)'
+    };
+  } else {
+    // Local client-side clinical analysis fallback
+    result = computeClinicalAnalysis(AppState.answers);
+  }
+
   AppState.analysisResult = result;
 
   // Render
@@ -1382,28 +1437,28 @@ function renderDashboard(data) {
     statusBadge.style.color = 'var(--emerald-safe)';
     riskBadge.textContent = 'Nguy cơ thấp';
     riskBadge.style.color = 'var(--emerald-safe)';
-    verdictTitle.textContent = 'Dự Báo: Giấc Ngủ Phục Hồi Tối Ưu';
-    verdictDesc.textContent = '5 trụ cột y tế đều ở ngưỡng an toàn. Giấc ngủ đêm nay sẽ giúp não bộ tái tạo tối đa.';
+    verdictTitle.textContent = data.verdictTitle || 'Dự Báo: Giấc Ngủ Phục Hồi Tối Ưu';
+    verdictDesc.textContent = data.verdictDesc || '5 trụ cột y tế đều ở ngưỡng an toàn. Giấc ngủ đêm nay sẽ giúp não bộ tái tạo tối đa.';
   } else if (data.predictedScore >= 60) {
     scoreCircle.style.stroke = 'var(--amber-warning)';
     statusBadge.textContent = 'Trung Bình';
     statusBadge.style.color = 'var(--amber-warning)';
     riskBadge.textContent = 'Cần can thiệp chiều nay';
     riskBadge.style.color = 'var(--amber-warning)';
-    verdictTitle.textContent = 'Cảnh Báo: Nguy Cơ Ngủ Chập Chờn & Khó Ngủ Sâu';
-    verdictDesc.textContent = 'Phát hiện nguy cơ từ áp lực stress, caffeine hoặc môi trường ngủ. Hãy áp dụng ngay các vi-hành động bên dưới.';
+    verdictTitle.textContent = data.verdictTitle || 'Cảnh Báo: Nguy Cơ Ngủ Chập Chờn & Khó Ngủ Sâu';
+    verdictDesc.textContent = data.verdictDesc || 'Phát hiện nguy cơ từ áp lực stress, caffeine hoặc môi trường ngủ. Hãy áp dụng ngay các vi-hành động bên dưới.';
   } else {
     scoreCircle.style.stroke = 'var(--rose-danger)';
     statusBadge.textContent = 'Báo Động Kém';
     statusBadge.style.color = 'var(--rose-danger)';
     riskBadge.textContent = 'Bắt buộc phải can thiệp';
     riskBadge.style.color = 'var(--rose-danger)';
-    verdictTitle.textContent = 'Báo Động: Nguy Cơ Mất Ngủ & Mệt Mỏi Sáng Mai';
-    verdictDesc.textContent = 'Hệ thần kinh đang bị kích thích mạnh kết hợp đau mỏi thể chất. Thực hiện các giải pháp đặc trị bên dưới để cứu vãn giấc ngủ.';
+    verdictTitle.textContent = data.verdictTitle || 'Báo Động: Nguy Cơ Mất Ngủ & Mệt Mỏi Sáng Mai';
+    verdictDesc.textContent = data.verdictDesc || 'Hệ thần kinh đang bị kích thích mạnh kết hợp đau mỏi thể chất. Thực hiện các giải pháp đặc trị bên dưới để cứu vãn giấc ngủ.';
   }
 
   // Sub Metrics
-  document.getElementById('latency-val').textContent = `~${data.latency} phút`;
+  document.getElementById('latency-val').textContent = `~${data.latency || 25} phút`;
   document.getElementById('deep-sleep-val').textContent = `${data.deepSleepPct}% (${data.deepSleepPct >= 18 ? 'Đạt chuẩn' : 'Hơi thấp'})`;
   document.getElementById('rem-sleep-val').textContent = `${data.remSleepPct}% (Phục hồi cảm xúc)`;
 
@@ -1422,19 +1477,106 @@ function renderDashboard(data) {
   document.getElementById('action-focus').textContent = `${withAction}%`;
 
   // Real-time advice
-  document.getElementById('realtime-action-content').innerHTML = data.realtimeAdvice;
+  const rtContent = document.getElementById('realtime-action-content');
+  if (rtContent) {
+    rtContent.innerHTML = data.realtimeActionNow || data.realtimeAdvice || '';
+  }
+
+  // AI Hyper-personalized Custom Insights Card
+  const customCard = document.getElementById('ai-custom-insights-card');
+  const insightsGrid = document.getElementById('ai-insights-grid');
+  const modelTag = document.getElementById('ai-analysis-model-tag');
+
+  if (modelTag && data.aiEngineBadge) {
+    modelTag.textContent = data.aiEngineBadge;
+  }
+
+  if (customCard && insightsGrid) {
+    const hasCustom = Array.isArray(data.customInsights) && data.customInsights.length > 0;
+    customCard.style.display = 'block';
+
+    if (hasCustom) {
+      insightsGrid.innerHTML = data.customInsights.map(insight => {
+        const catName = insight.pillarName || insight.category || 'Trụ Cột Cá Nhân Hóa';
+        const userText = insight.userTypedText || insight.userNote || insight.userAnswer || '';
+        const badgeText = insight.badge || 'Đặc Thù Riêng';
+        const bioImpact = insight.biologicalImpact || 'Tác động trực tiếp đến chu kỳ thức - ngủ sinh học.';
+        const solution = insight.actionableSolution || 'Áp dụng các biện pháp thư giãn và giãn cách trước khi ngủ.';
+        const icon = insight.icon || (
+          badgeText.includes('Đường') || badgeText.includes('Caffeine') ? 'fa-solid fa-mug-hot' :
+          badgeText.includes('Ca Đêm') ? 'fa-solid fa-business-time' :
+          badgeText.includes('Trẻ Nhỏ') ? 'fa-solid fa-baby' :
+          badgeText.includes('Cơ Xương') ? 'fa-solid fa-bone' :
+          badgeText.includes('Cảm Xúc') ? 'fa-solid fa-heart-pulse' :
+          badgeText.includes('Ngoại Cảnh') ? 'fa-solid fa-volume-high' : 'fa-solid fa-wand-magic-sparkles'
+        );
+
+        return `
+          <div class="ai-insight-item">
+            <div class="ai-insight-pill-category">
+              <i class="${icon}"></i>
+              <span>${escapeHtml(catName)}</span>
+              <span class="ai-insight-tag">${escapeHtml(badgeText)}</span>
+            </div>
+            ${userText ? `
+              <div class="ai-insight-input-quote">
+                <i class="fa-solid fa-quote-left"></i>
+                <span>"${escapeHtml(userText)}"</span>
+              </div>
+            ` : ''}
+            <div class="ai-insight-bio">
+              <strong><i class="fa-solid fa-dna"></i> Cơ Chế Sinh Học:</strong> ${escapeHtml(bioImpact)}
+            </div>
+            <div class="ai-insight-action">
+              <strong><i class="fa-solid fa-lightbulb"></i> Khuyến Nghị AI:</strong> ${escapeHtml(solution)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      insightsGrid.innerHTML = `
+        <div class="ai-insight-item" style="grid-column: 1 / -1;">
+          <div class="ai-insight-pill-category">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Phân Tích Toàn Diện 5 Trụ Cột Y Khoa</span>
+            <span class="ai-insight-tag">Chuẩn Lâm Sàng</span>
+          </div>
+          <div class="ai-insight-bio" style="margin-top: 10px;">
+            <strong><i class="fa-solid fa-dna"></i> Đánh giá đồng bộ:</strong> Tất cả câu trả lời của bạn đã được AI đối chiếu tương quan với nhịp sinh học hiện tại. Không phát hiện xung đột nguy hại ngoài danh mục chuẩn.
+          </div>
+          <div class="ai-insight-action">
+            <strong><i class="fa-solid fa-lightbulb"></i> Lời khuyên:</strong> Hãy làm theo đầy đủ các vi-hành động trong lộ trình vi mô bên dưới để đạt trạng thái phục hồi tốt nhất đêm nay!
+          </div>
+        </div>
+      `;
+    }
+  }
 
   // Micro-schedule timeline
   renderMicroSchedule(data.microSchedule);
 
   // Nutrition & Health
   const foodList = document.getElementById('dinner-food-list');
-  foodList.innerHTML = data.nutritionAdvice.dinnerItems.map(item => `<li>${item}</li>`).join('');
+  const dinnerItems = (data.nutritionAdvice && (data.nutritionAdvice.dinnerItems || data.nutritionAdvice.dinnerHighlights)) || [];
+  if (foodList) {
+    foodList.innerHTML = dinnerItems.map(item => `<li>${item}</li>`).join('');
+  }
 
-  document.getElementById('targeted-health-content').innerHTML = data.nutritionAdvice.targetedHealth;
+  const targetedHealthEl = document.getElementById('targeted-health-content');
+  if (targetedHealthEl) {
+    const tHealth = data.nutritionAdvice && (data.nutritionAdvice.targetedHealth || data.nutritionAdvice.targetedCare);
+    targetedHealthEl.innerHTML = tHealth || '<p>Duy trì không gian ngủ thoáng mát (24-26°C) và cất điện thoại trước giờ ngủ.</p>';
+  }
 
   const exerciseList = document.getElementById('desk-exercise-list');
-  exerciseList.innerHTML = data.nutritionAdvice.deskExercises.map(item => `<li>${item}</li>`).join('');
+  const exercises = (data.nutritionAdvice && data.nutritionAdvice.deskExercises) || [
+    "<strong>Động tác Chin-Tuck (1 phút):</strong> Ngồi thẳng lưng, thu cằm về phía sau như tạo 2 cằm, giữ 5 giây rồi thả lỏng. Lặp lại 5 lần để giải tỏa đốt sống cổ C5-C7.",
+    "<strong>Động tác Mở Ngực Xương Bả Vai (1 phút):</strong> Đan hai tay ra sau gáy, hít sâu ưỡn ngực mở rộng khuỷu tay sang hai bên. Thở ra từ từ.",
+    "<strong>Thả Lỏng Mắt 20-20-20 (30 giây):</strong> Cứ mỗi 20 phút, nhìn vào một vật cách xa 20 feet (6 mét) trong 20 giây để thư giãn cơ thể mi mắt."
+  ];
+  if (exerciseList) {
+    exerciseList.innerHTML = exercises.map(item => `<li>${item}</li>`).join('');
+  }
 }
 
 function renderPillarBar(barId, textId, score, label) {
@@ -2294,6 +2436,17 @@ function renderFacebookAccountSwitcher() {
 
   const users = SleepSyncDB.getAllUsers();
   const currentUser = SleepSyncDB.getCurrentUser();
+
+  if (!users || users.length === 0) {
+    listContainer.innerHTML = `
+      <div style="text-align: center; padding: 2.5rem 1.5rem; color: var(--text-dim);">
+        <i class="fa-solid fa-users" style="font-size: 2.2rem; opacity: 0.35; margin-bottom: 0.8rem; display: block;"></i>
+        <div style="font-size: 0.95rem; font-weight: 700; color: #F8FAFC; margin-bottom: 0.4rem;">Chưa có tài khoản nào</div>
+        <p style="font-size: 0.82rem; line-height: 1.5; margin: 0 auto; max-width: 280px;">Hãy tạo tài khoản hoặc đăng nhập với số điện thoại của bạn để Mavis lưu trữ hồ sơ.</p>
+      </div>
+    `;
+    return;
+  }
 
   listContainer.innerHTML = users.map(u => {
     const isCurrent = currentUser && u.id === currentUser.id;

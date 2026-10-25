@@ -13,124 +13,11 @@ const SleepSyncDB = (function() {
   let idb = null;
   let inMemoryData = null;
 
-  // Initial Seed Data with Nguyễn Văn Hùng as primary verified user
+  // Default clean state - Zero mock/sample accounts. Real users sign up & log in.
   const DEFAULT_SEED_DATA = {
-    users: [
-      {
-        id: 'user_hungnv',
-        fullName: 'Nguyễn Văn Hùng',
-        verified: true,
-        role: 'Kỹ Sư IT & Công Trình',
-        bio: 'Thức khuya & mê cà phê • Đang cải thiện giấc ngủ sâu NREM 💤',
-        age: '30 tuổi (Nam)',
-        gender: 'Nam',
-        occupation: 'Kỹ Sư IT & Công Trình',
-        phone: '0981 234 567',
-        password: '123456',
-        targetBedtime: '23:00',
-        wakeTime: '06:30',
-        fitnessLevel: 'Trung bình',
-        healthConditions: [
-          'Đau mỏi cổ vai gáy',
-          'Căng thẳng deadline',
-          'Ngồi nhiều máy tính'
-        ],
-        avatarType: 'programmer_laptop',
-        streakDays: 5,
-        createdAt: '2026-10-20T08:00:00.000Z',
-        lastLoginAt: new Date().toISOString()
-      },
-      {
-        id: 'user_maitt',
-        fullName: 'Trần Thị Mai',
-        verified: true,
-        role: 'Trưởng Phòng Nhân Sự',
-        bio: 'Dễ thức giấc nửa đêm • Mục tiêu ngủ thẳng giấc 7 tiếng 🌸',
-        age: '38 tuổi (Nữ)',
-        gender: 'Nữ',
-        occupation: 'Trưởng Phòng Nhân Sự',
-        phone: '0912 345 678',
-        password: '123456',
-        targetBedtime: '22:00',
-        wakeTime: '06:00',
-        fitnessLevel: 'Khá',
-        healthConditions: [
-          'Khó ngủ sau 1h sáng',
-          'Áp lực công việc',
-          'Bốc hỏa tiền mãn kinh nhẹ'
-        ],
-        avatarType: 'woman_professional',
-        streakDays: 8,
-        createdAt: '2026-10-21T09:30:00.000Z',
-        lastLoginAt: '2026-10-24T18:15:00.000Z'
-      },
-      {
-        id: 'user_hoanglm',
-        fullName: 'Lê Minh Hoàng',
-        verified: true,
-        role: 'Bác Sĩ Nội Trú Y Khoa',
-        bio: 'Trực cấp cứu đêm • Cần ngủ bù khoa học và phục hồi trí não 🩺',
-        age: '34 tuổi (Nam)',
-        gender: 'Nam',
-        occupation: 'Bác Sĩ Nội Trú Y Khoa',
-        phone: '0988 999 111',
-        password: '123456',
-        targetBedtime: '22:30',
-        wakeTime: '06:00',
-        fitnessLevel: 'Rất tốt',
-        healthConditions: [
-          'Trực đêm bệnh viện',
-          'Áp lực tinh thần cao'
-        ],
-        avatarType: 'doctor_health',
-        streakDays: 12,
-        createdAt: '2026-10-22T10:00:00.000Z',
-        lastLoginAt: '2026-10-24T21:00:00.000Z'
-      }
-    ],
+    users: [],
     activeUserId: null,
-    serviceUsage: [
-      {
-        id: 1,
-        userId: 'user_hungnv',
-        serviceType: 'AUTH_LOGIN',
-        title: 'Đăng nhập hệ thống',
-        detail: 'Tài khoản Nguyễn Văn Hùng đã đăng nhập an toàn vào SleepSync AI.',
-        timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-        icon: 'fa-solid fa-arrow-right-to-bracket',
-        badgeColor: 'emerald'
-      },
-      {
-        id: 2,
-        userId: 'user_hungnv',
-        serviceType: 'DIAGNOSIS_5PILLARS',
-        title: 'Chẩn đoán 5 Trụ Cột Y Khoa',
-        detail: 'Đánh giá điểm nhịp sinh học đạt 68%. Hệ thống phát hiện stress công việc và tư thế ngồi lâu.',
-        timestamp: new Date(Date.now() - 3600000 * 1.5).toISOString(),
-        icon: 'fa-solid fa-heart-pulse',
-        badgeColor: 'indigo'
-      },
-      {
-        id: 3,
-        userId: 'user_hungnv',
-        serviceType: 'SOUNDSCAPE_AUDIO',
-        title: 'Trị liệu âm thanh sóng não',
-        detail: 'Kích hoạt phiên Sóng Não Delta 4Hz ru ngủ nhanh và Tiếng Mưa Rào Pink Noise (30 phút).',
-        timestamp: new Date(Date.now() - 3600000 * 0.8).toISOString(),
-        icon: 'fa-solid fa-headphones',
-        badgeColor: 'cyan'
-      },
-      {
-        id: 4,
-        userId: 'user_hungnv',
-        serviceType: 'CALENDAR_SCAN',
-        title: 'Quét lịch công việc & Xuất .ics',
-        detail: 'Phát hiện 3 khe trống trong ngày, xếp lịch 3 vi-hành động 2-5 phút đồng bộ Google Calendar.',
-        timestamp: new Date(Date.now() - 1800000).toISOString(),
-        icon: 'fa-solid fa-calendar-check',
-        badgeColor: 'amber'
-      }
-    ],
+    serviceUsage: [],
     diagnoses: []
   };
 
@@ -216,7 +103,20 @@ const SleepSyncDB = (function() {
   // Initialize DB instance
   async function init() {
     let mirror = loadLocalStorageMirror();
-    if (!mirror || !mirror.users || mirror.users.length === 0) {
+
+    // Clean up any legacy sample accounts (Hùng, Mai, Hoàng, demo) from localStorage
+    if (mirror && Array.isArray(mirror.users)) {
+      mirror.users = mirror.users.filter(u => {
+        const id = u.id || '';
+        return !['user_hungnv', 'user_maitt', 'user_hoanglm', 'user_google_demo', 'user_facebook_demo', 'user_apple_demo'].includes(id);
+      });
+      if (['user_hungnv', 'user_maitt', 'user_hoanglm', 'user_google_demo', 'user_facebook_demo', 'user_apple_demo'].includes(mirror.activeUserId)) {
+        mirror.activeUserId = null;
+        try { localStorage.removeItem(STORAGE_KEY_ACTIVE_USER); } catch(e) {}
+      }
+    }
+
+    if (!mirror || !Array.isArray(mirror.users)) {
       mirror = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
       saveLocalStorageMirror(mirror);
     }
@@ -234,16 +134,14 @@ const SleepSyncDB = (function() {
       console.warn('[SleepSyncDB] IndexedDB sync skipped:', err);
     }
 
-    // Check if user previously logged in
+    // Check if user previously logged in with their own registered account
     const savedActiveUserId = localStorage.getItem(STORAGE_KEY_ACTIVE_USER);
-    const hasExplicitLogout = localStorage.getItem('sleepsync_explicit_logout') === 'true';
     if (savedActiveUserId && inMemoryData.users.some(u => u.id === savedActiveUserId)) {
       inMemoryData.activeUserId = savedActiveUserId;
-    } else if (!hasExplicitLogout && inMemoryData.users.length > 0) {
-      // Default to initial verified user (Nguyễn Văn Hùng) for full interactive experience
-      inMemoryData.activeUserId = inMemoryData.activeUserId || inMemoryData.users[0].id;
     } else {
+      // Clean guest state - do NOT default to any sample user
       inMemoryData.activeUserId = null;
+      try { localStorage.removeItem(STORAGE_KEY_ACTIVE_USER); } catch(e) {}
     }
 
     console.log('[SleepSyncDB] Database initialized. Current user:', getCurrentUser()?.fullName || 'Khách (Chưa đăng nhập)');

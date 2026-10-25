@@ -1118,16 +1118,16 @@
               </button>
             </div>
 
-            <!-- Restore / Seed DB -->
+            <!-- Restore / Clean SQL DB -->
             <div style="background: rgba(2, 6, 23, 0.4); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-              <div style="font-size: 2rem; color: var(--amber); margin-bottom: 0.8rem;"><i class="fa-solid fa-rotate-left"></i></div>
-              <h3 style="margin-bottom: 0.5rem;">Khôi Phục Database Mặc Định</h3>
+              <div style="font-size: 2rem; color: var(--amber); margin-bottom: 0.8rem;"><i class="fa-solid fa-database"></i></div>
+              <h3 style="margin-bottom: 0.5rem;">Khởi Tạo / Làm Sạch Database SQL</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.2rem;">
-                Đặt lại cơ sở dữ liệu về bộ tài khoản mẫu ban đầu (Nguyễn Văn Hùng & Trần Thị Mai). Sử dụng khi muốn kiểm thử lại từ đầu.
+                Làm sạch toàn bộ bảng trong cơ sở dữ liệu SQL (SQLite 3), xóa sạch tài khoản và nhật ký thử nghiệm để hệ thống sẵn sàng cho người dùng thực đăng ký.
               </p>
               <button class="btn-cancel-modal" id="btn-reset-database-seed" style="border-color: var(--amber); color: var(--amber);">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>Khôi Phục Mẫu Ban Đầu</span>
+                <span>Làm Sạch Toàn Bộ SQL Database</span>
               </button>
             </div>
           </div>
@@ -1692,15 +1692,15 @@
       URL.revokeObjectURL(url);
     });
 
-    // 3. Reset Seed Data
+    // 3. Reset SQL Database
     document.getElementById('btn-reset-database-seed').addEventListener('click', async () => {
-      if (confirm('CẢNH BÁO: Bạn có chắc chắn muốn đặt lại cơ sở dữ liệu về mẫu ban đầu? Toàn bộ người dùng tạo thêm sẽ bị xóa.')) {
+      if (confirm('CẢNH BÁO: Bạn có chắc chắn muốn làm sạch toàn bộ cơ sở dữ liệu SQL? Toàn bộ dữ liệu người dùng và nhật ký sẽ được đặt lại về trạng thái sạch ban đầu.')) {
         try {
           const res = await fetch('/api/reset', { method: 'POST' });
           const result = await res.json();
           if (result.success) {
             loadDashboardData();
-            alert('Đã thiết lập lại cơ sở dữ liệu về mẫu ban đầu thành công!');
+            alert('Đã làm sạch Cơ Sở Dữ Liệu SQL thành công! Sẵn sàng cho người dùng thực đăng ký.');
           }
         } catch (err) {
           alert('Lỗi kết nối: ' + err.message);

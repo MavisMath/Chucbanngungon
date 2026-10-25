@@ -9,3 +9,7 @@ cloudflared.exe
 .DS_Store
 Thumbs.db
 node_modules
+*.db
+*.db-wal
+*.db-shm
+*.db-journal

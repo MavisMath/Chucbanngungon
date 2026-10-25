@@ -6,3 +6,7 @@ cloudflared.exe
 .DS_Store
 Thumbs.db
 *.log
+*.db
+*.db-wal
+*.db-shm
+*.db-journal

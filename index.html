@@ -245,19 +245,13 @@
         <!-- User Profile Pill Trigger Button (Duolingo & Facebook Style) -->
         <button type="button" id="user-profile-menu-btn" class="btn-user-profile-pill" title="Hồ Sơ Cá Nhân Người Dùng" aria-label="Mở Hồ Sơ Cá Nhân Người Dùng">
           <div class="pill-avatar-wrap" id="nav-pill-avatar">
-            <svg viewBox="0 0 100 100" width="100%" height="100%" class="avatar-svg-illu">
-              <circle cx="50" cy="50" r="48" fill="#3B82F6" />
-              <ellipse cx="50" cy="88" rx="34" ry="22" fill="#7C3AED" />
-              <circle cx="50" cy="46" r="16" fill="#FDE047" />
-              <path d="M35 44 C35 30, 65 30, 65 44 C65 37, 60 32, 50 32 C40 32, 35 37, 35 44 Z" fill="#EAB308" />
-              <rect x="30" y="65" width="40" height="25" rx="3" fill="#F1F5F9" />
-              <rect x="33" y="68" width="34" height="19" rx="2" fill="#0EA5E9" />
-              <circle cx="50" cy="77" r="2.5" fill="#FFFFFF" />
-            </svg>
+            <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 1.15rem; color: #38BDF8;">
+              <i class="fa-solid fa-user"></i>
+            </div>
           </div>
           <div class="pill-user-info" id="nav-pill-info">
-            <span class="pill-name" id="nav-pill-name">Nguyễn Văn Hùng</span>
-            <span class="pill-streak" id="nav-pill-streak"><i class="fa-solid fa-fire text-amber"></i> 5 ngày</span>
+            <span class="pill-name" id="nav-pill-name">Đăng Nhập</span>
+            <span class="pill-streak" id="nav-pill-streak" style="display: none;"><i class="fa-solid fa-fire text-amber"></i> 0 ngày</span>
           </div>
           <i class="fa-solid fa-chevron-down pill-chevron"></i>
         </button>
@@ -1255,6 +1249,26 @@
 
         </div>
 
+        <!-- AI HYPER-PERSONALIZED CUSTOM ANSWERS INSIGHT BANNER -->
+        <div class="card glass-card ai-custom-insights-card" id="ai-custom-insights-card" style="display: none;">
+          <div class="ai-custom-header">
+            <div class="ai-glow-icon">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div class="ai-header-meta">
+              <div class="ai-badge-row">
+                <span class="ai-tag-sparkle"><i class="fa-solid fa-brain"></i> AI Phân Tích Chuyên Sâu</span>
+                <span class="ai-tag-context" id="ai-analysis-model-tag">Động Cơ Kép (Dual-Engine AI)</span>
+              </div>
+              <h3 class="ai-custom-title">Bóc Tách & Thấu Hiểu Riêng Cho Bạn (Từ Các Ý Kiến Tự Điền)</h3>
+              <p class="ai-custom-subtitle">AI đã đọc hiểu từng câu chữ bạn chia sẻ ở mục "Khác" và đối chiếu cùng nhịp sinh học hiện tại của bạn.</p>
+            </div>
+          </div>
+          <div class="ai-insights-grid" id="ai-insights-grid">
+            <!-- Dynamic insight cards injected by JS -->
+          </div>
+        </div>
+
         <!-- REAL-TIME ACTION BANNER: CẦN LÀM GÌ NGAY BÂY GIỜ? -->
         <div class="card glass-card real-time-action-card">
           <div class="rt-header">
@@ -1507,22 +1521,21 @@
         </div>
 
         <div class="profile-name-row">
-          <h3 class="profile-name-text" id="profile-display-name">Nguyễn Văn Hùng</h3>
-          <i class="fa-solid fa-circle-check verified-badge" title="Tài khoản đã xác minh"></i>
+          <h3 class="profile-name-text" id="profile-display-name">Khách (Chưa đăng nhập)</h3>
         </div>
-        <div class="profile-role-text" id="profile-display-role">Kỹ Sư IT & Công Trình</div>
+        <div class="profile-role-text" id="profile-display-role">Vui lòng Đăng Nhập hoặc Đăng Ký</div>
         <p class="profile-bio-text" id="profile-display-bio">
-          Thức khuya & mê cà phê • Đang cải thiện giấc ngủ sâu NREM 💤
+          Đăng ký tài khoản để Mavis đồng hành & lưu trữ hồ sơ của bạn an toàn vào Cơ Sở Dữ Liệu SQL.
         </p>
 
         <!-- Gamified Streak Stats Strip (Duolingo Style) -->
         <div class="profile-streak-stats">
           <div class="streak-stat-item">
-            <span class="streak-stat-value" id="profile-stat-streak">🔥 5</span>
+            <span class="streak-stat-value" id="profile-stat-streak">🔥 0</span>
             <span class="streak-stat-label">Ngày liên tiếp</span>
           </div>
           <div class="streak-stat-item">
-            <span class="streak-stat-value" id="profile-stat-score">⭐ 82%</span>
+            <span class="streak-stat-value" id="profile-stat-score">⭐ --%</span>
             <span class="streak-stat-label">Chất lượng ngủ</span>
           </div>
           <div class="streak-stat-item">
@@ -1548,7 +1561,7 @@
         </button>
         <button type="button" class="drawer-tab-btn" id="drawer-tab-services">
           <i class="fa-solid fa-database"></i>
-          <span>Dữ Liệu</span>
+          <span>Dữ Liệu SQL</span>
         </button>
       </div>
 
@@ -1563,15 +1576,15 @@
         <div class="profile-details-grid">
           <div class="detail-card">
             <div class="detail-label"><i class="fa-solid fa-user"></i> Tuổi tác:</div>
-            <div class="detail-value" id="profile-display-age">30 tuổi (Nam)</div>
+            <div class="detail-value" id="profile-display-age">Chưa đăng ký</div>
           </div>
           <div class="detail-card">
             <div class="detail-label"><i class="fa-solid fa-briefcase"></i> Nghề nghiệp:</div>
-            <div class="detail-value" id="profile-display-occupation">Kỹ Sư IT & Công Trình</div>
+            <div class="detail-value" id="profile-display-occupation">Chưa đăng ký</div>
           </div>
           <div class="detail-card">
             <div class="detail-label"><i class="fa-solid fa-phone"></i> Điện thoại:</div>
-            <div class="detail-value" id="profile-display-phone">0981 234 567</div>
+            <div class="detail-value" id="profile-display-phone">Chưa đăng ký</div>
           </div>
           <div class="detail-card">
             <div class="detail-label"><i class="fa-regular fa-clock"></i> Giờ ngủ mục tiêu:</div>
@@ -1583,7 +1596,7 @@
           </div>
           <div class="detail-card">
             <div class="detail-label"><i class="fa-solid fa-battery-half"></i> Thể lực nền:</div>
-            <div class="detail-value" id="profile-display-fitness">Trung bình</div>
+            <div class="detail-value" id="profile-display-fitness">Chưa thiết lập</div>
           </div>
         </div>
 
@@ -1594,9 +1607,7 @@
             <span>Tiền sử & Yếu tố cần lưu ý:</span>
           </div>
           <div class="history-tags-wrap" id="profile-display-conditions">
-            <span class="health-badge badge-amber"><i class="fa-solid fa-square-plus"></i> Đau mỏi cổ vai gáy</span>
-            <span class="health-badge badge-amber"><i class="fa-solid fa-square-plus"></i> Căng thẳng deadline</span>
-            <span class="health-badge badge-emerald"><i class="fa-solid fa-shield"></i> Ngồi nhiều máy tính</span>
+            <span class="health-badge badge-amber"><i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập để lưu hồ sơ</span>
           </div>
         </div>
 
@@ -1759,7 +1770,7 @@
             <div class="db-chip"><i class="fa-solid fa-database"></i> IndexedDB Database</div>
             <span class="db-sync-badge"><i class="fa-solid fa-circle-check"></i> Đang đồng bộ</span>
           </div>
-          <h4 class="db-user-active-title">Dữ liệu tài khoản: <span id="db-active-username">Nguyễn Văn Hùng</span></h4>
+          <h4 class="db-user-active-title">Dữ liệu tài khoản: <span id="db-active-username">Khách (Chưa đăng nhập)</span></h4>
           <p class="db-summary-desc">
             Dữ liệu nhịp sinh học, bài chẩn đoán 5 trụ cột và phiên sóng não được mã hóa an toàn trên thiết bị và đồng bộ đám mây.
           </p>
@@ -1813,28 +1824,28 @@
         <div class="form-grid-2col">
           <div class="form-group">
             <label class="form-label" for="edit-fullname"><i class="fa-solid fa-user"></i> Họ và Tên</label>
-            <input type="text" id="edit-fullname" class="form-input" required placeholder="Ví dụ: Nguyễn Văn Hùng">
+            <input type="text" id="edit-fullname" class="form-input" required placeholder="Ví dụ: Lê Minh Hoàng">
           </div>
           <div class="form-group">
             <label class="form-label" for="edit-phone"><i class="fa-solid fa-phone"></i> Số Điện Thoại</label>
-            <input type="tel" id="edit-phone" class="form-input" placeholder="Ví dụ: 0981 234 567">
+            <input type="tel" id="edit-phone" class="form-input" placeholder="Ví dụ: 0988 999 111">
           </div>
         </div>
 
         <div class="form-grid-2col">
           <div class="form-group">
             <label class="form-label" for="edit-occupation"><i class="fa-solid fa-briefcase"></i> Nghề Nghiệp / Chức Vụ</label>
-            <input type="text" id="edit-occupation" class="form-input" placeholder="Ví dụ: Kỹ Sư IT & Công Trình">
+            <input type="text" id="edit-occupation" class="form-input" placeholder="Ví dụ: Kỹ sư / Tự do / Văn phòng">
           </div>
           <div class="form-group">
             <label class="form-label" for="edit-age"><i class="fa-solid fa-cake-candles"></i> Tuổi tác & Giới tính</label>
-            <input type="text" id="edit-age" class="form-input" placeholder="Ví dụ: 30 tuổi (Nam)">
+            <input type="text" id="edit-age" class="form-input" placeholder="Ví dụ: 28 tuổi (Nam)">
           </div>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="edit-bio"><i class="fa-solid fa-quote-left"></i> Ghi Chú & Mục Tiêu Giấc Ngủ (Bio)</label>
-          <input type="text" id="edit-bio" class="form-input" placeholder="Ví dụ: Thức khuya & mê cà phê • Đang cải thiện giấc ngủ sâu NREM 💤">
+          <input type="text" id="edit-bio" class="form-input" placeholder="Ví dụ: Mục tiêu ngủ đủ 7-8 tiếng mỗi đêm và giảm căng thẳng 💤">
         </div>
 
         <div class="form-grid-3col">
@@ -2068,34 +2079,16 @@
 
       <!-- PANE 1: ĐĂNG NHẬP (LOGIN) -->
       <div id="pane-auth-login" class="auth-pane">
-        <!-- Quick 1-Click Demo Accounts -->
-        <div class="auth-quick-demos">
-          <div class="quick-demos-title">
-            <i class="fa-solid fa-bolt"></i> Thử nghiệm 1-chạm (Tài khoản mẫu):
-          </div>
-          <div class="quick-demos-chips">
-            <button type="button" class="demo-user-chip" data-phone="0981 234 567" data-pwd="123456" title="Kỹ sư IT (30t)">
-              👨‍💻 Hùng (IT)
-            </button>
-            <button type="button" class="demo-user-chip" data-phone="0912 345 678" data-pwd="123456" title="Trưởng phòng HR (38t)">
-              👩‍💼 Mai (HR)
-            </button>
-            <button type="button" class="demo-user-chip" data-phone="0988 999 111" data-pwd="123456" title="Bác sĩ nội trú (34t)">
-              👨‍⚕️ Hoàng (Bác sĩ)
-            </button>
-          </div>
-        </div>
-
         <form id="form-user-login">
           <div class="form-group">
             <label class="form-label" for="login-phone-input"><i class="fa-solid fa-user-circle"></i> Username hoặc Số Điện Thoại (*)</label>
-            <input type="text" id="login-phone-input" class="form-input" required placeholder="hungnv, maitt hoặc SĐT (0981...)" autocomplete="username">
+            <input type="text" id="login-phone-input" class="form-input" required placeholder="Nhập số điện thoại hoặc username của bạn" autocomplete="username">
           </div>
 
           <div class="form-group">
             <label class="form-label" for="login-pwd-input"><i class="fa-solid fa-lock"></i> Mật Khẩu (*)</label>
             <div class="pwd-input-wrap">
-              <input type="password" id="login-pwd-input" class="form-input" required placeholder="Nhập mật khẩu (Mặc định: 123456)" autocomplete="current-password">
+              <input type="password" id="login-pwd-input" class="form-input" required placeholder="Nhập mật khẩu của bạn" autocomplete="current-password">
               <button type="button" class="pwd-toggle-btn" id="toggle-login-pwd-btn"><i class="fa-regular fa-eye"></i></button>
             </div>
           </div>
@@ -2105,7 +2098,7 @@
               <input type="checkbox" id="login-remember-me" checked>
               <span>Ghi nhớ đăng nhập</span>
             </label>
-            <span style="color: #64748B;">Mật khẩu mẫu: 123456</span>
+            <span style="color: #64748B;"><i class="fa-solid fa-shield-halved"></i> Bảo mật SQL</span>
           </div>
 
           <button type="submit" class="auth-submit-btn" id="btn-submit-login">
@@ -2284,10 +2277,10 @@
           <span class="chat-online-badge"></span>
         </div>
         <div class="mavis-header-identity">
-          <h4 class="chatbot-title">Mavis - Trợ Lý Giấc Ngủ <span class="mavis-sparkle-pill">✨ Ban Đêm</span></h4>
+          <h4 class="chatbot-title">Mavis - Trợ Lý Sức Khỏe & Giấc Ngủ <span class="mavis-sparkle-pill">✨ Gemini AI</span></h4>
           <div class="chatbot-user-sync-badge" id="chatbot-user-sync-badge">
-            <span class="sync-dot online"></span>
-            <span>Đang đồng bộ: Nguyễn Văn Hùng (🌙 23:00)</span>
+            <span class="sync-dot free"></span>
+            <span>Trực tuyến 24/7 • Chế độ mở</span>
           </div>
         </div>
       </div>
@@ -2297,10 +2290,10 @@
       </div>
     </div>
 
-    <!-- Pinned Safety Guardrail Banner -->
+    <!-- Pinned AI Assistant Banner -->
     <div class="chatbot-guardrail-banner">
-      <i class="fa-solid fa-shield-halved"></i>
-      <span><strong>Chính sách y tế:</strong> AI chỉ hướng dẫn giải pháp phi dược lý. <strong>Tuyệt đối không kê đơn thuốc hay TPCN.</strong></span>
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      <span><strong>Trợ lý AI Gemini:</strong> Đồng hành giải đáp thoải mái mọi câu hỏi về sức khỏe, dinh dưỡng & giấc ngủ.</span>
     </div>
 
     <!-- Chat Messages Container -->
@@ -2311,14 +2304,14 @@
     <!-- Quick Prompt Suggestions (Chips) -->
     <div class="chatbot-quick-chips" id="chatbot-quick-chips">
       <button type="button" class="quick-chip" data-query="Tại sao tôi hay thức giấc lúc nửa đêm?">🌙 Thức giấc nửa đêm</button>
-      <button type="button" class="quick-chip" data-query="Bài tập 3 phút giãn cơ cổ vai gáy cho dân IT">🦴 Giãn cơ cổ vai gáy</button>
-      <button type="button" class="quick-chip" data-query="Nên ăn gì vào bữa tối để dễ ngủ tự nhiên?">🥗 Món tối giàu Magie</button>
-      <button type="button" class="quick-chip" data-query="Có loại thuốc ngủ hay thực phẩm chức năng nào tốt không?">💊 Tư vấn thuốc/TPCN?</button>
+      <button type="button" class="quick-chip" data-query="Bài tập 3 phút giãn cơ cổ vai gáy cho dân văn phòng">🦴 Giãn cơ cổ vai gáy</button>
+      <button type="button" class="quick-chip" data-query="Nên ăn gì vào bữa tối để ngủ ngon và tốt cho tiêu hóa?">🥗 Món tối dễ ngủ</button>
+      <button type="button" class="quick-chip" data-query="Mẹo giảm đau đầu mệt mỏi và xả stress nhanh">💆 Giảm mệt mỏi & đau đầu</button>
     </div>
 
     <!-- Chat Input Bar -->
     <form id="chatbot-input-form" class="chatbot-input-bar">
-      <input type="text" id="chatbot-text-input" class="chatbot-text-input" placeholder="Hỏi AI về nhịp sinh học, giấc ngủ..." autocomplete="off">
+      <input type="text" id="chatbot-text-input" class="chatbot-text-input" placeholder="Hỏi Mavis về sức khỏe, giấc ngủ, dinh dưỡng..." autocomplete="off">
       <button type="button" id="chatbot-mic-btn" class="chatbot-btn-mic" title="Nói giọng nói"><i class="fa-solid fa-microphone"></i></button>
       <button type="submit" id="chatbot-send-btn" class="chatbot-btn-send" title="Gửi tin nhắn"><i class="fa-solid fa-paper-plane"></i></button>
     </form>

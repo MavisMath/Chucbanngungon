@@ -97,68 +97,47 @@ const SleepRAG = (function() {
   // ==========================================
   // 2. STRICT MEDICINE & SUPPLEMENT GUARDRAILS
   // ==========================================
-  // Patterns matching pharmaceuticals, sleeping pills, supplements (TPCN), prescription drugs
-  const FORBIDDEN_MEDICINE_PATTERNS = [
-    /\b(thu[ố][c|k]|thuoc)\b/i,
-    /\b(thu[ố]c ng[ủu]|thuoc ngu)\b/i,
-    /\b(thu[ố]c an th[ầ]n|thuoc an than)\b/i,
-    /\b(th[ự]c ph[ẩ]m ch[ứ]c n[ắ]ng|thuc pham chuc nang|tpcn)\b/i,
-    /\b(vi[ê]n u[ố]ng|vien uong|kẹo ng[ủu]|keo ngu)\b/i,
-    /\b(b[ổ] n[ã]o|bo nao|b[ổ] m[ắ]t|collagen)\b/i,
-    /\b(seduxen|stilnox|rotunda|valium|lexomil|ambien|olanzapine|diazepam|bromazepam)\b/i,
-    /\b(melatonin vi[ê]n|vi[ê]n melatonin|gaba vi[ê]n|5-htp|ashwagandha vi[ê]n)\b/i,
-    /\b(paracetamol|panadol|efferalgan|kh[á]ng sinh|gi[ả]m đau vi[ê]n)\b/i,
-    /\b(thu[ố]c b[ắ]c|thu[ố]c nam|[đd][ô]ng y|k[ê] [đd]on)\b/i,
-    /\b(mua thu[ố]c g[ì]|u[ố]ng thu[ố]c g[ì]|lo[ạ]i thu[ố]c n[à]o)\b/i,
-    /\b(u[ố]ng vi[ê]n g[ì]|b[ổ] sung vi[ê]n g[ì]|th[ứ]c u[ố]ng b[ổ] sung n[à]o)\b/i
+  // Safety check for extreme self-harm danger only
+  const EXTREME_SAFETY_PATTERNS = [
+    /\b(t[ự]\s*t[ử]|tu\s*tu|t[ự]\s*s[á]t|tu\s*sat)\b/i,
+    /\b(qu[á]\s*li[ề]u|qua\s*lieu|overdose)\b/i
   ];
 
-  // Standard Strict Refusal Response for liability protection
-  const GUARDRAIL_REFUSAL_MESSAGE = `⚠️ **TUYÊN BỐ AN TOÀN Y TẾ & CHÍNH SÁCH MIỄN TRỪ TRÁCH NHIỆM:**
+  const EMERGENCY_CRISIS_MESSAGE = `❤️ **Mavis Luôn Ở Đây Lắng Nghe Bạn:**
 
-Để đảm bảo an toàn sức khỏe tối đa cho bạn và tuân thủ các quy định pháp lý y tế, **SleepSync AI được lập trình với nguyên tắc nghiêm ngặt: TUYỆT ĐỐI KHÔNG TƯ VẤN, KHÔNG CHỈ ĐỊNH VÀ KHÔNG ĐỀ XUẤT BẤT KỲ LOẠI THUỐC HAY THỰC PHẨM CHỨC NĂNG (TPCN) NÀO** dưới mọi hình thức.
+Mavis nhận thấy bạn có thể đang trải qua giai đoạn vô cùng căng thẳng hoặc mệt mỏi. Bạn không hề đơn độc. 
+Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời gian hít thở thật sâu và liên hệ ngay với người thân, bạn bè hoặc Tổng đài Chăm sóc Sức khỏe & Tâm lý (1900 6233 / 115) để nhận được sự đồng hành kịp thời nhất nhé.`;
 
-🩺 **Lý do y khoa quan trọng:**
-1. Việc tự ý sử dụng thuốc ngủ, thuốc an thần hoặc các viên uống bổ sung (kể cả thực phẩm chức năng) có nguy cơ gây **lệch pha thụ thể thần kinh, phụ thuộc thuốc, suy giảm khả năng tự tiết Melatonin nội sinh** hoặc gây tương tác nguy hiểm đến gan, thận và tim mạch nếu không có chẩn đoán trực tiếp từ **Bác sĩ chuyên khoa Thần kinh - Giấc ngủ**.
-2. **Hướng tiếp cận phi dược lý của SleepSync AI:**
-Chúng tôi chỉ tập trung vào các **giải pháp lối sống tự nhiên thuần khiết đã được khoa học chứng minh**:
-   • **Điều chỉnh nhịp sinh học (Circadian Rhythm):** Đón nắng ban mai, chốt cữ cà phê trước 11:00, tắm nước ấm trước ngủ.
-   • **Dinh dưỡng tự nhiên từ thức ăn thường ngày:** Trứng luộc, chuối, quả kiwi, rau bina luộc (cung cấp Tryptophan & Magie tự nhiên mà không cần viên uống).
-   • **Vi-vận động thả lỏng:** Kỹ thuật thở 4-7-8 kích hoạt phó giao cảm và bài tập xoay cổ vai gáy Chin-Tuck 3 phút.
+  // Function to detect extreme crisis
+  function violatesSafetyGuardrail(query) {
+    if (!query) return false;
+    const lower = query.toLowerCase().trim();
+    return EXTREME_SAFETY_PATTERNS.some(regex => regex.test(lower));
+  }
 
-*(Nếu bạn đang gặp tình trạng mất ngủ mãn tính hoặc suy nhược nghiêm trọng, vui lòng thăm khám trực tiếp tại bệnh viện chuyên khoa để được bác sĩ kê đơn an toàn).*`;
-
-  // Function to detect if query violates supplement/medicine guardrails
   // ==========================================
   // GOOGLE GEMINI API CONFIGURATION
   // ==========================================
   const GEMINI_CONFIG = {
     apiKey: (typeof window !== 'undefined' && window.GEMINI_API_KEY) || (typeof localStorage !== 'undefined' ? localStorage.getItem('sleepsync_gemini_key') || '' : ''),
-    model: 'gemini-1.5-flash',
-    altModel: 'gemini-flash-latest'
+    model: 'gemini-3.5-flash-lite',
+    altModel: 'gemini-3.1-flash-lite'
   };
 
-  // Function to detect if query violates supplement/medicine guardrails
-  function violatesSafetyGuardrail(query) {
-    if (!query) return false;
-    const lower = query.toLowerCase().trim();
-    return FORBIDDEN_MEDICINE_PATTERNS.some(regex => regex.test(lower));
-  }
-
   // ==========================================
-  // 3. RAG SEMANTIC RETRIEVAL & RESPONSE GENERATION (GEMINI API + VERIFIED CHUNKS)
+  // 3. RAG SEMANTIC RETRIEVAL & RESPONSE GENERATION (GEMINI API + CHATBOT ENGINE)
   // ==========================================
   async function generateRAGResponse(userQuery) {
-    // Step 1: Strict Safety Guardrail Check (Medicine / Supplement refusal)
+    // Step 1: Extreme Crisis Intercept
     if (violatesSafetyGuardrail(userQuery)) {
       if (window.SleepSyncDB) {
         SleepSyncDB.logServiceUsage(
-          'GUARDRAIL_INTERCEPT',
-          'Kích hoạt bộ lọc an toàn y tế (Chặn thuốc/TPCN)',
-          `Truy vấn: "${userQuery.slice(0, 40)}..." đã được chuyển hướng an toàn.`
+          'CRISIS_SUPPORT',
+          'Hỗ trợ tâm lý khẩn cấp',
+          `Truy vấn: "${userQuery.slice(0, 40)}..."`
         );
       }
-      return GUARDRAIL_REFUSAL_MESSAGE;
+      return EMERGENCY_CRISIS_MESSAGE;
     }
 
     // Step 2: Retrieve Active User Profile from Database
@@ -170,57 +149,57 @@ Chúng tôi chỉ tập trung vào các **giải pháp lối sống tự nhiên 
     }
 
     const userName = (isAuth && activeUser) ? activeUser.fullName : 'bạn';
-    const userRole = (isAuth && activeUser) ? (activeUser.role || activeUser.occupation || 'thành viên') : 'người dùng tự do';
+    const userRole = (isAuth && activeUser) ? (activeUser.role || activeUser.occupation || 'người dùng') : 'người dùng tự do';
     const userBedtime = (isAuth && activeUser) ? (activeUser.targetBedtime || '23:00') : '23:00';
     const userWaketime = (isAuth && activeUser) ? (activeUser.wakeTime || '06:30') : '06:30';
     const userConditions = (isAuth && activeUser && Array.isArray(activeUser.healthConditions)) 
       ? activeUser.healthConditions.join(', ') 
-      : 'Không có hạn chế đặc biệt';
+      : 'Sức khỏe ổn định';
     const userStreak = (isAuth && activeUser) ? (activeUser.streakDays || 1) : 0;
 
-    // Step 3: Semantic Retrieval from Knowledge Base (RAG Chunks)
-    const matchedChunks = retrieveRelevantChunks(userQuery);
-    let ragKnowledgeContext = '';
-    matchedChunks.forEach(c => {
-      ragKnowledgeContext += `\n[Tài liệu Y khoa: ${c.title}]\n${c.content}\n`;
-    });
+    // Step 3: Call Backend Server AI Chat Endpoint (/api/ai/chat)
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-    // Step 4: Call Google Gemini API (gemini-3.5-flash) with Personalized Clinical RAG
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          message: userQuery,
+          user: activeUser,
+          device: /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Mobile Web' : 'Desktop Web'
+        })
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && data.reply) {
+          if (window.SleepSyncDB) {
+            SleepSyncDB.logServiceUsage(
+              'AI_CHATBOT_GEMINI',
+              `Hỏi đáp AI: ${data.model || 'Gemini 3.5'}`,
+              `Câu hỏi: "${userQuery.slice(0, 35)}..." - Đã giải đáp chi tiết.`
+            );
+          }
+          return data.reply.trim();
+        }
+      }
+    } catch (err) {
+      console.warn('[SleepSync Chat Server Fetch Error, trying Direct Gemini / Local]', err);
+    }
+
+    // Step 4: Direct Client-Side Gemini API Call (if server is offline)
     if (GEMINI_CONFIG.apiKey) {
       try {
-        let userContextPrompt = '';
-        if (isAuth && activeUser) {
-          userContextPrompt = `
-THÔNG TIN HỒ SƠ NGƯỜI DÙNG ĐANG ĐỒNG BỘ:
-- Họ tên: ${userName}
-- Nghề nghiệp / Lối sống: ${userRole}
-- Tuổi tác: ${activeUser.age || 'Chưa cập nhật'}
-- Giờ ngủ mục tiêu: ${userBedtime} (Giờ thức dậy: ${userWaketime})
-- Thể lực nền: ${activeUser.fitnessLevel || 'Trung bình'}
-- Tiền sử sức khỏe & thói quen cần lưu ý: ${userConditions}
-- Chuỗi ngày streak chăm sóc giấc ngủ: 🔥 ${userStreak} ngày
-- Ghi chú mục tiêu cá nhân (Bio): ${activeUser.bio || 'Cải thiện giấc ngủ sâu'}`;
-        } else {
-          userContextPrompt = `
-THÔNG TIN NGƯỜI DÙNG: Đang trò chuyện ở Chế độ Tự Do (Khách). Xưng hô thân thiện, ấm áp: "Chào bạn, Mavis chúc bạn ngủ ngon! 🌙"`;
-        }
+        const systemPrompt = `Bạn là Mavis - Trợ lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ của SleepSync.
+Người dùng: ${userName} (${userRole}), Giờ ngủ đích: ${userBedtime}, Tình trạng: ${userConditions}.
+Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức khỏe, giấc ngủ, đau mỏi, dinh dưỡng, tâm lý bằng giọng văn dịu dàng, chu đáo, khoa học và dễ hiểu bằng tiếng Việt:`;
 
-        const systemPrompt = `Bạn là Mavis - Trợ lý AI Giấc ngủ SleepSync chuyên sâu về Khoa học thần kinh và Nhịp sinh học.
-${userContextPrompt}
-
-CƠ SỞ TRI THỨC KHOA HỌC:
-${ragKnowledgeContext || 'Khoa học về vệ sinh giấc ngủ, nhịp sinh học và giải pháp phi dược lý.'}
-
-HƯỚNG DẪN TRẢ LỜI & ĐỒNG BỘ CÁ NHÂN HÓA (BẮT BUỘC TUÂN THỦ):
-1. ĐỒNG BỘ THEO HỒ SƠ: Nếu người dùng đã đăng nhập (${userName}), hãy xưng hô thân mật trực tiếp với tên họ (ví dụ: "Chào bạn ${userName}"), liên kết giải pháp trực tiếp với công việc (${userRole}), tiền sử sức khỏe (${userConditions}) và mốc giờ ngủ mục tiêu (${userBedtime}).
-2. NỘI DUNG THỰC TẾ, ĐI THẲNG VÀO TRỌNG TÂM: Trả lời trong 3 - 5 gạch đầu dòng có hành động cụ thể, khoa học.
-3. VÍ DỤ CỤ THỂ:
-   - Khi hỏi về ăn/uống: Nêu rõ tên thực phẩm tự nhiên + chất dinh dưỡng chính + thời điểm ăn sát với giờ ngủ ${userBedtime}.
-   - Khi hỏi về cổ vai gáy: Nhấn mạnh vi-vận động Chin-tuck, nghỉ giải lao màn hình xanh sau mỗi giờ làm việc.
-   - Khi hỏi về trào ngược/GERD: Nhắc bữa tối kết thúc trước 3 tiếng so với ${userBedtime} và nằm nghiêng bên trái.
-4. NGUYÊN TẮC BẢO VỆ PHÁP LÝ TUYỆT ĐỐI: TUYỆT ĐỐI KHÔNG kê đơn, tư vấn hay gợi ý bất kỳ loại thuốc ngủ hay thực phẩm chức năng (TPCN, viên uống) nào!`;
-
-        const fullPrompt = `${systemPrompt}\n\nNgười dùng hỏi: "${userQuery}"\nHãy trả lời bằng tiếng Việt cực kỳ chu đáo, đồng bộ theo hồ sơ và đưa ra giải pháp thiết thực:`;
+        const fullPrompt = `${systemPrompt}\n\nNgười dùng hỏi: "${userQuery}"\nMavis hãy trả lời thật chi tiết, nhiệt tình và đưa ra các giải pháp thiết thực:`;
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 9500);
@@ -232,9 +211,7 @@ HƯỚNG DẪN TRẢ LỜI & ĐỒNG BỘ CÁ NHÂN HÓA (BẮT BUỘC TUÂN TH�
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
           body: JSON.stringify({
-            contents: [{
-              parts: [{ text: fullPrompt }]
-            }]
+            contents: [{ parts: [{ text: fullPrompt }] }]
           })
         });
 
@@ -244,29 +221,16 @@ HƯỚNG DẪN TRẢ LỜI & ĐỒNG BỘ CÁ NHÂN HÓA (BẮT BUỘC TUÂN TH�
           const data = await res.json();
           const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (candidateText) {
-            // Post-Generation Safety Guardrail Check
-            if (violatesSafetyGuardrail(candidateText)) {
-              return GUARDRAIL_REFUSAL_MESSAGE;
-            }
-
-            if (window.SleepSyncDB) {
-              SleepSyncDB.logServiceUsage(
-                'AI_CHATBOT_GEMINI',
-                'Hỏi đáp Trợ lý AI Gemini 3.5 Flash (Đồng bộ hồ sơ)',
-                `Câu hỏi: "${userQuery.slice(0, 35)}..." - AI trả lời cá nhân hóa theo ${userName}.`
-              );
-            }
             return candidateText.trim();
           }
-        } else {
-          console.warn('[SleepSync Gemini API Error]', res.status);
         }
       } catch (err) {
-        console.warn('[SleepSync Gemini Network/Timeout Error, fallback to Local RAG]', err);
+        console.warn('[SleepSync Direct Gemini Error, fallback to Local RAG]', err);
       }
     }
 
-    // Step 5: Fallback to Local Verified RAG Synthesis (Offline or API rate-limit)
+    // Step 5: Fallback to Local Verified RAG Synthesis
+    const matchedChunks = retrieveRelevantChunks(userQuery);
     return generateLocalRAGResponse(userQuery, matchedChunks);
   }
 
@@ -774,23 +738,23 @@ HƯỚNG DẪN TRẢ LỜI & ĐỒNG BỘ CÁ NHÂN HÓA (BẮT BUỘC TUÂN TH�
 • Chuỗi ngủ ngon: **🔥 ${user.streak || 1} ngày liên tiếp**
 ${user.healthConditions && user.healthConditions.length ? `• Tình trạng cần lưu ý: *${user.healthConditions.join(', ')}*` : ''}
 
-Mavis đã sẵn sàng phân tích và đồng hành cùng bạn để cải thiện nhịp sinh học, ngủ sâu giấc và tràn đầy năng lượng mỗi ngày.
+Mavis đã kết nối với **Trí tuệ nhân tạo Gemini** để giải đáp đa dạng mọi câu hỏi về sức khỏe, dinh dưỡng và giấc ngủ cho bạn.
 
-*(Lưu ý an toàn: Mavis tư vấn giải pháp phi dược lý lành tính, **tuyệt đối không kê đơn thuốc hay TPCN**)*. Bạn cần Mavis hỗ trợ gì hôm nay?`);
+*(Mavis luôn ở đây đồng hành và lắng nghe)*. Bạn có thể hỏi Mavis bất cứ câu hỏi nào ngay bên dưới nhé!`);
     } else {
-      appendBotMessage(`Xin chào bạn! Tôi là **Mavis - Trợ Lý Giấc Ngủ Thông Minh**. Mavis chúc bạn ngủ ngon! 🌙✨
+      appendBotMessage(`Xin chào bạn! Tôi là **Mavis - Bé Trợ Lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ**. Mavis chúc bạn luôn mạnh khỏe và ngủ thật ngon! 🌙✨
 
-*"Bạn ngủ ngon, Mavis hạnh phúc."*
+*"Bạn khỏe mạnh và ngủ ngon, Mavis hạnh phúc."*
 
-Mavis luôn hoạt động **24/7 hoàn toàn mở** để hỗ trợ bạn bất kỳ lúc nào — không cần đăng nhập hay điều kiện phức tạp!
+Mavis đã được kết nối với **Google Gemini AI** và hoạt động **24/7 hoàn toàn mở** để cùng bạn trò chuyện thoải mái về mọi chủ đề sức khỏe:
 
 💡 **Mavis có thể hỗ trợ bạn ngay:**
-• Khắc phục thức giấc lúc 3h sáng & khó vào giấc
-• Giãn cơ cổ vai gáy 3 phút cho dân văn phòng
-• Món ăn giàu Magie & Tryptophan từ bữa cơm gia đình
-• Bài tập thở 4-7-8 giúp thư giãn thần kinh cấp tốc
+• Khắc phục khó ngủ, trằn trọc & thức giấc giữa đêm
+• Giảm đau mỏi cổ vai gáy, đau lưng cho người ngồi nhiều
+• Thực đơn ăn uống, món ăn giàu Magie & dinh dưỡng phục hồi
+• Mẹo giảm mệt mỏi, đau đầu, trào ngược dạ dày & xả stress cấp tốc
 
-*(Lưu ý y tế: Mavis chỉ tư vấn giải pháp phi dược lý lành tính, **tuyệt đối không kê đơn thuốc hay TPCN**)*. Bạn có thể hỏi Mavis bất cứ câu hỏi nào ngay bên dưới nhé!`);
+Bạn có thể trò chuyện hoặc hỏi Mavis bất cứ câu hỏi nào về sức khỏe ngay bên dưới nhé! ❤️`);
     }
   }
 

@@ -1,120 +1,16 @@
 import os
 import sys
 import json
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from datetime import datetime
+
+# Import SQLite Database Engine
+import database
+import ai_analyzer
 
 PORT = int(os.environ.get('PORT', 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_FILE = os.path.join(BASE_DIR, 'server_database.json')
 
-# Default Seed Data if DB file does not exist
-DEFAULT_DB = {
-    "users": [
-        {
-            "id": "user_hungnv",
-            "fullName": "Nguyễn Văn Hùng",
-            "verified": True,
-            "role": "Kỹ Sư IT & Công Trình",
-            "bio": "Thức khuya & mê cà phê • Đang cải thiện giấc ngủ sâu NREM 💤",
-            "age": "30 tuổi (Nam)",
-            "gender": "Nam",
-            "occupation": "Kỹ Sư IT & Công Trình",
-            "phone": "0981 234 567",
-            "email": "hung.nguyen@example.com",
-            "password": "123456",
-            "targetBedtime": "23:00",
-            "wakeTime": "06:30",
-            "fitnessLevel": "Trung bình",
-            "healthConditions": [
-                "Đau mỏi cổ vai gáy",
-                "Căng thẳng deadline",
-                "Ngồi nhiều máy tính"
-            ],
-            "avatarType": "programmer_laptop",
-            "createdAt": "2026-10-20T08:00:00.000Z",
-            "lastLoginAt": "2026-10-24T18:00:00.000Z"
-        },
-        {
-            "id": "user_maitt",
-            "fullName": "Trần Thị Mai",
-            "verified": True,
-            "role": "Trưởng Phòng Nhân Sự",
-            "bio": "Dễ thức giấc nửa đêm • Mục tiêu ngủ thẳng giấc 7 tiếng 🌸",
-            "age": "38 tuổi (Nữ)",
-            "gender": "Nữ",
-            "occupation": "Trưởng Phòng Nhân Sự",
-            "phone": "0912 345 678",
-            "email": "mai.tran@example.com",
-            "password": "123456",
-            "targetBedtime": "22:00",
-            "wakeTime": "06:00",
-            "fitnessLevel": "Khá",
-            "healthConditions": [
-                "Khó ngủ sau 1h sáng",
-                "Áp lực công việc",
-                "Bốc hỏa tiền mãn kinh nhẹ"
-            ],
-            "avatarType": "woman_professional",
-            "createdAt": "2026-10-21T09:30:00.000Z",
-            "lastLoginAt": "2026-10-24T18:15:00.000Z"
-        }
-    ],
-    "activeUserId": "user_hungnv",
-    "serviceUsage": [
-        {
-            "id": 1,
-            "userId": "user_hungnv",
-            "userName": "Nguyễn Văn Hùng",
-            "serviceType": "AUTH_LOGIN",
-            "title": "Đăng nhập hệ thống",
-            "detail": "Tài khoản Nguyễn Văn Hùng đã đăng nhập và đồng bộ từ thiết bị.",
-            "timestamp": "2026-10-24T18:00:00.000Z",
-            "device": "Web Browser"
-        },
-        {
-            "id": 2,
-            "userId": "user_hungnv",
-            "userName": "Nguyễn Văn Hùng",
-            "serviceType": "DIAGNOSIS_5PILLARS",
-            "title": "Khảo sát 5 Trụ Cột Y Khoa",
-            "detail": "Điểm dự báo giấc ngủ 68%. Mức độ stress trung bình, đau cổ vai gáy.",
-            "timestamp": "2026-10-24T19:30:00.000Z",
-            "device": "Mobile App (PWA)"
-        },
-        {
-            "id": 3,
-            "userId": "user_hungnv",
-            "userName": "Nguyễn Văn Hùng",
-            "serviceType": "AI_CHATBOT_GEMINI",
-            "title": "Hỏi đáp Trợ lý AI Gemini",
-            "detail": "Hỏi về thực phẩm ăn tối hỗ trợ giấc ngủ tự nhiên.",
-            "timestamp": "2026-10-24T20:15:00.000Z",
-            "device": "Mobile App (PWA)"
-        }
-    ],
-    "diagnoses": []
-}
-
-def load_db():
-    if not os.path.exists(DB_FILE):
-        save_db(DEFAULT_DB)
-        return DEFAULT_DB
-    try:
-        with open(DB_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception as e:
-        print("[Server DB Load Error]", e)
-        return DEFAULT_DB
-
-def save_db(data):
-    try:
-        with open(DB_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        return True
-    except Exception as e:
-        print("[Server DB Save Error]", e)
-        return False
 
 class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -124,7 +20,6 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
         print(f"[{datetime.now().strftime('%H:%M:%S')}] {self.client_address[0]} - " + (format % args), flush=True)
 
     def do_OPTIONS(self):
-        print(f"[HTTP OPTIONS] {self.path}", flush=True)
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE')
@@ -141,8 +36,17 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def read_json_body(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            if content_length > 0:
+                raw = self.rfile.read(content_length).decode('utf-8')
+                return json.loads(raw)
+        except Exception as e:
+            print("[JSON Parse Error]", e)
+        return None
+
     def do_GET(self):
-        print(f"[HTTP GET] {self.path}", flush=True)
         try:
             clean_path = self.path.split('?')[0]
             if clean_path == '/api/users':
@@ -155,6 +59,8 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
                 self.handle_get_diagnoses()
             elif clean_path == '/api/export':
                 self.handle_export_db()
+            elif clean_path == '/api/database/status':
+                self.handle_database_status()
             else:
                 # Normal static file
                 super().do_GET()
@@ -162,6 +68,7 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
             print("[GET Exception]", e, flush=True)
 
     def do_POST(self):
+        print(f"[HTTP POST] {self.path}", flush=True)
         try:
             clean_path = self.path.split('?')[0]
             if clean_path == '/api/sync':
@@ -180,60 +87,52 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
                 self.handle_add_log()
             elif clean_path == '/api/reset':
                 self.handle_reset_db()
+            elif clean_path == '/api/ai/analyze-sleep':
+                self.handle_ai_analyze_sleep()
+            elif clean_path == '/api/ai/chat':
+                self.handle_ai_chat()
             else:
                 self.send_error(404, "Endpoint Not Found")
         except Exception as e:
-            print("[POST Exception]", e)
-
-    def read_json_body(self):
-        try:
-            content_length = int(self.headers.get('Content-Length', 0))
-            if content_length > 0:
-                raw = self.rfile.read(content_length).decode('utf-8')
-                return json.loads(raw)
-        except Exception as e:
-            print("[JSON Parse Error]", e)
-        return None
+            print("[POST Exception]", e, flush=True)
+            try:
+                self.send_json({"success": False, "error": str(e)}, 500)
+            except Exception:
+                pass
 
     # -----------------------------
-    # API HANDLERS
+    # API HANDLERS (SQL BACKED)
     # -----------------------------
     def handle_get_users(self):
-        db = load_db()
-        self.send_json({"success": True, "users": db.get("users", []), "activeUserId": db.get("activeUserId")})
+        users = database.list_all_users()
+        active_id = database.get_active_user_id()
+        self.send_json({"success": True, "users": users, "activeUserId": active_id})
 
     def handle_get_stats(self):
-        db = load_db()
-        users = db.get("users", [])
-        logs = db.get("serviceUsage", [])
-        diags = db.get("diagnoses", [])
-        
-        guardrail_count = sum(1 for l in logs if 'GUARDRAIL' in str(l.get('serviceType', '')))
-        ai_chat_count = sum(1 for l in logs if 'AI_CHAT' in str(l.get('serviceType', '')))
-        diag_count = len(diags) + sum(1 for l in logs if 'DIAGNOSIS' in str(l.get('serviceType', '')))
-
-        stats = {
-            "totalUsers": len(users),
-            "totalDiagnoses": diag_count,
-            "totalAiChats": ai_chat_count,
-            "totalGuardrailBlocks": guardrail_count,
-            "totalLogs": len(logs),
-            "lastSync": datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
-            "serverStatus": "Online (Đồng bộ Cloud hoạt động)"
-        }
+        stats = database.get_stats()
         self.send_json({"success": True, "stats": stats})
 
     def handle_get_logs(self):
-        db = load_db()
-        self.send_json({"success": True, "logs": db.get("serviceUsage", [])})
+        logs = database.list_service_logs(limit=150)
+        self.send_json({"success": True, "logs": logs})
 
     def handle_get_diagnoses(self):
-        db = load_db()
-        self.send_json({"success": True, "diagnoses": db.get("diagnoses", [])})
+        diagnoses = database.list_diagnoses(limit=100)
+        self.send_json({"success": True, "diagnoses": diagnoses})
 
     def handle_export_db(self):
-        db = load_db()
-        self.send_json(db)
+        data = database.export_full_database()
+        self.send_json(data)
+
+    def handle_database_status(self):
+        stats = database.get_stats()
+        self.send_json({
+            "success": True,
+            "engine": "SQLite 3",
+            "file": database.DB_FILE,
+            "schemaFile": database.SCHEMA_FILE,
+            "stats": stats
+        })
 
     def handle_login(self):
         body = self.read_json_body()
@@ -243,51 +142,39 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
 
         phone_or_id = body.get("phoneOrId", "").strip()
         password = body.get("password", "").strip()
-        db = load_db()
-        found_user = None
+        device = body.get("device", "Web/Mobile")
 
-        clean_input = phone_or_id.replace(" ", "").lower()
-        for u in db.get("users", []):
-            u_id = (u.get("id") or "").lower()
-            u_phone = (u.get("phone") or "").replace(" ", "").lower()
-            u_email = (u.get("email") or "").lower()
-            u_name = (u.get("fullName") or "").lower()
-            u_username = (u.get("username") or "").lower()
-            if (
-                clean_input in [u_id, u_id.replace("user_", ""), u_phone, u_email, u_username]
-                or ("user_" + clean_input) == u_id
-                or phone_or_id.lower() == u_name
-            ):
-                found_user = u
-                break
+        if not phone_or_id:
+            self.send_json({"success": False, "message": "Vui lòng nhập tên tài khoản hoặc số điện thoại!"}, 400)
+            return
+
+        found_user = database.find_user_for_login(phone_or_id)
 
         if found_user:
-            # Check password if provided and user has password
-            user_pwd = found_user.get("password", "123456")
+            # Check password if user has password set
+            user_pwd = found_user.get("password", "")
             if password and user_pwd and password != user_pwd:
                 self.send_json({"success": False, "message": "Mật khẩu không chính xác. Vui lòng thử lại!"}, 401)
                 return
 
-            found_user["lastLoginAt"] = datetime.now().isoformat()
-            db["activeUserId"] = found_user["id"]
+            # Update lastLoginAt in SQL database
+            database.update_user(found_user["id"], {"lastLoginAt": datetime.now().isoformat()})
+            database.set_active_user_id(found_user["id"])
 
-            # Log login event
-            device = body.get("device", "Web/Mobile")
-            db.setdefault("serviceUsage", []).insert(0, {
-                "id": int(datetime.now().timestamp() * 1000),
+            # Log login event in SQL
+            database.add_service_log({
                 "userId": found_user["id"],
                 "userName": found_user["fullName"],
                 "serviceType": "AUTH_LOGIN",
                 "title": "Đăng nhập tài khoản",
-                "detail": f"Người dùng {found_user['fullName']} đã đăng nhập thành công vào hệ thống.",
-                "timestamp": datetime.now().isoformat(),
-                "device": device
+                "detail": f"Người dùng {found_user['fullName']} đã đăng nhập thành công vào hệ thống SQL.",
+                "device": device,
+                "icon": "fa-solid fa-arrow-right-to-bracket",
+                "badgeColor": "emerald"
             })
 
-            save_db(db)
-
-            # Return user's past diagnoses if any
-            user_diags = [d for d in db.get("diagnoses", []) if d.get("userId") == found_user["id"]]
+            # Fetch user's diagnoses from SQL
+            user_diags = database.list_diagnoses(user_id=found_user["id"])
 
             self.send_json({
                 "success": True,
@@ -296,7 +183,10 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
                 "message": f"Chào mừng {found_user['fullName']} đã đăng nhập thành công!"
             })
         else:
-            self.send_json({"success": False, "message": "Không tìm thấy tài khoản với thông tin này. Bạn vui lòng kiểm tra lại hoặc chuyển sang tab Đăng ký!"}, 404)
+            self.send_json({
+                "success": False, 
+                "message": "Không tìm thấy tài khoản với thông tin này. Bạn vui lòng kiểm tra lại hoặc chuyển sang tab Đăng Ký để tạo tài khoản mới!"
+            }, 404)
 
     def handle_register(self):
         body = self.read_json_body()
@@ -307,108 +197,78 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
         full_name = body.get("fullName", "").strip()
         phone = body.get("phone", "").strip()
         password = body.get("password", "").strip() or "123456"
+        device = body.get("device", "Web Browser")
 
         if not full_name or not phone:
             self.send_json({"success": False, "message": "Vui lòng nhập họ tên và số điện thoại!"}, 400)
             return
 
-        db = load_db()
-        users = db.setdefault("users", [])
+        # Check existing user in SQL database
+        existing = database.find_user_for_login(phone)
+        if existing:
+            self.send_json({
+                "success": False, 
+                "message": "Số điện thoại/Username này đã được đăng ký. Vui lòng chuyển sang tab Đăng Nhập!"
+            }, 409)
+            return
 
-        # Check existing phone or id
-        for u in users:
-            if u.get("phone") == phone:
-                self.send_json({"success": False, "message": "Số điện thoại này đã được đăng ký trong hệ thống. Vui lòng chuyển sang tab Đăng Nhập!"}, 409)
-                return
+        # Insert new user into SQL database
+        new_user = database.create_user(body)
+        database.set_active_user_id(new_user["id"])
 
-        new_user = {
-            "id": "user_" + str(int(datetime.now().timestamp())),
-            "fullName": full_name,
-            "phone": phone,
-            "password": password,
-            "email": body.get("email", ""),
-            "verified": True,
-            "role": body.get("role", "Thành viên SleepSync"),
-            "bio": body.get("bio", "Mục tiêu cải thiện chất lượng giấc ngủ sâu NREM 💤"),
-            "age": body.get("age", "28 tuổi"),
-            "gender": body.get("gender", "Khác"),
-            "occupation": body.get("occupation", body.get("role", "Tự do")),
-            "targetBedtime": body.get("targetBedtime", "23:00"),
-            "wakeTime": body.get("wakeTime", "06:30"),
-            "fitnessLevel": body.get("fitnessLevel", "Trung bình"),
-            "healthConditions": body.get("healthConditions", ["Sức khỏe ổn định"]),
-            "avatarType": body.get("avatarType", "programmer_laptop"),
-            "createdAt": datetime.now().isoformat(),
-            "lastLoginAt": datetime.now().isoformat()
-        }
-
-        users.append(new_user)
-        db["activeUserId"] = new_user["id"]
-
-        device = body.get("device", "Web Browser")
-        db.setdefault("serviceUsage", []).insert(0, {
-            "id": int(datetime.now().timestamp() * 1000),
+        # Log registration event in SQL
+        database.add_service_log({
             "userId": new_user["id"],
             "userName": new_user["fullName"],
             "serviceType": "AUTH_REGISTER",
             "title": "Đăng ký thành viên mới",
-            "detail": f"Thành viên mới {new_user['fullName']} ({new_user['phone']}) đã tạo tài khoản và đồng bộ thành công.",
-            "timestamp": datetime.now().isoformat(),
-            "device": device
+            "detail": f"Thành viên mới {new_user['fullName']} ({new_user['phone']}) đã tạo tài khoản và lưu vào SQL Database.",
+            "device": device,
+            "icon": "fa-solid fa-user-plus",
+            "badgeColor": "emerald"
         })
 
-        save_db(db)
         self.send_json({
             "success": True,
             "user": new_user,
-            "message": "Đăng ký tài khoản thành công! Dữ liệu đã được lưu trữ vào Database."
+            "message": "Đăng ký tài khoản thành công! Dữ liệu đã được lưu trữ an toàn vào Cơ Sở Dữ Liệu SQL."
         })
 
     def handle_sync(self):
         body = self.read_json_body()
-        db = load_db()
-
         if body:
             client_users = body.get("users", [])
             client_logs = body.get("serviceUsage", [])
             client_diags = body.get("diagnoses", [])
             device_type = body.get("deviceType", "Thiết bị người dùng")
 
-            # Merge Users
-            user_map = {u["id"]: u for u in db.get("users", [])}
+            # Sync users into SQL
             for cu in client_users:
                 cid = cu.get("id")
                 if not cid:
                     continue
-                if cid not in user_map:
-                    user_map[cid] = cu
+                existing = database.get_user_by_id(cid)
+                if not existing:
+                    database.create_user(cu)
                 else:
-                    user_map[cid].update(cu)
+                    database.update_user(cid, cu)
 
-            db["users"] = list(user_map.values())
-
-            # Merge Logs
-            existing_log_ids = {l.get("id") for l in db.get("serviceUsage", [])}
+            # Sync logs into SQL
             for cl in client_logs:
-                if cl.get("id") not in existing_log_ids:
-                    cl["device"] = device_type
-                    db.setdefault("serviceUsage", []).append(cl)
+                cl["device"] = device_type
+                database.add_service_log(cl)
 
-            db["serviceUsage"] = sorted(db.get("serviceUsage", []), key=lambda x: str(x.get("timestamp", "")), reverse=True)[:150]
-
-            # Merge Diagnoses
-            existing_diag_ids = {d.get("id") for d in db.get("diagnoses", [])}
+            # Sync diagnoses into SQL
             for cd in client_diags:
-                if cd.get("id") not in existing_diag_ids:
-                    db.setdefault("diagnoses", []).append(cd)
+                cd["device"] = device_type
+                database.save_diagnosis(cd)
 
-            save_db(db)
-
+        full_data = database.export_full_database()
         self.send_json({
             "success": True,
-            "message": "Đồng bộ đám mây thành công!",
+            "message": "Đồng bộ Cơ Sở Dữ Liệu SQL thành công!",
             "serverTime": datetime.now().isoformat(),
-            "data": db
+            "data": full_data
         })
 
     def handle_save_user(self):
@@ -417,28 +277,13 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
             self.send_json({"success": False, "message": "Dữ liệu rỗng"}, 400)
             return
 
-        db = load_db()
-        users = db.setdefault("users", [])
         user_id = body.get("id")
-
-        if user_id:
-            updated = False
-            for idx, u in enumerate(users):
-                if u.get("id") == user_id:
-                    users[idx].update(body)
-                    users[idx]["updatedAt"] = datetime.now().isoformat()
-                    updated = True
-                    break
-            if not updated:
-                users.append(body)
+        if user_id and database.get_user_by_id(user_id):
+            updated_user = database.update_user(user_id, body)
+            self.send_json({"success": True, "message": "Cập nhật người dùng thành công trong SQL!", "user": updated_user})
         else:
-            new_id = "user_" + str(int(datetime.now().timestamp()))
-            body["id"] = new_id
-            body["createdAt"] = datetime.now().isoformat()
-            users.append(body)
-
-        save_db(db)
-        self.send_json({"success": True, "message": "Lưu người dùng thành công!", "user": body})
+            new_user = database.create_user(body)
+            self.send_json({"success": True, "message": "Thêm mới người dùng thành công vào SQL!", "user": new_user})
 
     def handle_delete_user(self):
         body = self.read_json_body()
@@ -447,20 +292,13 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
             return
 
         target_id = body.get("userId")
-        db = load_db()
-        users = db.get("users", [])
-        new_users = [u for u in users if u.get("id") != target_id]
-
-        if len(new_users) == len(users):
-            self.send_json({"success": False, "message": "Không tìm thấy người dùng"}, 404)
-            return
-
-        db["users"] = new_users
-        if db.get("activeUserId") == target_id:
-            db["activeUserId"] = new_users[0]["id"] if new_users else None
-
-        save_db(db)
-        self.send_json({"success": True, "message": "Đã xóa người dùng thành công!"})
+        deleted = database.delete_user(target_id)
+        if deleted:
+            if database.get_active_user_id() == target_id:
+                database.set_active_user_id(None)
+            self.send_json({"success": True, "message": "Đã xóa người dùng khỏi SQL Database thành công!"})
+        else:
+            self.send_json({"success": False, "message": "Không tìm thấy người dùng trong SQL"}, 404)
 
     def handle_save_diagnosis(self):
         body = self.read_json_body()
@@ -468,13 +306,8 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
             self.send_json({"success": False}, 400)
             return
 
-        db = load_db()
-        diags = db.setdefault("diagnoses", [])
-        body["id"] = body.get("id") or int(datetime.now().timestamp() * 1000)
-        body["timestamp"] = body.get("timestamp") or datetime.now().isoformat()
-        diags.append(body)
-        save_db(db)
-        self.send_json({"success": True, "diagnosis": body})
+        saved_diag = database.save_diagnosis(body)
+        self.send_json({"success": True, "diagnosis": saved_diag})
 
     def handle_add_log(self):
         body = self.read_json_body()
@@ -482,23 +315,94 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
             self.send_json({"success": False}, 400)
             return
 
-        db = load_db()
-        logs = db.setdefault("serviceUsage", [])
-        body["id"] = body.get("id") or int(datetime.now().timestamp() * 1000)
-        body["timestamp"] = body.get("timestamp") or datetime.now().isoformat()
-        logs.insert(0, body)
-        save_db(db)
-        self.send_json({"success": True, "log": body})
+        saved_log = database.add_service_log(body)
+        self.send_json({"success": True, "log": saved_log})
 
     def handle_reset_db(self):
-        save_db(DEFAULT_DB)
-        self.send_json({"success": True, "message": "Đã thiết lập lại database về mặc định!"})
+        database.reset_database()
+        self.send_json({
+            "success": True, 
+            "message": "Đã làm sạch Cơ Sở Dữ Liệu SQL! Toàn bộ bảng đã sẵn sàng cho tài khoản người dùng thực."
+        })
+
+    def handle_ai_analyze_sleep(self):
+        print("[AI Endpoint] Handling analyze sleep request...", flush=True)
+        body = self.read_json_body()
+        if not body:
+            self.send_json({"success": False, "message": "Dữ liệu khảo sát rỗng"}, 400)
+            return
+
+        result = ai_analyzer.analyze_sleep_survey(body)
+        print(f"[AI Endpoint] Completed: {result.get('aiEngine')} - Score: {result.get('predictedScore')}", flush=True)
+
+        # Save diagnosis to SQL database
+        user = body.get("user") or {}
+        diag_id = int(datetime.now().timestamp() * 1000)
+        diag_entry = {
+            "id": diag_id,
+            "userId": user.get("id"),
+            "userName": user.get("fullName", "Khách"),
+            "score": result.get("predictedScore", 70),
+            "pillars": result.get("pillars", {}),
+            "summary": result.get("verdictTitle", ""),
+            "answers": body.get("answers", {}),
+            "customAnswers": body.get("customAnswers", {}),
+            "device": body.get("device", "Web Browser"),
+            "timestamp": datetime.now().isoformat()
+        }
+        database.save_diagnosis(diag_entry)
+
+        # Log AI analysis service event
+        database.add_service_log({
+            "userId": user.get("id"),
+            "userName": user.get("fullName", "Khách"),
+            "serviceType": "AI_DIAGNOSIS_ANALYSIS",
+            "title": f"Phân tích AI: {result.get('verdictTitle', 'Chẩn đoán 5 trụ cột')}",
+            "detail": f"Động cơ: {result.get('aiEngine')} - Điểm: {result.get('predictedScore')}%. Bóc tách {len(result.get('customInsights', []))} ý kiến tự điền.",
+            "device": body.get("device", "Web Browser"),
+            "icon": "fa-solid fa-wand-magic-sparkles",
+            "badgeColor": "indigo"
+        })
+
+        self.send_json({"success": True, "analysis": result, "diagnosisId": diag_id})
+
+    def handle_ai_chat(self):
+        body = self.read_json_body()
+        if not body:
+            self.send_json({"success": False, "message": "Tin nhắn rỗng"}, 400)
+            return
+
+        query = body.get("message", "").strip()
+        user = body.get("user") or {}
+
+        if not query:
+            self.send_json({"success": False, "message": "Vui lòng nhập nội dung câu hỏi"}, 400)
+            return
+
+        ai_res = ai_analyzer.chat_with_mavis(query, user)
+        if ai_res and ai_res.get("success"):
+            reply = ai_res.get("reply")
+            # Log chat into SQL database
+            database.add_service_log({
+                "userId": user.get("id"),
+                "userName": user.get("fullName", "Khách"),
+                "serviceType": "AI_CHATBOT_GEMINI",
+                "title": f"Mavis Chat: {query[:35]}...",
+                "detail": f"Model: {ai_res.get('model')} - Phản hồi câu hỏi sức khỏe/giấc ngủ.",
+                "device": body.get("device", "Web"),
+                "icon": "fa-solid fa-comments",
+                "badgeColor": "indigo"
+            })
+            self.send_json({"success": True, "reply": reply, "model": ai_res.get("model")})
+        else:
+            self.send_json({"success": False, "message": "AI chat fallback"}, 500)
 
 
 if __name__ == '__main__':
+    database.init_db()
     server_address = ('0.0.0.0', PORT)
-    httpd = HTTPServer(server_address, SleepSyncAPIHandler)
-    print(f"SleepSync server running on http://localhost:{PORT}", flush=True)
+    httpd = ThreadingHTTPServer(server_address, SleepSyncAPIHandler)
+    print(f"SleepSync SQL server running on http://localhost:{PORT}", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
