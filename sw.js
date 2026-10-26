@@ -3,7 +3,7 @@
  * Enables offline caching, instant app launch, and background sync readiness.
  */
 
-const CACHE_NAME = 'mavis-sleep-cache-v6';
+const CACHE_NAME = 'mavis-sleep-cache-v7';
 const STATIC_ASSETS = [
   './',
   './index.html',

@@ -493,6 +493,23 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
     }
   }
 
+  // Saved / Active chatbot dimensions & position state
+  let customChatSize = { width: 420, height: 590 };
+  let hasCustomWindowPosition = false;
+
+  try {
+    const savedSize = localStorage.getItem('mavis_chat_size');
+    if (savedSize) {
+      const parsed = JSON.parse(savedSize);
+      if (parsed && parsed.width >= 320 && parsed.height >= 360) {
+        customChatSize = {
+          width: Math.min(parsed.width, window.innerWidth - 16),
+          height: Math.min(parsed.height, window.innerHeight - 30)
+        };
+      }
+    }
+  } catch (e) {}
+
   // ==========================================
   // DYNAMIC ANCHORING: CHATBOT ATTACHES DIRECTLY TO THE STAR FAB
   // ==========================================
@@ -508,12 +525,17 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
       chatWindow.style.bottom = '0px';
       chatWindow.style.top = 'auto';
       chatWindow.style.width = '100vw';
+      chatWindow.style.height = '85vh';
       return;
     }
 
+    const chatWidth = (customChatSize && customChatSize.width) ? customChatSize.width : 420;
+    const chatHeight = (customChatSize && customChatSize.height) ? customChatSize.height : 590;
+
+    chatWindow.style.width = chatWidth + 'px';
+    chatWindow.style.height = chatHeight + 'px';
+
     const fabRect = fab.getBoundingClientRect();
-    const chatWidth = 420;
-    const chatHeight = 590;
     const margin = 14;
     const gap = 12;
 
@@ -560,6 +582,251 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
   }
 
   // ==========================================
+  // FREEFORM 4-CORNER CROP RESIZE & HEADER DRAG ENGINE
+  // ==========================================
+  function initChatbotResizable() {
+    const chatWindow = document.getElementById('ai-chatbot-window');
+    if (!chatWindow) return;
+
+    const header = chatWindow.querySelector('.chatbot-header');
+    const sizeIndicator = document.getElementById('chat-size-indicator');
+    const handles = chatWindow.querySelectorAll('.chat-resize-handle');
+
+    // 1. Initial size application
+    if (window.innerWidth > 480 && customChatSize) {
+      chatWindow.style.width = customChatSize.width + 'px';
+      chatWindow.style.height = customChatSize.height + 'px';
+    }
+
+    // 2. 4-Corner & 4-Edge Resize logic (Crop-tool style)
+    let isResizing = false;
+    let currentHandleType = '';
+    let startX = 0, startY = 0;
+    let startW = 0, startH = 0, startL = 0, startT = 0;
+
+    handles.forEach(h => {
+      h.addEventListener('mousedown', (e) => startResize(e, h.dataset.handle));
+      h.addEventListener('touchstart', (e) => startResize(e, h.dataset.handle), { passive: false });
+    });
+
+    function startResize(e, handleType) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      isResizing = true;
+      currentHandleType = handleType;
+
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      startX = clientX;
+      startY = clientY;
+
+      const rect = chatWindow.getBoundingClientRect();
+      startL = rect.left;
+      startT = rect.top;
+      startW = rect.width;
+      startH = rect.height;
+
+      chatWindow.classList.add('is-resizing');
+      document.body.classList.add('chat-is-resizing');
+
+      // Set explicit pixel coordinates
+      chatWindow.style.left = startL + 'px';
+      chatWindow.style.top = startT + 'px';
+      chatWindow.style.width = startW + 'px';
+      chatWindow.style.height = startH + 'px';
+      chatWindow.style.right = 'auto';
+      chatWindow.style.bottom = 'auto';
+
+      if (sizeIndicator) {
+        sizeIndicator.textContent = `${Math.round(startW)} × ${Math.round(startH)}px`;
+        sizeIndicator.classList.add('active');
+      }
+
+      document.addEventListener('mousemove', onResizeMove, { passive: false });
+      document.addEventListener('mouseup', onResizeEnd);
+      document.addEventListener('touchmove', onResizeMove, { passive: false });
+      document.addEventListener('touchend', onResizeEnd);
+    }
+
+    function onResizeMove(e) {
+      if (!isResizing) return;
+      if (e.cancelable) e.preventDefault();
+
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      const dx = clientX - startX;
+      const dy = clientY - startY;
+
+      const minW = 320;
+      const minH = 360;
+      const maxW = Math.min(window.innerWidth - 16, 1100);
+      const maxH = Math.min(window.innerHeight - 16, 960);
+
+      let newW = startW;
+      let newH = startH;
+      let newL = startL;
+      let newT = startT;
+
+      // Horizontal Resize (Right vs Left)
+      if (currentHandleType.includes('r')) {
+        newW = Math.max(minW, Math.min(startW + dx, maxW));
+        if (newL + newW > window.innerWidth - 10) {
+          newW = Math.max(minW, window.innerWidth - 10 - newL);
+        }
+      } else if (currentHandleType.includes('l')) {
+        const proposedW = startW - dx;
+        const clampedW = Math.max(minW, Math.min(proposedW, maxW));
+        newL = startL + (startW - clampedW);
+        if (newL < 8) {
+          newL = 8;
+          newW = Math.max(minW, startL + startW - 8);
+        } else {
+          newW = clampedW;
+        }
+      }
+
+      // Vertical Resize (Bottom vs Top)
+      if (currentHandleType.includes('b')) {
+        newH = Math.max(minH, Math.min(startH + dy, maxH));
+        if (newT + newH > window.innerHeight - 10) {
+          newH = Math.max(minH, window.innerHeight - 10 - newT);
+        }
+      } else if (currentHandleType.includes('t')) {
+        const proposedH = startH - dy;
+        const clampedH = Math.max(minH, Math.min(proposedH, maxH));
+        newT = startT + (startH - clampedH);
+        if (newT < 8) {
+          newT = 8;
+          newH = Math.max(minH, startT + startH - 8);
+        } else {
+          newH = clampedH;
+        }
+      }
+
+      chatWindow.style.width = Math.round(newW) + 'px';
+      chatWindow.style.height = Math.round(newH) + 'px';
+      chatWindow.style.left = Math.round(newL) + 'px';
+      chatWindow.style.top = Math.round(newT) + 'px';
+
+      if (sizeIndicator) {
+        sizeIndicator.textContent = `${Math.round(newW)} × ${Math.round(newH)}px`;
+      }
+    }
+
+    function onResizeEnd() {
+      if (!isResizing) return;
+      isResizing = false;
+
+      chatWindow.classList.remove('is-resizing');
+      document.body.classList.remove('chat-is-resizing');
+
+      if (sizeIndicator) {
+        setTimeout(() => sizeIndicator.classList.remove('active'), 250);
+      }
+
+      document.removeEventListener('mousemove', onResizeMove);
+      document.removeEventListener('mouseup', onResizeEnd);
+      document.removeEventListener('touchmove', onResizeMove);
+      document.removeEventListener('touchend', onResizeEnd);
+
+      const rect = chatWindow.getBoundingClientRect();
+      customChatSize = {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height)
+      };
+      hasCustomWindowPosition = true;
+
+      try {
+        localStorage.setItem('mavis_chat_size', JSON.stringify(customChatSize));
+      } catch (err) {}
+    }
+
+    // 3. Draggable Window Header (Reposition window freely)
+    if (header) {
+      let isMoving = false;
+      let moveStartX = 0, moveStartY = 0;
+      let initialWinLeft = 0, initialWinTop = 0;
+      let hasHeaderMoved = false;
+
+      header.addEventListener('mousedown', onHeaderPointerDown);
+      header.addEventListener('touchstart', onHeaderPointerDown, { passive: false });
+
+      function onHeaderPointerDown(e) {
+        // Do not trigger window drag when user clicks on header buttons
+        if (e.target.closest('button') || e.target.closest('.chat-header-btn')) return;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        isMoving = true;
+        hasHeaderMoved = false;
+        moveStartX = clientX;
+        moveStartY = clientY;
+
+        const rect = chatWindow.getBoundingClientRect();
+        initialWinLeft = rect.left;
+        initialWinTop = rect.top;
+
+        chatWindow.style.left = initialWinLeft + 'px';
+        chatWindow.style.top = initialWinTop + 'px';
+        chatWindow.style.right = 'auto';
+        chatWindow.style.bottom = 'auto';
+
+        header.style.cursor = 'grabbing';
+
+        document.addEventListener('mousemove', onHeaderPointerMove, { passive: false });
+        document.addEventListener('mouseup', onHeaderPointerUp);
+        document.addEventListener('touchmove', onHeaderPointerMove, { passive: false });
+        document.addEventListener('touchend', onHeaderPointerUp);
+      }
+
+      function onHeaderPointerMove(e) {
+        if (!isMoving) return;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const dx = clientX - moveStartX;
+        const dy = clientY - moveStartY;
+
+        if (Math.hypot(dx, dy) > 4) {
+          hasHeaderMoved = true;
+          if (e.cancelable) e.preventDefault();
+        }
+
+        const winW = chatWindow.offsetWidth;
+        const winH = chatWindow.offsetHeight;
+        const maxL = window.innerWidth - winW - 8;
+        const maxT = window.innerHeight - winH - 8;
+
+        const nextL = Math.max(8, Math.min(initialWinLeft + dx, maxL));
+        const nextT = Math.max(8, Math.min(initialWinTop + dy, maxT));
+
+        chatWindow.style.left = nextL + 'px';
+        chatWindow.style.top = nextT + 'px';
+      }
+
+      function onHeaderPointerUp() {
+        if (!isMoving) return;
+        isMoving = false;
+        header.style.cursor = 'grab';
+
+        document.removeEventListener('mousemove', onHeaderPointerMove);
+        document.removeEventListener('mouseup', onHeaderPointerUp);
+        document.removeEventListener('touchmove', onHeaderPointerMove);
+        document.removeEventListener('touchend', onHeaderPointerUp);
+
+        if (hasHeaderMoved) {
+          hasCustomWindowPosition = true;
+        }
+      }
+    }
+  }
+
+  // ==========================================
   // 5. CHATBOT WINDOW CONTROLLER
   // ==========================================
   function updateChatbotUserContext() {
@@ -579,6 +846,7 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
 
   function initChatbot() {
     initDraggableFAB();
+    initChatbotResizable();
 
     const closeBtn = document.getElementById('close-chatbot-btn');
     const clearBtn = document.getElementById('clear-chat-btn');

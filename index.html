@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/icon-192.png">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
   
   <script>
     // Register PWA Service Worker for Mobile Application
@@ -2322,6 +2322,19 @@
       <button type="button" id="chatbot-mic-btn" class="chatbot-btn-mic" title="Nói giọng nói"><i class="fa-solid fa-microphone"></i></button>
       <button type="submit" id="chatbot-send-btn" class="chatbot-btn-send" title="Gửi tin nhắn"><i class="fa-solid fa-paper-plane"></i></button>
     </form>
+
+    <!-- 4-Corner & Edge Freeform Resize Handles (Image Crop Style) -->
+    <div class="chat-resize-handle handle-tl" data-handle="tl" title="Kéo góc trên-trái để mở rộng / thu nhỏ tự do"></div>
+    <div class="chat-resize-handle handle-tr" data-handle="tr" title="Kéo góc trên-phải để mở rộng / thu nhỏ tự do"></div>
+    <div class="chat-resize-handle handle-bl" data-handle="bl" title="Kéo góc dưới-trái để mở rộng / thu nhỏ tự do"></div>
+    <div class="chat-resize-handle handle-br" data-handle="br" title="Kéo góc dưới-phải để mở rộng / thu nhỏ tự do"></div>
+    <div class="chat-resize-handle handle-t" data-handle="t"></div>
+    <div class="chat-resize-handle handle-b" data-handle="b"></div>
+    <div class="chat-resize-handle handle-l" data-handle="l"></div>
+    <div class="chat-resize-handle handle-r" data-handle="r"></div>
+
+    <!-- Live Dimension Tooltip Badge during Resizing -->
+    <div class="chat-size-indicator" id="chat-size-indicator">420 × 590px</div>
   </div>
 
   <!-- FLOATING QUICK STAR FAB (DRAGGABLE ACROSS FULL SCREEN TO LAUNCH AI CHATBOT) -->
@@ -2333,10 +2346,10 @@
   </button>
 
   <!-- Client Database Engine -->
-  <script src="db.js?v=4"></script>
+  <script src="db.js?v=5"></script>
   <!-- RAG Knowledge Base & AI Chatbot Engine -->
-  <script src="rag.js?v=4"></script>
+  <script src="rag.js?v=5"></script>
   <!-- Main Javascript Logic -->
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

@@ -3641,13 +3641,15 @@ body {
   bottom: 92px;
   right: 28px;
   width: 420px;
-  max-width: calc(100vw - 32px);
+  min-width: 320px;
+  max-width: calc(100vw - 16px);
   height: 590px;
-  max-height: calc(100vh - 120px);
+  min-height: 360px;
+  max-height: calc(100vh - 40px);
   background: rgba(12, 16, 32, 0.95);
   backdrop-filter: blur(24px) saturate(190%);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(139, 92, 246, 0.35);
+  border: 1.5px solid rgba(139, 92, 246, 0.4);
   border-radius: 22px;
   box-shadow: 0 25px 65px rgba(0, 0, 0, 0.75), 0 0 45px rgba(139, 92, 246, 0.2);
   display: flex;
@@ -3655,6 +3657,19 @@ body {
   overflow: hidden;
   z-index: 9998;
   animation: chatWindowPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* While actively resizing */
+.ai-chatbot-window.is-resizing {
+  transition: none !important;
+  animation: none !important;
+  border-color: #38BDF8 !important;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 35px rgba(56, 189, 248, 0.35) !important;
+}
+
+body.chat-is-resizing {
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 @keyframes chatWindowPop {
@@ -3668,7 +3683,7 @@ body {
   }
 }
 
-/* Chat Header */
+/* Chat Header with Drag Capability */
 .chatbot-header {
   padding: 0.95rem 1.25rem;
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.98) 100%);
@@ -3676,6 +3691,167 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+.chatbot-header:active {
+  cursor: grabbing;
+}
+
+/* ==========================================================================
+   4-CORNER & EDGE FREEFORM RESIZE HANDLES (PHOTO CROP TOOL STYLE)
+   ========================================================================== */
+.chat-resize-handle {
+  position: absolute;
+  z-index: 10015;
+  box-sizing: border-box;
+  touch-action: none;
+  background: transparent;
+}
+
+/* 4 Corner Crop Brackets (High contrast with cyan/gold glow) */
+.chat-resize-handle.handle-tl,
+.chat-resize-handle.handle-tr,
+.chat-resize-handle.handle-bl,
+.chat-resize-handle.handle-br {
+  width: 20px;
+  height: 20px;
+  pointer-events: auto;
+  transition: transform 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+}
+
+/* Top-Left Corner Bracket */
+.chat-resize-handle.handle-tl {
+  top: 4px;
+  left: 4px;
+  cursor: nwse-resize;
+  border-top: 3.5px solid #38BDF8;
+  border-left: 3.5px solid #38BDF8;
+  border-top-left-radius: 6px;
+}
+/* Top-Right Corner Bracket */
+.chat-resize-handle.handle-tr {
+  top: 4px;
+  right: 4px;
+  cursor: nesw-resize;
+  border-top: 3.5px solid #38BDF8;
+  border-right: 3.5px solid #38BDF8;
+  border-top-right-radius: 6px;
+}
+/* Bottom-Left Corner Bracket */
+.chat-resize-handle.handle-bl {
+  bottom: 4px;
+  left: 4px;
+  cursor: nesw-resize;
+  border-bottom: 3.5px solid #38BDF8;
+  border-left: 3.5px solid #38BDF8;
+  border-bottom-left-radius: 6px;
+}
+/* Bottom-Right Corner Bracket */
+.chat-resize-handle.handle-br {
+  bottom: 4px;
+  right: 4px;
+  cursor: nwse-resize;
+  border-bottom: 3.5px solid #38BDF8;
+  border-right: 3.5px solid #38BDF8;
+  border-bottom-right-radius: 6px;
+}
+
+/* Touch/Click Hit Area Expansion */
+.chat-resize-handle.handle-tl::after,
+.chat-resize-handle.handle-tr::after,
+.chat-resize-handle.handle-bl::after,
+.chat-resize-handle.handle-br::after {
+  content: '';
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  top: -6px;
+  left: -6px;
+}
+.chat-resize-handle.handle-tr::after {
+  left: auto;
+  right: -6px;
+}
+.chat-resize-handle.handle-bl::after {
+  top: auto;
+  bottom: -6px;
+}
+.chat-resize-handle.handle-br::after {
+  top: auto;
+  left: auto;
+  right: -6px;
+  bottom: -6px;
+}
+
+/* Hover & Active Glowing Crop Corners */
+.chat-resize-handle.handle-tl:hover,
+.chat-resize-handle.handle-tr:hover,
+.chat-resize-handle.handle-bl:hover,
+.chat-resize-handle.handle-br:hover,
+.chat-resize-handle.is-active {
+  border-color: #FDE047 !important;
+  filter: drop-shadow(0 0 6px #FDE047);
+  transform: scale(1.22);
+}
+
+/* 4 Smooth Resizing Edges */
+.chat-resize-handle.handle-t {
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 8px;
+  cursor: ns-resize;
+}
+.chat-resize-handle.handle-b {
+  bottom: 0;
+  left: 24px;
+  right: 24px;
+  height: 8px;
+  cursor: ns-resize;
+}
+.chat-resize-handle.handle-l {
+  left: 0;
+  top: 24px;
+  bottom: 24px;
+  width: 8px;
+  cursor: ew-resize;
+}
+.chat-resize-handle.handle-r {
+  right: 0;
+  top: 24px;
+  bottom: 24px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+/* Live Resizing Size Dimensions Badge */
+.chat-size-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1.5px solid rgba(56, 189, 248, 0.7);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #38BDF8;
+  pointer-events: none;
+  z-index: 10025;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 16px rgba(56, 189, 248, 0.35);
+  opacity: 0;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.chat-size-indicator.active {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .chatbot-title-box {
@@ -3770,6 +3946,9 @@ body {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+  margin-right: 14px;
+  position: relative;
+  z-index: 10020;
 }
 
 .chat-header-btn {
