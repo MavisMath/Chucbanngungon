@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { initTabSwitchers(); } catch (e) { console.error('[SleepSync Init Error] Tabs:', e); }
   try { initWizard(); } catch (e) { console.error('[SleepSync Init Error] Wizard:', e); }
   try { initTalkMode(); } catch (e) { console.error('[SleepSync Init Error] Talk Mode:', e); }
+  try { renderTrackerPanel(); } catch (e) { console.error('[SleepSync Init Error] Tracker Panel:', e); }
   try { initCalendarScanner(); } catch (e) { console.error('[SleepSync Init Error] Calendar Scanner:', e); }
   try { initAudioControls(); } catch (e) { console.error('[SleepSync Init Error] Audio Controls:', e); }
   try { initHistoryModule(); } catch (e) { console.error('[SleepSync Init Error] History Module:', e); }
@@ -479,10 +480,14 @@ function initTabSwitchers() {
     activeSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  tabQuiz.addEventListener('click', () => switchTab(tabQuiz, secQuiz, 'quiz'));
+  tabQuiz.addEventListener('click', () => {
+    switchTab(tabQuiz, secQuiz, 'quiz');
+    syncQuizUIFromAnswers();
+  });
   tabVoice.addEventListener('click', () => {
     // Chatbot Voice / AI Talk mode is always accessible without requiring login/registration
     switchTab(tabVoice, secVoice, 'voice');
+    renderTrackerPanel();
     if (AppState.talkState.history.length === 0) {
       startTalkConversation();
     }
@@ -553,6 +558,7 @@ function initWizard() {
           btn.classList.add('selected');
           AppState.answers[qKey] = [val];
           if (customWrap) customWrap.style.display = 'none';
+          renderTrackerPanel();
         } else {
           // Deselect 'none' / 'normal' / 'no_phone' if active
           grid.querySelectorAll('.opt-btn[data-value="none"], .opt-btn[data-value="normal"], .opt-btn[data-value="no_phone"]')
@@ -584,6 +590,7 @@ function initWizard() {
           }
 
           AppState.answers[qKey] = currentAnswers;
+          renderTrackerPanel();
         }
       });
     });
@@ -593,6 +600,7 @@ function initWizard() {
       customInput.addEventListener('input', () => {
         AppState.customAnswers = AppState.customAnswers || {};
         AppState.customAnswers[qKey] = customInput.value.trim();
+        renderTrackerPanel();
       });
     }
   });
@@ -753,68 +761,218 @@ function applyRealisticDemoScenario() {
     chronic_condition: ['gerd']
   };
 
-  // Sync selected buttons in UI
-  document.querySelectorAll('.options-grid').forEach(grid => {
-    const qKey = grid.dataset.question;
-    const vals = AppState.answers[qKey] || [];
-    grid.querySelectorAll('.opt-btn').forEach(btn => {
-      btn.classList.toggle('selected', vals.includes(btn.dataset.value));
-    });
-  });
+  // Sync selected buttons in UI and update tracker
+  syncQuizUIFromAnswers();
+  renderTrackerPanel();
 
   goToWizardStep(6);
 }
 
 // ==========================================
-// 5. TALK MODE (VOICE & INTERACTIVE CHAT)
+// 5. TALK MODE: CLINICAL VOICE JOURNAL & BIDIRECTIONAL SYNC ENGINE
 // ==========================================
-const TALK_QUESTIONS = [
-  {
-    key: 'p1',
-    text: "Chào bạn! Đầu tiên về **Tâm lý & Tinh thần**: Hôm nay bạn có đang gặp áp lực deadline, stress công việc khiến tim đập nhanh, hay cảm thấy uể oải, lo âu không?",
-    replies: [
-      { text: "Rất stress & Lo âu deadline", update: { stress_level: 'high', mood_state: 'anxious' } },
-      { text: "Bận rộn vừa phải", update: { stress_level: 'medium', mood_state: 'good' } },
-      { text: "Rất thư thái, nhẹ nhõm", update: { stress_level: 'low', mood_state: 'good' } }
-    ]
-  },
-  {
-    key: 'p2',
-    text: "Về **Môi trường phòng ngủ**: Phòng bạn tối nay có thoáng mát (24-26°C), yên tĩnh không? Và bạn có thói quen dùng máy tính/điện thoại nhiều ánh sáng xanh không?",
-    replies: [
-      { text: "Phòng nóng & Nhiều ánh sáng xanh", update: { env_light: 'screen_heavy', env_temp: 'hot' } },
-      { text: "Phòng bị ồn xe cộ từ ngoài đường", update: { env_noise: 'noisy', env_light: 'dark' } },
-      { text: "Phòng mát mẻ, tối và yên tĩnh", update: { env_light: 'dark', env_temp: 'ideal', env_noise: 'quiet' } }
-    ]
-  },
-  {
-    key: 'p3',
-    text: "Về **Lối sống & Thói quen**: Hôm nay bạn đã uống mấy ly cà phê? Có uống sau 11h trưa không, và tối nay có ăn muộn nhiều dầu mỡ hay lướt TikTok trên giường?",
-    replies: [
-      { text: "Uống cafe sau 11h & Lướt đt trên giường", update: { caffeine_usage: 'late_high', bed_phone: 'lướt_tiktok_fb' } },
-      { text: "Ăn tối dầu mỡ sát giờ ngủ", update: { dinner_habit: 'heavy_late', bed_phone: 'lướt_tiktok_fb' } },
-      { text: "Không uống cafe muộn, ăn thanh đạm", update: { caffeine_usage: 'morning_only', dinner_habit: 'light_early', bed_phone: 'no_phone' } }
-    ]
-  },
-  {
-    key: 'p4',
-    text: "Về **Sinh lý & Nội tiết**: Bạn thuộc nhóm tuổi trẻ hay trên 50 tuổi? Phụ nữ có gặp tình trạng tiền mãn kinh bị bốc hỏa, vã mồ hôi đêm làm thức giấc không?",
-    replies: [
-      { text: "Thanh niên / Trưởng thành bình thường", update: { age_group: 'young_adult', hormone_state: 'normal' } },
-      { text: "Tiền mãn kinh, hay bốc hỏa đêm", update: { hormone_state: 'menopause_hotflash', age_group: 'middle_aged' } },
-      { text: "Người lớn tuổi (> 50 tuổi)", update: { age_group: 'middle_aged', hormone_state: 'normal' } }
-    ]
-  },
-  {
-    key: 'p5',
-    text: "Cuối cùng về **Bệnh lý & Thể chất**: Bạn có bị đau mỏi cổ vai gáy, đau lưng do ngồi văn phòng, đau đầu, hoặc trào ngược dạ dày (GERD), tiểu đêm không?",
-    replies: [
-      { text: "Đau mỏi cổ vai gáy & Trào ngược dạ dày", update: { physical_pain: 'neck_back_pain', chronic_condition: 'gerd' } },
-      { text: "Bị tiểu đêm 2-3 lần làm tỉnh giấc", update: { chronic_condition: 'nocturia' } },
-      { text: "Cơ thể hoàn toàn khỏe khoắn, không đau", update: { physical_pain: 'none', chronic_condition: 'none' } }
-    ]
+
+function getMissingPillarsClient(ans) {
+  ans = ans || {};
+  const has = (key) => {
+    const v = ans[key];
+    if (!v) return false;
+    if (Array.isArray(v)) return v.length > 0 && v[0] !== '' && v[0] !== 'none_selected';
+    return String(v).trim() !== '';
+  };
+  const missing = [];
+  if (!has('stress_level') && !has('mood_state')) missing.push(1);
+  if (!has('env_light') && !has('env_temp') && !has('env_noise')) missing.push(2);
+  if (!has('caffeine_usage') && !has('alcohol_nicotine') && !has('dinner_habit') && !has('bed_phone')) missing.push(3);
+  if (!has('age_group') && !has('hormone_state')) missing.push(4);
+  if (!has('physical_pain') && !has('chronic_condition')) missing.push(5);
+  return missing;
+}
+
+function syncQuizUIFromAnswers() {
+  document.querySelectorAll('.options-grid').forEach(grid => {
+    const qKey = grid.dataset.question;
+    const vals = AppState.answers[qKey] || [];
+    const valArr = Array.isArray(vals) ? vals : [vals];
+    grid.querySelectorAll('.opt-btn').forEach(btn => {
+      btn.classList.toggle('selected', valArr.includes(btn.dataset.value));
+    });
+    const qBlock = grid.closest('.question-block');
+    if (qBlock) {
+      const customWrap = qBlock.querySelector('.custom-answer-wrap');
+      const customInput = qBlock.querySelector('.custom-answer-input');
+      if (valArr.includes('custom') && AppState.customAnswers && AppState.customAnswers[qKey]) {
+        if (customWrap) customWrap.style.display = 'block';
+        if (customInput) customInput.value = AppState.customAnswers[qKey];
+      }
+    }
+  });
+}
+
+function renderTrackerPanel() {
+  const ans = AppState.answers || {};
+  const has = (key, val) => {
+    const v = ans[key];
+    if (!v) return false;
+    if (Array.isArray(v)) return val ? v.includes(val) : v.length > 0 && v[0] !== '';
+    return val ? v === val : String(v).trim() !== '';
+  };
+
+  let filledCount = 0;
+
+  // 1. Tâm Lý & Căng Thẳng
+  const p1Item = document.getElementById('tracker-p1-item');
+  const p1Pill = document.getElementById('tracker-p1-pill');
+  const p1Val = document.getElementById('tracker-p1-val');
+  if (p1Item && p1Pill && p1Val) {
+    if (has('stress_level') || has('mood_state')) {
+      filledCount++;
+      p1Item.className = 'pillar-tracker-item filled';
+      p1Pill.className = 'status-pill success';
+      p1Pill.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã hoàn thành';
+
+      let desc = [];
+      if (has('stress_level', 'high')) desc.push('Căng thẳng cao (áp lực deadline)');
+      else if (has('stress_level', 'medium')) desc.push('Áp lực vừa phải');
+      else if (has('stress_level', 'low')) desc.push('Thư thái');
+      if (has('mood_state', 'anxious')) desc.push('Lo âu, bồn chồn');
+      else if (has('mood_state', 'brain_fog')) desc.push('Uể oải não bộ');
+      p1Val.textContent = desc.length > 0 ? desc.join(', ') : 'Đã ghi nhận thông tin tâm lý.';
+    } else {
+      p1Item.className = 'pillar-tracker-item missing';
+      p1Pill.className = 'status-pill warning';
+      p1Pill.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Còn thiếu';
+      p1Val.textContent = 'Chưa có thông tin về stress, lo âu hôm nay.';
+    }
   }
-];
+
+  // 2. Môi Trường Phòng Ngủ
+  const p2Item = document.getElementById('tracker-p2-item');
+  const p2Pill = document.getElementById('tracker-p2-pill');
+  const p2Val = document.getElementById('tracker-p2-val');
+  if (p2Item && p2Pill && p2Val) {
+    if (has('env_light') || has('env_temp') || has('env_noise')) {
+      filledCount++;
+      p2Item.className = 'pillar-tracker-item filled';
+      p2Pill.className = 'status-pill success';
+      p2Pill.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã hoàn thành';
+
+      let desc = [];
+      if (has('env_temp', 'hot')) desc.push('Nóng bức (>28°C)');
+      else if (has('env_temp', 'too_cold')) desc.push('Quá lạnh (<22°C)');
+      else if (has('env_temp', 'ideal')) desc.push('Mát mẻ (24-26°C)');
+
+      if (has('env_noise', 'noisy')) desc.push('Ồn ào xe cộ');
+      else if (has('env_noise', 'quiet')) desc.push('Yên tĩnh');
+
+      if (has('env_light', 'screen_heavy')) desc.push('Nhiều ánh sáng xanh');
+      p2Val.textContent = desc.length > 0 ? desc.join(', ') : 'Đã ghi nhận môi trường ngủ.';
+    } else {
+      p2Item.className = 'pillar-tracker-item missing';
+      p2Pill.className = 'status-pill warning';
+      p2Pill.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Còn thiếu';
+      p2Val.textContent = 'Chưa có thông tin về ánh sáng, nhiệt độ, tiếng ồn.';
+    }
+  }
+
+  // 3. Lối Sống & Chất Kích Thích
+  const p3Item = document.getElementById('tracker-p3-item');
+  const p3Pill = document.getElementById('tracker-p3-pill');
+  const p3Val = document.getElementById('tracker-p3-val');
+  if (p3Item && p3Pill && p3Val) {
+    if (has('caffeine_usage') || has('alcohol_nicotine') || has('dinner_habit') || has('bed_phone')) {
+      filledCount++;
+      p3Item.className = 'pillar-tracker-item filled';
+      p3Pill.className = 'status-pill success';
+      p3Pill.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã hoàn thành';
+
+      let desc = [];
+      if (has('caffeine_usage', 'late_high')) desc.push('Caffeine sau 11h/chiều');
+      else if (has('caffeine_usage', 'morning_only')) desc.push('Chỉ uống cafe sáng');
+      else if (has('caffeine_usage', 'none')) desc.push('Không dùng caffeine');
+
+      if (has('bed_phone', 'lướt_tiktok_fb')) desc.push('Lướt đt trên giường');
+      else if (has('bed_phone', 'no_phone')) desc.push('Không dùng đt');
+
+      if (has('dinner_habit', 'heavy_late')) desc.push('Ăn tối muộn/dầu mỡ');
+      p3Val.textContent = desc.length > 0 ? desc.join(', ') : 'Đã ghi nhận lối sống & thói quen.';
+    } else {
+      p3Item.className = 'pillar-tracker-item missing';
+      p3Pill.className = 'status-pill warning';
+      p3Pill.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Còn thiếu';
+      p3Val.textContent = 'Chưa rõ caffeine, rượu bia, ăn tối, điện thoại.';
+    }
+  }
+
+  // 4. Sinh Lý & Nhóm Tuổi
+  const p4Item = document.getElementById('tracker-p4-item');
+  const p4Pill = document.getElementById('tracker-p4-pill');
+  const p4Val = document.getElementById('tracker-p4-val');
+  if (p4Item && p4Pill && p4Val) {
+    if (has('age_group') || has('hormone_state')) {
+      filledCount++;
+      p4Item.className = 'pillar-tracker-item filled';
+      p4Pill.className = 'status-pill success';
+      p4Pill.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã hoàn thành';
+
+      let desc = [];
+      if (has('age_group', 'young_adult')) desc.push('Thanh niên (<50t)');
+      else if (has('age_group', 'middle_aged')) desc.push('Lớn tuổi (>50t)');
+
+      if (has('hormone_state', 'menopause_hotflash')) desc.push('Tiền mãn kinh (bốc hỏa)');
+      else if (has('hormone_state', 'normal')) desc.push('Nội tiết bình thường');
+      p4Val.textContent = desc.length > 0 ? desc.join(', ') : 'Đã liên kết sinh lý & tuổi tác.';
+    } else {
+      p4Item.className = 'pillar-tracker-item missing';
+      p4Pill.className = 'status-pill warning';
+      p4Pill.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Chưa liên kết';
+      p4Val.textContent = 'Liên kết từ Hồ Sơ Nền Tảng hoặc bổ sung tại đây.';
+    }
+  }
+
+  // 5. Bệnh Lý & Đau Nhức
+  const p5Item = document.getElementById('tracker-p5-item');
+  const p5Pill = document.getElementById('tracker-p5-pill');
+  const p5Val = document.getElementById('tracker-p5-val');
+  if (p5Item && p5Pill && p5Val) {
+    if (has('physical_pain') || has('chronic_condition')) {
+      filledCount++;
+      p5Item.className = 'pillar-tracker-item filled';
+      p5Pill.className = 'status-pill success';
+      p5Pill.innerHTML = '<i class="fa-solid fa-circle-check"></i> Đã hoàn thành';
+
+      let desc = [];
+      if (has('physical_pain', 'neck_back_pain')) desc.push('Đau mỏi cổ vai gáy/lưng');
+      else if (has('physical_pain', 'headache')) desc.push('Đau đầu');
+      else if (has('physical_pain', 'none')) desc.push('Không đau mỏi');
+
+      if (has('chronic_condition', 'gerd')) desc.push('Trào ngược dạ dày (GERD)');
+      else if (has('chronic_condition', 'nocturia')) desc.push('Tiểu đêm');
+      else if (has('chronic_condition', 'none')) desc.push('Không bệnh lý mạn tính');
+      p5Val.textContent = desc.length > 0 ? desc.join(', ') : 'Đã ghi nhận bệnh lý & thể chất.';
+    } else {
+      p5Item.className = 'pillar-tracker-item missing';
+      p5Pill.className = 'status-pill warning';
+      p5Pill.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Còn thiếu';
+      p5Val.textContent = 'Đau cổ vai gáy, trào ngược dạ dày hay tiểu đêm?';
+    }
+  }
+
+  // Progress Badge
+  const progBadge = document.getElementById('tracker-progress-badge');
+  if (progBadge) {
+    progBadge.textContent = `${filledCount} / 5 Hoàn thành`;
+    if (filledCount === 5) {
+      progBadge.style.background = 'rgba(16, 185, 129, 0.25)';
+      progBadge.style.color = '#34D399';
+      progBadge.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+    } else {
+      progBadge.style.background = 'rgba(99, 102, 241, 0.2)';
+      progBadge.style.color = 'var(--indigo-light)';
+      progBadge.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+    }
+  }
+}
 
 function initTalkMode() {
   const sendBtn = document.getElementById('talk-send-btn');
@@ -822,35 +980,95 @@ function initTalkMode() {
   const micBtn = document.getElementById('talk-mic-btn');
   const restartBtn = document.getElementById('restart-talk-btn');
 
-  sendBtn.addEventListener('click', () => {
-    const val = textInput.value.trim();
-    if (val) {
-      handleUserTalkInput(val);
-      textInput.value = '';
-    }
+  if (sendBtn) {
+    sendBtn.addEventListener('click', () => {
+      const val = textInput.value.trim();
+      if (val) {
+        handleUserTalkInput(val);
+        textInput.value = '';
+      }
+    });
+  }
+
+  if (textInput) {
+    textInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        sendBtn.click();
+      }
+    });
+  }
+
+  if (micBtn) micBtn.addEventListener('click', toggleTalkMic);
+  if (restartBtn) restartBtn.addEventListener('click', startTalkConversation);
+
+  // Quick Fix Buttons on Tracker Items
+  document.querySelectorAll('.pillar-quick-fix-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = btn.dataset.pillar;
+      const prompts = {
+        p1: "Hôm nay tâm lý và mức độ áp lực, stress deadline của bạn thế nào?",
+        p2: "Phòng ngủ tối nay của bạn có thoáng mát (24-26°C), yên tĩnh và tối không?",
+        p3: "Hôm nay bạn uống cà phê lúc mấy giờ, có ăn tối muộn hay lướt điện thoại trên giường không?",
+        p4: "Bạn thuộc nhóm tuổi thanh niên hay trên 50 tuổi, có bốc hỏa đêm hay thức giấc không?",
+        p5: "Cơ thể bạn có đang bị đau mỏi cổ vai gáy, trào ngược dạ dày hay tiểu đêm không?"
+      };
+      if (prompts[p]) {
+        addAiTalkMessage(`Bạn đang muốn bổ sung nhanh: <strong>${prompts[p]}</strong>`, [
+          { text: "Bổ sung thông tin này", fill: prompts[p] }
+        ]);
+        if (textInput) {
+          textInput.focus();
+          textInput.placeholder = prompts[p];
+        }
+      }
+    });
   });
 
-  textInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      sendBtn.click();
-    }
-  });
-
-  micBtn.addEventListener('click', toggleTalkMic);
-  restartBtn.addEventListener('click', startTalkConversation);
+  // Fast Submit Button
+  const fastAnalyzeBtn = document.getElementById('tracker-analyze-now-btn');
+  if (fastAnalyzeBtn) {
+    fastAnalyzeBtn.addEventListener('click', () => {
+      runCompleteDiagnosis();
+    });
+  }
 }
 
 function startTalkConversation() {
-  AppState.talkState.currentQuestionIdx = 0;
   AppState.talkState.history = [];
   const box = document.getElementById('talk-messages-box');
+  if (!box) return;
   box.innerHTML = '';
 
-  addAiTalkMessage(TALK_QUESTIONS[0].text, TALK_QUESTIONS[0].replies);
+  renderTrackerPanel();
+
+  const missing = getMissingPillarsClient(AppState.answers);
+  if (missing.length === 0) {
+    addAiTalkMessage(
+      "Chào bạn! Mavis thấy **cả 5 trụ cột y khoa đã được đồng bộ đầy đủ** từ phần trắc nghiệm sang đây. " +
+      "Nếu bạn có thêm chi tiết đặc biệt nào hôm nay (ví dụ: làm ca đêm, cãi nhau, deadline dồn...), hãy cứ chia sẻ tự do dạng nhật ký tại đây nhé! " +
+      "Hoặc bạn có thể bấm **Hoàn Tất & Phân Tích Chuẩn Y Khoa** bên dưới để nhận ngay phác đồ tối nay!",
+      [
+        { text: "🚀 Hoàn tất & Phân tích ngay", action: "analyze" },
+        { text: "Tôi muốn chia sẻ thêm nhật ký", fill: "Hôm nay tôi muốn chia sẻ thêm..." }
+      ]
+    );
+  } else {
+    addAiTalkMessage(
+      "Chào bạn! Nếu bạn ngại chọn từng câu trắc nghiệm, hãy bấm Mic hoặc gõ tự nhiên như viết nhật ký hôm nay nhé " +
+      "(ví dụ: <em>'Hôm nay đi làm áp lực deadline kinh khủng, chiều lỡ uống ly matcha lúc 4h, phòng trọ hơi nóng và cổ mỏi nhừ...'</em>). " +
+      "Mavis sẽ tự động lắng nghe, bóc tách vào 5 trụ cột y khoa và hướng dẫn bạn phác đồ ngủ ngon tối nay!",
+      [
+        { text: "Hôm nay tôi mệt mỏi, áp lực deadline", fill: "Hôm nay tôi mệt mỏi, áp lực deadline" },
+        { text: "Phòng ngủ hơi nóng, cổ vai gáy bị mỏi", fill: "Phòng ngủ hơi nóng, cổ vai gáy bị mỏi" },
+        { text: "Chiều có uống ly cà phê lúc 3h", fill: "Chiều có uống ly cà phê lúc 3h" }
+      ]
+    );
+  }
 }
 
 function addAiTalkMessage(text, replies = []) {
   const box = document.getElementById('talk-messages-box');
+  if (!box) return;
   const bubble = document.createElement('div');
   bubble.className = 'chat-bubble ai';
   bubble.innerHTML = `<strong>🤖 Trợ lý Y Khoa SleepSync:</strong><br>${text}`;
@@ -860,13 +1078,16 @@ function addAiTalkMessage(text, replies = []) {
     chipsWrap.className = 'chat-quick-replies';
     replies.forEach(r => {
       const chip = document.createElement('button');
+      chip.type = 'button';
       chip.className = 'chat-reply-chip';
-      chip.textContent = r.text;
+      chip.textContent = r.text || r;
       chip.addEventListener('click', () => {
-        // Apply state updates
-        Object.assign(AppState.answers, r.update);
-        addUserTalkMessage(r.text);
-        advanceTalkStep();
+        if (r.action === 'analyze') {
+          runCompleteDiagnosis();
+        } else {
+          const fillText = r.fill || r.text || r;
+          handleUserTalkInput(fillText);
+        }
       });
       chipsWrap.appendChild(chip);
     });
@@ -879,6 +1100,7 @@ function addAiTalkMessage(text, replies = []) {
 
 function addUserTalkMessage(text) {
   const box = document.getElementById('talk-messages-box');
+  if (!box) return;
   const bubble = document.createElement('div');
   bubble.className = 'chat-bubble user';
   bubble.innerHTML = text;
@@ -886,55 +1108,75 @@ function addUserTalkMessage(text) {
   box.scrollTop = box.scrollHeight;
 }
 
-function handleUserTalkInput(text) {
-  addUserTalkMessage(text);
-  const lower = text.toLowerCase();
-  const qIdx = AppState.talkState.currentQuestionIdx;
+async function handleUserTalkInput(text) {
+  if (!text || !text.trim()) return;
+  const userText = text.trim();
+  addUserTalkMessage(userText);
 
-  // Simple heuristic parsing based on step
-  if (qIdx === 0) {
-    if (lower.includes('stress') || lower.includes('áp lực') || lower.includes('mệt') || lower.includes('lo')) {
-      AppState.answers.stress_level = 'high';
-      AppState.answers.mood_state = 'anxious';
+  // Show typing bubble
+  const box = document.getElementById('talk-messages-box');
+  const typingBubble = document.createElement('div');
+  typingBubble.className = 'chat-bubble ai';
+  typingBubble.id = 'ai-talk-typing-bubble';
+  typingBubble.innerHTML = '<strong>🤖 Trợ lý Y Khoa SleepSync:</strong><br><i class="fa-solid fa-circle-notch fa-spin"></i> <em>Mavis đang bóc tách nhật ký vào 5 trụ cột y khoa...</em>';
+  box.appendChild(typingBubble);
+  box.scrollTop = box.scrollHeight;
+
+  try {
+    const res = await fetch('/api/ai/voice-journal-intake', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: userText,
+        currentAnswers: AppState.answers || {},
+        history: AppState.talkState.history || [],
+        user: AppState.currentUser || null,
+        device: /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Mobile Voice' : 'Web Voice'
+      })
+    });
+
+    const data = await res.json();
+    if (typingBubble.parentElement) {
+      typingBubble.parentElement.removeChild(typingBubble);
     }
-  } else if (qIdx === 1) {
-    if (lower.includes('nóng')) AppState.answers.env_temp = 'hot';
-    if (lower.includes('ồn')) AppState.answers.env_noise = 'noisy';
-    if (lower.includes('màn hình') || lower.includes('điện thoại')) AppState.answers.env_light = 'screen_heavy';
-  } else if (qIdx === 2) {
-    if (lower.includes('cà phê') || lower.includes('cafe')) AppState.answers.caffeine_usage = 'late_high';
-    if (lower.includes('dầu mỡ') || lower.includes('no')) AppState.answers.dinner_habit = 'heavy_late';
-  } else if (qIdx === 3) {
-    if (lower.includes('mãn kinh') || lower.includes('bốc hỏa')) AppState.answers.hormone_state = 'menopause_hotflash';
-    if (lower.includes('già') || lower.includes('50') || lower.includes('lớn tuổi')) AppState.answers.age_group = 'middle_aged';
-  } else if (qIdx === 4) {
-    if (lower.includes('cổ') || lower.includes('vai') || lower.includes('gáy') || lower.includes('lưng')) {
-      AppState.answers.physical_pain = 'neck_back_pain';
+
+    if (data && data.success) {
+      // 1. Merge extracted answers into AppState.answers
+      if (data.extracted_answers && Object.keys(data.extracted_answers).length > 0) {
+        Object.entries(data.extracted_answers).forEach(([k, v]) => {
+          AppState.answers[k] = Array.isArray(v) ? v : [v];
+        });
+      }
+
+      // 2. Merge custom notes into AppState.customAnswers
+      if (data.custom_notes && Object.keys(data.custom_notes).length > 0) {
+        AppState.customAnswers = AppState.customAnswers || {};
+        Object.assign(AppState.customAnswers, data.custom_notes);
+      }
+
+      // 3. Bidirectional Sync: Update Tracker Panel & Tab 1 Wizard
+      renderTrackerPanel();
+      syncQuizUIFromAnswers();
+
+      // 4. Record history
+      AppState.talkState.history.push({ role: 'user', content: userText });
+      AppState.talkState.history.push({ role: 'assistant', content: data.ai_response_text });
+
+      // 5. Render AI response message with quick chips
+      addAiTalkMessage(data.ai_response_text, data.quick_chips || []);
+
+      if (data.is_complete) {
+        showAppToast("Tiếp nhận thành công", "Đã thu thập đầy đủ 5 trụ cột y tế từ nhật ký của bạn!", "success");
+      }
+    } else {
+      addAiTalkMessage("Mavis đã ghi nhận câu nói của bạn. Bạn hãy chia sẻ thêm về phòng ngủ, nhiệt độ hoặc tình trạng cơ thể tối nay nhé!");
     }
-    if (lower.includes('trào ngược') || lower.includes('dạ dày') || lower.includes('gerd')) {
-      AppState.answers.chronic_condition = 'gerd';
+  } catch (err) {
+    console.error("Talk intake error:", err);
+    if (typingBubble.parentElement) {
+      typingBubble.parentElement.removeChild(typingBubble);
     }
-  }
-
-  advanceTalkStep();
-}
-
-function advanceTalkStep() {
-  AppState.talkState.currentQuestionIdx++;
-  const nextIdx = AppState.talkState.currentQuestionIdx;
-
-  if (nextIdx < TALK_QUESTIONS.length) {
-    setTimeout(() => {
-      addAiTalkMessage(TALK_QUESTIONS[nextIdx].text, TALK_QUESTIONS[nextIdx].replies);
-    }, 500);
-  } else {
-    // Finished all 5 questions
-    setTimeout(() => {
-      addAiTalkMessage("Tuyệt vời! Tôi đã ghi nhận đầy đủ 5 trụ cột y tế của bạn. Đang khởi chạy hệ thống phân tích và đối chiếu lịch biểu công việc...");
-      setTimeout(() => {
-        runCompleteDiagnosis();
-      }, 1000);
-    }, 600);
+    addAiTalkMessage("Mavis đã tiếp nhận. Bạn có thể chia sẻ thêm về cảm giác cơ thể hoặc phòng ngủ hôm nay nhé!");
   }
 }
 

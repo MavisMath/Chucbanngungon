@@ -885,3 +885,340 @@ QUY TẮC TRẢ LỜI:
             continue
 
     return None
+
+
+# ==============================================================================
+# CLINICAL VOICE JOURNAL INTAKE & 5-PILLAR EXTRACTION ENGINE (TALK MODE)
+# ==============================================================================
+
+def get_missing_pillars(answers):
+    """
+    Identifies which of the 5 pillars have no information.
+    1: Tâm lý | 2: Môi trường | 3: Lối sống | 4: Sinh lý | 5: Bệnh lý
+    """
+    ans = answers or {}
+    def has_val(key):
+        v = ans.get(key)
+        if not v:
+            return False
+        if isinstance(v, list):
+            return len(v) > 0 and v[0] not in ["", "none_selected"]
+        return str(v).strip() != ""
+
+    missing = []
+    if not (has_val("stress_level") or has_val("mood_state")):
+        missing.append(1)
+    if not (has_val("env_light") or has_val("env_temp") or has_val("env_noise")):
+        missing.append(2)
+    if not (has_val("caffeine_usage") or has_val("alcohol_nicotine") or has_val("dinner_habit") or has_val("bed_phone")):
+        missing.append(3)
+    if not (has_val("age_group") or has_val("hormone_state")):
+        missing.append(4)
+    if not (has_val("physical_pain") or has_val("chronic_condition")):
+        missing.append(5)
+    return missing
+
+
+def local_semantic_extract(user_text, current_answers=None):
+    """
+    Deterministic rule-based parser for Vietnamese sleep journals.
+    Runs 100% offline with zero API key requirement.
+    """
+    ans = dict(current_answers or {})
+    extracted = {}
+    custom = {}
+    lower = user_text.lower()
+
+    # 1. Tâm Lý & Căng Thẳng
+    if any(w in lower for w in ['stress', 'áp lực', 'deadline', 'căng thẳng', 'cháy deadline', 'quá tải', 'mệt mỏi']):
+        extracted['stress_level'] = ['high']
+        extracted['mood_state'] = ['anxious']
+    elif any(w in lower for w in ['thư thái', 'thoải mái', 'nhẹ nhõm', 'không stress', 'bình yên', 'êm ả']):
+        extracted['stress_level'] = ['low']
+        extracted['mood_state'] = ['good']
+    elif any(w in lower for w in ['uể oải', 'chán nản', 'lo âu', 'buồn', 'bồn chồn']):
+        extracted['mood_state'] = ['brain_fog']
+
+    # 2. Môi Trường Phòng Ngủ
+    if any(w in lower for w in ['nóng', 'hầm', 'bí bách', 'nóng bức', 'chảy mồ hôi']):
+        extracted['env_temp'] = ['hot']
+    elif any(w in lower for w in ['lạnh', 'lạnh buốt', 'rét', 'quá lạnh']):
+        extracted['env_temp'] = ['too_cold']
+    elif any(w in lower for w in ['mát', 'mát mẻ', 'điều hòa', 'máy lạnh']):
+        extracted['env_temp'] = ['ideal']
+
+    if any(w in lower for w in ['ồn', 'tiếng xe', 'xe cộ', 'công trường', 'tiếng ồn', 'ồn ào']):
+        extracted['env_noise'] = ['noisy']
+    elif any(w in lower for w in ['yên tĩnh', 'cách âm', 'êm ả', 'không ồn']):
+        extracted['env_noise'] = ['quiet']
+
+    if any(w in lower for w in ['màn hình', 'ánh sáng xanh', 'đèn sáng', 'chói']):
+        extracted['env_light'] = ['screen_heavy']
+    elif any(w in lower for w in ['phòng tối', 'tối om', 'kéo rèm']):
+        extracted['env_light'] = ['dark']
+
+    # 3. Lối Sống & Chất Kích Thích
+    if any(w in lower for w in ['cà phê', 'cafe', 'matcha', 'trà đặc', 'bò húc', 'nước tăng lực', 'trà sữa']):
+        if any(w in lower for w in ['chiều', 'tối', 'trưa', 'muộn', '12h', '13h', '14h', '15h', '16h', '17h', '4h', '3h', '2h']):
+            extracted['caffeine_usage'] = ['late_high']
+        else:
+            extracted['caffeine_usage'] = ['morning_only']
+    elif any(w in lower for w in ['không uống cafe', 'nước lọc', 'không caffeine']):
+        extracted['caffeine_usage'] = ['none']
+
+    if any(w in lower for w in ['rượu', 'bia', 'nhậu', 'say', 'cồn']):
+        extracted['alcohol_nicotine'] = ['alcohol_dinner']
+    elif any(w in lower for w in ['thuốc lá', 'hút thuốc', 'vape', 'pod']):
+        extracted['alcohol_nicotine'] = ['nicotine']
+
+    if any(w in lower for w in ['ăn muộn', 'ăn khuya', 'dầu mỡ', 'no căng', 'đầy bụng', 'ăn tối trễ']):
+        extracted['dinner_habit'] = ['heavy_late']
+    elif any(w in lower for w in ['uống nhiều nước', 'uống nước trước khi ngủ']):
+        extracted['dinner_habit'] = ['drink_lots_water']
+    elif any(w in lower for w in ['ăn thanh đạm', 'ăn sớm', 'ăn nhẹ']):
+        extracted['dinner_habit'] = ['light_early']
+
+    if any(w in lower for w in ['tiktok', 'facebook', 'lướt điện thoại', 'xem điện thoại trên giường', 'lướt web']):
+        extracted['bed_phone'] = ['lướt_tiktok_fb']
+    elif any(w in lower for w in ['không dùng điện thoại', 'cất điện thoại', 'không lướt']):
+        extracted['bed_phone'] = ['no_phone']
+
+    # 4. Sinh Lý & Nhóm Tuổi
+    if any(w in lower for w in ['tiền mãn kinh', 'mãn kinh', 'bốc hỏa', 'vã mồ hôi đêm']):
+        extracted['hormone_state'] = ['menopause_hotflash']
+        extracted['age_group'] = ['middle_aged']
+    elif any(w in lower for w in ['50 tuổi', '60 tuổi', 'lớn tuổi', 'già']):
+        extracted['age_group'] = ['middle_aged']
+    elif any(w in lower for w in ['thanh niên', '20 tuổi', '30 tuổi', 'trẻ']):
+        extracted['age_group'] = ['young_adult']
+
+    # 5. Bệnh Lý & Thể Chất
+    if any(w in lower for w in ['cổ', 'vai', 'gáy', 'mỏi cổ', 'đau lưng', 'mỏi lưng']):
+        extracted['physical_pain'] = ['neck_back_pain']
+    elif any(w in lower for w in ['đau đầu', 'nhức đầu', 'nửa đầu']):
+        extracted['physical_pain'] = ['headache']
+
+    if any(w in lower for w in ['trào ngược', 'gerd', 'dạ dày', 'ợ chua', 'ợ nóng']):
+        extracted['chronic_condition'] = ['gerd']
+    elif any(w in lower for w in ['tiểu đêm', 'đái đêm', 'đi vệ sinh']):
+        extracted['chronic_condition'] = ['nocturia']
+
+    # Ghi nhận các chi tiết "THỪA" / độc lạ ngoài schema cố định
+    for phrase in ['ca đêm', 'tăng ca', 'deadline', 'cãi nhau', 'matcha', 'trà sữa', 'chia tay', 'mất ngủ']:
+        if phrase in lower:
+            custom['note_' + phrase] = phrase
+
+    # Merge với đáp án hiện tại
+    merged = dict(ans)
+    merged.update(extracted)
+    missing = get_missing_pillars(merged)
+
+    # Xây dựng phản hồi
+    ack_parts = []
+    if 'stress_level' in extracted: ack_parts.append("căng thẳng/áp lực")
+    if 'env_temp' in extracted: ack_parts.append("nhiệt độ phòng")
+    if 'env_noise' in extracted: ack_parts.append("tiếng ồn")
+    if 'caffeine_usage' in extracted: ack_parts.append("thời điểm nạp caffeine")
+    if 'physical_pain' in extracted: ack_parts.append("tình trạng đau mỏi cổ vai gáy")
+    if 'dinner_habit' in extracted: ack_parts.append("thói quen ăn tối")
+    if 'bed_phone' in extracted: ack_parts.append("thói quen dùng điện thoại")
+
+    ack_str = f"Mavis đã ghi nhận {', '.join(ack_parts)} của bạn vào hồ sơ!" if ack_parts else "Mavis đã lắng nghe và ghi nhận chia sẻ của bạn!"
+
+    if len(missing) == 0:
+        response_text = f"{ack_str} Tuyệt vời! Bạn đã có đủ thông tin của cả 5 trụ cột y khoa. Mời bạn bấm **Hoàn Tất & Phân Tích Chuẩn Y Khoa** bên dưới để nhận phác đồ nhịp sinh học ngay tối nay!"
+        chips = [
+            {"text": "Phân tích ngay bây giờ", "action": "analyze"}
+        ]
+    elif 2 in missing:
+        response_text = f"{ack_str} Để tối ưu giấc ngủ tối nay, bạn cho Mavis hỏi thêm: **Phòng ngủ tối nay của bạn có thoáng mát (24-26°C), yên tĩnh không và bạn có thói quen lướt điện thoại trên giường không?**"
+        chips = [
+            {"text": "Phòng mát mẻ, tối và yên tĩnh", "fill": "Phòng mát mẻ, tối và yên tĩnh"},
+            {"text": "Phòng hơi nóng và ồn xe cộ", "fill": "Phòng hơi nóng và ồn xe cộ"}
+        ]
+    elif 3 in missing:
+        response_text = f"{ack_str} Mavis hỏi thêm một chút: **Hôm nay bạn có uống cà phê/trà chiều không, và tối nay có ăn muộn nhiều dầu mỡ không?**"
+        chips = [
+            {"text": "Có lướt điện thoại trên giường", "fill": "Có lướt điện thoại trên giường"},
+            {"text": "Không uống cafe muộn, ăn sớm", "fill": "Không uống cafe muộn, ăn thanh đạm"}
+        ]
+    elif 5 in missing:
+        response_text = f"{ack_str} Bạn chia sẻ thêm nhé: **Cơ thể bạn có đang bị đau mỏi cổ vai gáy, trào ngược dạ dày hay tiểu đêm không?**"
+        chips = [
+            {"text": "Đau mỏi cổ vai gáy nhiều", "fill": "Đau mỏi cổ vai gáy nhiều"},
+            {"text": "Cơ thể bình thường không đau mỏi", "fill": "Cơ thể hoàn toàn khỏe khoắn không đau mỏi"}
+        ]
+    else:
+        response_text = f"{ack_str} Bạn thuộc nhóm tuổi thanh niên hay trên 50 tuổi, và có triệu chứng nội tiết bốc hỏa đêm nào không?"
+        chips = [
+            {"text": "Dưới 50 tuổi, sức khỏe bình thường", "fill": "Dưới 50 tuổi, sức khỏe bình thường"},
+            {"text": "Trên 50 tuổi, hay thức giấc đêm", "fill": "Trên 50 tuổi, hay thức giấc đêm"}
+        ]
+
+    return {
+        "success": True,
+        "extracted_answers": extracted,
+        "custom_notes": custom,
+        "missing_pillars": missing,
+        "ai_response_text": response_text,
+        "quick_chips": chips,
+        "is_complete": len(missing) == 0
+    }
+
+
+def extract_journal_intake(user_text, current_answers=None, history=None, user=None):
+    """
+    Dedicated Clinical Voice Journal Intake & 5-Pillar Extraction Engine.
+    Transforms arbitrary voice logs or free-form user journals into:
+    1. Structured 5-pillar values (mapped to SleepSync schema)
+    2. Qualitative custom notes (extra details, irregular schedules, life events)
+    3. Missing pillar detection & natural follow-up clinical question
+    4. Safe guardrails: Strictly refuses drug/supplement queries with friendly non-pharmacological advice.
+    """
+    user_text_clean = (user_text or "").strip()
+    if not user_text_clean:
+        return {
+            "success": False,
+            "error": "Nội dung nhật ký rỗng"
+        }
+
+    # 1. RÀO CẢN AN TOÀN PHÁP LÝ (STRICT GUARDRAILS)
+    if check_guardrails(user_text_clean):
+        missing = get_missing_pillars(current_answers or {})
+        return {
+            "success": True,
+            "is_guardrail_block": True,
+            "extracted_answers": {},
+            "custom_notes": {},
+            "missing_pillars": missing,
+            "ai_response_text": (
+                "Chào bạn, Mavis là trợ lý điều hòa nhịp sinh học tự nhiên phi dược lý của SleepSync. "
+                "Để đảm bảo an toàn tuyệt đối và tuân thủ quy chuẩn y tế, Mavis không được phép kê đơn, chỉ định hoặc tư vấn các loại thuốc tân dược hay thực phẩm chức năng. "
+                "Nếu tình trạng mất ngủ kéo dài cần can thiệp y tế, bạn vui lòng thăm khám bác sĩ chuyên khoa nhé!\n\n"
+                "Tối nay, Mavis có thể đồng hành cùng bạn bằng phác đồ ánh sáng, nhiệt độ phòng ngủ, dinh dưỡng tự nhiên giàu Melatonin/Magie và kỹ thuật thở buông thư. "
+                "Bạn hãy chia sẻ thêm về cảm giác cơ thể và sinh hoạt hôm nay nhé!"
+            ),
+            "quick_chips": [
+                {"text": "Hôm nay tôi mệt mỏi, áp lực deadline", "fill": "Hôm nay tôi mệt mỏi, áp lực deadline"},
+                {"text": "Phòng ngủ hơi nóng, cổ vai gáy bị mỏi", "fill": "Phòng ngủ hơi nóng, cổ vai gáy bị mỏi"},
+                {"text": "Chiều có uống ly cà phê lúc 3h", "fill": "Chiều có uống ly cà phê lúc 3h"}
+            ],
+            "is_complete": False
+        }
+
+    # 2. RUN LOCAL NLP EXTRACTOR AS BASELINE
+    baseline = local_semantic_extract(user_text_clean, current_answers)
+
+    # 3. CLOUD AI EXTRACTION VIA GEMINI (NẾU CÓ KEY)
+    api_key = os.environ.get("GEMINI_API_KEY") or DEFAULT_GEMINI_KEY
+    if not api_key:
+        return baseline
+
+    system_prompt = """Bạn là Bác Sĩ Tiếp Nhận Bệnh Án Lâm Sàng & Nhịp Sinh Học (Clinical Intake Specialist) của SleepSync.
+Nhiệm vụ của bạn là lắng nghe nhật ký giọng nói hoặc tâm sự tự do của người dùng, sau đó:
+1. Bóc tách thông tin lâm sàng vào 5 Trụ Cột Y Khoa theo ĐÚNG các mã chuẩn (Schema).
+2. Nhận diện các chi tiết "THỪA" (ngữ cảnh riêng: làm ca đêm, cãi nhau, uống trà sữa 16h, chia tay...) để lưu vào custom_notes.
+3. Nhận diện các trụ cột "THIẾU" (chưa có thông tin) để đặt 1 câu hỏi dồn tự nhiên, ngắn gọn (chỉ 1 câu duy nhất).
+4. QUY TẮC BẤT DI BẤT DỊCH VỀ Y TẾ:
+   - TUYỆT ĐỐI KHÔNG hỏi, gợi ý, kê đơn hoặc đề cập đến bất kỳ loại THUỐC, THUỐC NGỦ, THUỐC AN THẦN, hay THỰC PHẨM CHỨC NĂNG (TPCN) nào.
+   - SleepSync là hệ thống PHI DƯỢC LÝ (Non-pharmacological chronotherapy). Mọi can thiệp chỉ dựa trên ánh sáng, nhiệt độ phòng, thực phẩm tự nhiên (Tryptophan/Magie trong bữa ăn hàng ngày) và vi-vận động.
+
+SCHEMA 5 TRỤ CỘT (Chỉ gán nếu người dùng nhắc đến hoặc ngụ ý):
+- Trụ Cột 1 (Tâm Lý):
+  + stress_level: ["low"] (thư thái), ["medium"] (vừa phải), ["high"] (áp lực, deadline, căng thẳng)
+  + mood_state: ["good"] (tốt), ["brain_fog"] (uể oải, mệt mỏi), ["anxious"] (lo âu, bồn chồn)
+- Trụ Cột 2 (Môi Trường):
+  + env_light: ["dark"] (tối tốt), ["screen_heavy"] (nhiều ánh sáng xanh, xem màn hình), ["light_polluted"] (lọt sáng)
+  + env_temp: ["ideal"] (mát mẻ 24-26°C), ["hot"] (nóng bức, hầm), ["too_cold"] (lạnh buốt)
+  + env_noise: ["quiet"] (yên tĩnh), ["noisy"] (ồn ào, tiếng xe, hàng xóm)
+- Trụ Cột 3 (Lối Sống & Chất Kích Thích):
+  + caffeine_usage: ["none"] (không dùng), ["morning_only"] (chỉ uống sáng), ["late_high"] (uống chiều/tối/sau 11h trưa, trà đặc, nước tăng lực)
+  + alcohol_nicotine: ["none"] (không), ["alcohol_dinner"] (uống bia rượu chiều/tối), ["nicotine"] (hút thuốc)
+  + dinner_habit: ["light_early"] (ăn thanh đạm sớm), ["heavy_late"] (ăn muộn, nhiều dầu mỡ), ["drink_lots_water"] (uống nhiều nước tối)
+  + bed_phone: ["no_phone"] (không dùng), ["lướt_tiktok_fb"] (lướt điện thoại trên giường)
+- Trụ Cột 4 (Sinh Lý & Nhóm Tuổi):
+  + age_group: ["young_adult"] (dưới 50 tuổi / thanh niên), ["middle_aged"] (trên 50 tuổi)
+  + hormone_state: ["normal"] (bình thường), ["menopause_hotflash"] (tiền mãn kinh, bốc hỏa, vã mồ hôi đêm)
+- Trụ Cột 5 (Bệnh Lý & Đau Nhức):
+  + physical_pain: ["none"] (khỏe mạnh), ["neck_back_pain"] (đau mỏi cổ vai gáy, đau lưng), ["headache"] (đau đầu)
+  + chronic_condition: ["none"] (không có), ["gerd"] (trào ngược dạ dày, ợ chua, đau dạ dày), ["nocturia"] (tiểu đêm)
+
+BẠN PHẢI TRẢ VỀ DUY NHẤT 1 ĐỐI TƯỢNG JSON HỢP LỆ (Không thêm markdown ```json):
+{
+  "extracted_answers": {
+    // Chỉ các key phát hiện được, giá trị là mảng chuỗi e.g. ["high"]
+  },
+  "custom_notes": {
+    // Chi tiết độc lạ người dùng chia sẻ
+  },
+  "ai_response_text": "Lời nói của Mavis: Ghi nhận ân cần những gì vừa phát hiện + đặt 1 câu hỏi ngắn về thông tin còn thiếu (tuyệt đối không hỏi về thuốc/TPCN).",
+  "quick_chips": [
+    {"text": "Nội dung nút bấm nhanh 1", "fill": "Văn bản điền 1"},
+    {"text": "Nội dung nút bấm nhanh 2", "fill": "Văn bản điền 2"}
+  ]
+}"""
+
+    prompt = f"""{system_prompt}
+
+ĐÁP ÁN ĐÃ CÓ TỪ TRƯỚC CỦA NGƯỜI DÙNG:
+{json.dumps(current_answers or {}, ensure_ascii=False)}
+
+CÂU NÓI NHẬT KÝ MỚI NHẤT CỦA NGƯỜI DÙNG:
+"{user_text_clean}"
+
+Hãy bóc tách và phản hồi bằng JSON:"""
+
+    models_to_try = [
+        'gemini-3.5-flash-lite',
+        'gemini-3.1-flash-lite',
+        'gemini-3.5-flash',
+        'gemma-4-26b-a4b-it',
+        'gemini-flash-latest'
+    ]
+
+    for model_name in models_to_try:
+        try:
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload_data = json.dumps({
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.4, "maxOutputTokens": 1024}
+            }).encode('utf-8')
+
+            req = urllib.request.Request(gemini_url, data=payload_data, headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req, timeout=10.0) as resp:
+                res_json = json.loads(resp.read().decode('utf-8'))
+                raw_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+
+                # Clean markdown blocks
+                if raw_text.startswith("```"):
+                    raw_text = re.sub(r"^```[a-zA-Z]*\n?", "", raw_text)
+                    raw_text = re.sub(r"\n?```$", "", raw_text)
+                raw_text = raw_text.strip()
+
+                parsed = json.loads(raw_text)
+
+                # Check guardrails on generated text
+                if check_guardrails(raw_text):
+                    return baseline
+
+                # Merge extracted into answers to get updated missing pillars
+                merged = dict(current_answers or {})
+                merged.update(parsed.get("extracted_answers", {}))
+                missing = get_missing_pillars(merged)
+
+                return {
+                    "success": True,
+                    "extracted_answers": parsed.get("extracted_answers", {}),
+                    "custom_notes": parsed.get("custom_notes", {}),
+                    "missing_pillars": missing,
+                    "ai_response_text": parsed.get("ai_response_text") or baseline.get("ai_response_text"),
+                    "quick_chips": parsed.get("quick_chips") or baseline.get("quick_chips"),
+                    "is_complete": len(missing) == 0,
+                    "model": model_name
+                }
+        except Exception as e:
+            print(f"[Voice Intake Gemini] Error with {model_name}: {e}", flush=True)
+            continue
+
+    return baseline
+

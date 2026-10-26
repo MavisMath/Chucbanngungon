@@ -91,6 +91,8 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
                 self.handle_ai_analyze_sleep()
             elif clean_path == '/api/ai/chat':
                 self.handle_ai_chat()
+            elif clean_path == '/api/ai/voice-journal-intake':
+                self.handle_voice_journal_intake()
             else:
                 self.send_error(404, "Endpoint Not Found")
         except Exception as e:
@@ -396,6 +398,41 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
             self.send_json({"success": True, "reply": reply, "model": ai_res.get("model")})
         else:
             self.send_json({"success": False, "message": "AI chat fallback"}, 500)
+
+    def handle_voice_journal_intake(self):
+        body = self.read_json_body()
+        if not body:
+            self.send_json({"success": False, "message": "Dữ liệu nhật ký rỗng"}, 400)
+            return
+
+        user_text = body.get("message", "").strip()
+        current_answers = body.get("currentAnswers") or {}
+        history = body.get("history") or []
+        user = body.get("user") or {}
+
+        if not user_text:
+            self.send_json({"success": False, "message": "Vui lòng nhập hoặc nói nội dung nhật ký"}, 400)
+            return
+
+        res = ai_analyzer.extract_journal_intake(user_text, current_answers, history, user)
+
+        # Log into SQL database for transparency
+        try:
+            extracted_count = len(res.get("extracted_answers", {}))
+            database.add_service_log({
+                "userId": user.get("id"),
+                "userName": user.get("fullName", "Khách"),
+                "serviceType": "VOICE_JOURNAL_INTAKE",
+                "title": f"Bóc tách giọng nói: {user_text[:30]}...",
+                "detail": f"Bóc tách {extracted_count} trường 5 trụ cột. Trụ cột thiếu: {res.get('missing_pillars', [])}.",
+                "device": body.get("device", "Voice / Talk Mode"),
+                "icon": "fa-solid fa-microphone-lines",
+                "badgeColor": "teal"
+            })
+        except Exception as e:
+            print("[Voice Intake DB Log Error]", e)
+
+        self.send_json(res)
 
 
 if __name__ == '__main__':
