@@ -300,6 +300,11 @@ def create_user(user_data):
 
     with get_db() as conn:
         cursor = conn.cursor()
+        cursor.execute("SELECT id FROM users WHERE id = ? OR (phone = ? AND phone != '') LIMIT 1;", (user_id, phone))
+        row = cursor.fetchone()
+        if row:
+            return update_user(row[0], user_data)
+
         cursor.execute("""
             INSERT INTO users (
                 id, username, full_name, phone, email, password_hash,
@@ -399,6 +404,17 @@ def add_service_log(log_data):
             cursor.execute("SELECT 1 FROM users WHERE id = ?;", (user_id,))
             if not cursor.fetchone():
                 user_id = None
+
+        # Check duplicate
+        cursor.execute("""
+            SELECT id FROM service_usage 
+            WHERE service_type = ? AND title = ? AND timestamp = ?
+            LIMIT 1;
+        """, (service_type, title, timestamp))
+        existing_log = cursor.fetchone()
+        if existing_log:
+            cursor.execute("SELECT * FROM service_usage WHERE id = ?;", (existing_log[0],))
+            return row_to_log_dict(cursor.fetchone())
 
         cursor.execute("""
             INSERT INTO service_usage (
@@ -517,8 +533,8 @@ def get_stats():
 def export_full_database():
     """Exports full database as structured dict (matches existing backup format)."""
     users = list_all_users()
-    logs = list_service_logs(limit=500)
-    diags = list_diagnoses(limit=500)
+    logs = list_service_logs(limit=50)
+    diags = list_diagnoses(limit=50)
     active_user = get_active_user_id()
     return {
         "users": users,

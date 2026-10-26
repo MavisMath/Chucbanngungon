@@ -796,12 +796,41 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* Real-time Live Activity Toasts */
+    .realtime-toast {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(56, 189, 248, 0.2);
+      border-radius: var(--radius-md);
+      padding: 0.9rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      color: #fff;
+      font-size: 0.88rem;
+      animation: slide-toast-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      pointer-events: auto;
+      transition: all 0.3s ease;
+    }
+    .realtime-toast.success { border-color: rgba(52, 211, 153, 0.5); box-shadow: 0 0 15px rgba(52, 211, 153, 0.25); }
+    .realtime-toast.amber { border-color: rgba(251, 191, 36, 0.5); box-shadow: 0 0 15px rgba(251, 191, 36, 0.25); }
+    .realtime-toast.cyan { border-color: rgba(56, 189, 248, 0.5); box-shadow: 0 0 15px rgba(56, 189, 248, 0.25); }
+    .realtime-toast.indigo { border-color: rgba(129, 140, 248, 0.5); box-shadow: 0 0 15px rgba(129, 140, 248, 0.25); }
+    @keyframes slide-toast-in {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
   </style>
 </head>
 <body>
   <!-- Ambient background lighting -->
   <div class="ambient-glow glow-1"></div>
   <div class="ambient-glow glow-2"></div>
+
+  <!-- Realtime Live Activity Toasts Container -->
+  <div id="realtime-toast-container" style="position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 99999; display: flex; flex-direction: column; gap: 0.75rem; pointer-events: none; max-width: 440px; width: calc(100% - 3rem);"></div>
 
   <!-- PIN LOCK OVERLAY (Security Check for Founder) -->
   <div id="pin-lock-overlay">
@@ -867,10 +896,13 @@
 
       <!-- Right Actions -->
       <div class="nav-right-actions">
-        <div class="sync-status-indicator" title="Máy chủ đồng bộ Cloud đang kết nối thời gian thực">
+        <div class="sync-status-indicator" id="live-sync-indicator" title="Cơ sở dữ liệu SQLite đồng bộ tự động mỗi 3 giây">
           <span class="status-dot-pulse"></span>
-          <span>Cloud Active</span>
+          <span id="sync-status-text">Live SQL (3s)</span>
         </div>
+        <button id="btn-toggle-live-sync" class="btn-action-ghost" style="color: #38BDF8;" title="Bật/Tắt đồng bộ thời gian thực">
+          <i class="fa-solid fa-bolt"></i> Live ON
+        </button>
         <a href="index.html" class="btn-action-ghost btn-link-app" target="_blank" title="Mở giao diện ứng dụng Mavis chúc bạn ngủ ngon">
           <i class="fa-solid fa-mobile-screen"></i>
           <span>Mở Ứng Dụng</span>
@@ -1216,6 +1248,65 @@
       stats: {}
     };
 
+    let previousUserCount = null;
+    let previousDiagCount = null;
+    let knownLogIds = new Set();
+    let isLiveSyncActive = true;
+    let liveSyncTimer = null;
+
+    // Web Audio Chime generator for real-time notifications
+    function playNotificationChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.45);
+      } catch (e) {}
+    }
+
+    // Realtime Toast Alerts
+    function showRealtimeToast(title, desc, type = 'success') {
+      const container = document.getElementById('realtime-toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `realtime-toast ${type}`;
+
+      let iconClass = 'fa-solid fa-bell';
+      if (type === 'success') iconClass = 'fa-solid fa-user-plus';
+      else if (type === 'amber') iconClass = 'fa-solid fa-share-nodes';
+      else if (type === 'cyan') iconClass = 'fa-solid fa-microphone-lines';
+      else if (type === 'indigo') iconClass = 'fa-solid fa-comments';
+
+      toast.innerHTML = `
+        <div style="font-size: 1.25rem; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.08); flex-shrink: 0;">
+          <i class="${iconClass}"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-weight: 700; color: #fff; font-size: 0.88rem; margin-bottom: 2px;">${title}</div>
+          <div style="color: #CBD5E1; font-size: 0.8rem; line-height: 1.35;">${desc}</div>
+        </div>
+        <button style="background: none; border: none; color: #94A3B8; cursor: pointer; padding: 4px; font-size: 1.1rem;" onclick="this.parentElement.remove()">&times;</button>
+      `;
+
+      container.appendChild(toast);
+      playNotificationChime();
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(15px)';
+        setTimeout(() => toast.remove(), 350);
+      }, 7000);
+    }
+
     // DOM Elements
     const pinOverlay = document.getElementById('pin-lock-overlay');
     const pinForm = document.getElementById('pin-login-form');
@@ -1271,10 +1362,29 @@
       document.querySelector('[data-tab="tab-users"]').click();
     });
 
-    // Load Data from REST API
+    // Toggle Live Sync
+    const btnToggleLiveSync = document.getElementById('btn-toggle-live-sync');
+    const syncStatusText = document.getElementById('sync-status-text');
+    if (btnToggleLiveSync) {
+      btnToggleLiveSync.addEventListener('click', () => {
+        isLiveSyncActive = !isLiveSyncActive;
+        if (isLiveSyncActive) {
+          btnToggleLiveSync.innerHTML = '<i class="fa-solid fa-bolt"></i> Live ON';
+          btnToggleLiveSync.style.color = '#38BDF8';
+          if (syncStatusText) syncStatusText.textContent = 'Live SQL (3s)';
+          loadDashboardData();
+        } else {
+          btnToggleLiveSync.innerHTML = '<i class="fa-solid fa-pause"></i> Live OFF';
+          btnToggleLiveSync.style.color = '#94A3B8';
+          if (syncStatusText) syncStatusText.textContent = 'Đã tạm dừng';
+        }
+      });
+    }
+
+    // Load Data from REST API (SQLite 3 Database Real-Time)
     async function loadDashboardData() {
       try {
-        // Fetch stats
+        // 1. Fetch stats
         const resStats = await fetch('/api/stats');
         const dataStats = await resStats.json();
         if (dataStats.success) {
@@ -1282,34 +1392,81 @@
           renderKpis(dataStats.stats);
         }
 
-        // Fetch users
+        // 2. Fetch users
         const resUsers = await fetch('/api/users');
         const dataUsers = await resUsers.json();
         if (dataUsers.success) {
-          adminDb.users = dataUsers.users || [];
+          const freshUsers = dataUsers.users || [];
+          
+          // Detect newly registered user
+          if (previousUserCount !== null && freshUsers.length > previousUserCount) {
+            const newest = freshUsers[0];
+            showRealtimeToast(
+              '🎉 Thành viên mới vừa đăng ký!',
+              `Họ tên: ${newest.fullName} • SĐT: ${newest.phone || 'Chưa cập nhật'} • Vai trò: ${newest.occupation || newest.role}`,
+              'success'
+            );
+          }
+          previousUserCount = freshUsers.length;
+          adminDb.users = freshUsers;
           document.getElementById('tab-user-count').textContent = adminDb.users.length;
           renderUsersTable(adminDb.users);
           renderOverviewUsers(adminDb.users);
         }
 
-        // Fetch diagnoses
+        // 3. Fetch diagnoses
         const resDiags = await fetch('/api/diagnoses');
         const dataDiags = await resDiags.json();
         if (dataDiags.success) {
-          adminDb.diagnoses = dataDiags.diagnoses || [];
+          const freshDiags = dataDiags.diagnoses || [];
+          
+          // Detect new diagnosis submitted
+          if (previousDiagCount !== null && freshDiags.length > previousDiagCount) {
+            const newest = freshDiags[0];
+            showRealtimeToast(
+              '🩺 Khảo sát 5 trụ cột y khoa mới!',
+              `Người dùng: ${newest.userName || 'Thành viên'} vừa nộp bài khảo sát (Điểm: ${newest.score}%).`,
+              'cyan'
+            );
+          }
+          previousDiagCount = freshDiags.length;
+          adminDb.diagnoses = freshDiags;
           renderDiagnosesList(adminDb.diagnoses);
         }
 
-        // Fetch logs
+        // 4. Fetch service logs & detect realtime actions (login, share, voice talk, ai chat)
         const resLogs = await fetch('/api/logs');
         const dataLogs = await resLogs.json();
         if (dataLogs.success) {
-          adminDb.serviceUsage = dataLogs.logs || [];
+          const freshLogs = dataLogs.logs || [];
+          
+          if (knownLogIds.size > 0 && freshLogs.length > 0) {
+            freshLogs.forEach(log => {
+              if (log.id && !knownLogIds.has(log.id)) {
+                knownLogIds.add(log.id);
+                if (log.serviceType === 'USER_SHARE') {
+                  showRealtimeToast('🌟 Chia sẻ lộ trình giấc ngủ!', `${log.userName} vừa chia sẻ lộ trình tối ưu giấc ngủ sang bạn bè/mạng xã hội.`, 'amber');
+                } else if (log.serviceType === 'AUTH_LOGIN') {
+                  showRealtimeToast('🔑 Người dùng vừa đăng nhập!', `${log.userName}: ${log.detail}`, 'success');
+                } else if (log.serviceType === 'VOICE_JOURNAL_INTAKE') {
+                  showRealtimeToast('🎤 Nhật ký nói / tâm sự mới!', `${log.userName}: "${log.title}"`, 'cyan');
+                } else if (log.serviceType === 'AI_CHATBOT_GEMINI') {
+                  showRealtimeToast('💬 Khách vừa chat với Mavis!', `${log.userName}: "${log.title}"`, 'indigo');
+                }
+              }
+            });
+          } else {
+            freshLogs.forEach(log => {
+              if (log.id) knownLogIds.add(log.id);
+            });
+          }
+
+          adminDb.serviceUsage = freshLogs;
           renderLogs(adminDb.serviceUsage);
         }
 
       } catch (err) {
-        console.warn('[Founder Admin] API error, loading local fallback:', err);
+        console.warn('[Founder Admin] API sync warning:', err);
       }
     }
 
@@ -1349,12 +1506,24 @@
     // Render Users Table
     function renderUsersTable(users) {
       const tbody = document.getElementById('users-table-tbody');
-      if (!users || users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-dim);">Chưa có người dùng nào.</td></tr>`;
+      const searchInput = document.getElementById('user-search-input');
+      const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      let displayUsers = users;
+      if (term) {
+        displayUsers = users.filter(u => 
+          (u.fullName && u.fullName.toLowerCase().includes(term)) ||
+          (u.phone && u.phone.toLowerCase().includes(term)) ||
+          (u.occupation && u.occupation.toLowerCase().includes(term)) ||
+          (u.id && u.id.toLowerCase().includes(term))
+        );
+      }
+
+      if (!displayUsers || displayUsers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-dim);">Chưa có người dùng nào${term ? ' phù hợp với tìm kiếm' : ''}.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = users.map(u => `
+      tbody.innerHTML = displayUsers.map(u => `
         <tr>
           <td>
             <div class="user-cell">
@@ -1708,15 +1877,15 @@
       }
     });
 
-    // Auto-check authentication on load & continuous realtime dashboard refresh
+    // Auto-check authentication on load & continuous realtime dashboard refresh (Every 3 seconds)
     window.addEventListener('DOMContentLoaded', () => {
       checkAuth();
-      // Continuous Realtime Dashboard Refresh every 10 seconds
-      setInterval(() => {
-        if (sessionStorage.getItem(SESSION_KEY) === 'true') {
+      // Continuous Realtime Dashboard Refresh every 3 seconds
+      liveSyncTimer = setInterval(() => {
+        if (isLiveSyncActive && sessionStorage.getItem(SESSION_KEY) === 'true') {
           loadDashboardData();
         }
-      }, 10000);
+      }, 3000);
     });
   </script>
 </body>

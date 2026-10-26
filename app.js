@@ -2834,12 +2834,11 @@ function initUserProfileModule() {
     }
   });
 
-  // Drawer 4-Tabs Navigation Switcher
+  // Drawer 3-Tabs Navigation Switcher (Overview, Edit Profile, Account Switcher)
   const drawerTabs = [
     { btnId: 'drawer-tab-profile', paneId: 'pane-user-profile', key: 'profile' },
     { btnId: 'drawer-tab-edit', paneId: 'pane-user-edit', key: 'edit' },
-    { btnId: 'drawer-tab-switch', paneId: 'pane-user-switch', key: 'switch' },
-    { btnId: 'drawer-tab-services', paneId: 'pane-service-usage', key: 'services' }
+    { btnId: 'drawer-tab-switch', paneId: 'pane-user-switch', key: 'switch' }
   ];
 
   function switchDrawerTab(targetKey) {
@@ -2859,8 +2858,6 @@ function initUserProfileModule() {
       populateDrawerEditForm();
     } else if (targetKey === 'switch') {
       renderFacebookAccountSwitcher();
-    } else if (targetKey === 'services') {
-      renderServiceUsageLogs();
     }
   }
 
@@ -2975,50 +2972,40 @@ function initUserProfileModule() {
     });
   }
 
-  // Database Tab Actions
-  const exportDbBtn = document.getElementById('export-db-json-btn');
-  const resetDbBtn = document.getElementById('reset-db-btn');
-  const manualSyncBtn = document.getElementById('manual-cloud-sync-btn');
+  // Share Schedule & Diagnosis Action Handler
+  const shareScheduleBtn = document.getElementById('share-schedule-btn');
+  if (shareScheduleBtn) {
+    shareScheduleBtn.addEventListener('click', async () => {
+      const activeUser = window.SleepSyncDB ? SleepSyncDB.getCurrentUser() : null;
+      const userName = activeUser ? activeUser.fullName : 'Người dùng';
+      const shareUrl = window.location.href;
+      const shareText = `🌟 Mavis chúc bạn ngủ ngon: Lộ trình vi-hành động cá nhân hóa giúp ngủ sâu NREM và tối ưu năng suất não bộ cho ${userName}! Khám phá tại: ${shareUrl}`;
 
-  if (exportDbBtn) {
-    exportDbBtn.addEventListener('click', () => {
-      if (window.SleepSyncDB) {
-        SleepSyncDB.exportDatabaseBackup();
-        showAppToast('Xuất sao lưu', 'Đã tải xuống file sao lưu dữ liệu Mavis chúc bạn ngủ ngon JSON.', 'success');
-      }
-    });
-  }
-
-  if (resetDbBtn) {
-    resetDbBtn.addEventListener('click', async () => {
-      const ok = await showConfirmDialog({
-        title: 'Khôi Phục Mặc Định',
-        message: 'Bạn có chắc chắn muốn khôi phục toàn bộ cơ sở dữ liệu về mặc định ban đầu?',
-        confirmText: 'Khôi phục',
-        cancelText: 'Hủy',
-        icon: 'fa-solid fa-rotate-right'
-      });
-      if (ok && window.SleepSyncDB) {
-        SleepSyncDB.resetToDefaults();
-        renderActiveUserProfile();
-        renderServiceUsageLogs();
-        showAppToast('Khôi phục thành công', 'Cơ sở dữ liệu đã được đặt lại về trạng thái mẫu ban đầu.', 'success');
-      }
-    });
-  }
-
-  if (manualSyncBtn) {
-    manualSyncBtn.addEventListener('click', async () => {
-      manualSyncBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang đồng bộ...';
-      if (window.SleepSyncDB) {
-        const ok = await SleepSyncDB.syncWithCloudServer();
-        manualSyncBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Đồng Bộ Cloud Ngay';
-        if (ok) {
-          renderActiveUserProfile();
-          renderServiceUsageLogs();
-          showAppToast('Đồng bộ Cloud', 'Dữ liệu đã được đồng bộ đám mây thành công!', 'success');
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: 'Mavis chúc bạn ngủ ngon - Lộ trình giấc ngủ',
+            text: shareText,
+            url: shareUrl
+          });
+        } else if (navigator.clipboard) {
+          await navigator.clipboard.writeText(shareText);
+          showAppToast('Đã sao chép liên kết', 'Đã sao chép lộ trình vào bộ nhớ tạm! Bạn có thể dán để chia sẻ với bạn bè.', 'success');
         } else {
-          showAppToast('Ngoại tuyến', 'Đang hoạt động ở chế độ ngoại tuyến (Local IndexedDB).', 'info');
+          showAppToast('Chia sẻ', shareText, 'info');
+        }
+
+        // Realtime log to SQL
+        if (window.SleepSyncDB) {
+          SleepSyncDB.logServiceUsage(
+            'USER_SHARE',
+            'Chia sẻ lộ trình giấc ngủ',
+            `${userName} đã chia sẻ lộ trình tối ưu hóa giấc ngủ sang mạng xã hội / bạn bè.`
+          );
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          showAppToast('Chia sẻ', 'Đã lưu lại hoạt động chia sẻ lộ trình.', 'info');
         }
       }
     });

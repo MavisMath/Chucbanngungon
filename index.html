@@ -1293,6 +1293,10 @@
                 <i class="fa-solid fa-calendar-plus"></i>
                 <span>Thêm vào Google Calendar (.ics)</span>
               </button>
+              <button id="share-schedule-btn" class="btn-secondary" style="border-color: rgba(56, 189, 248, 0.45); color: #38BDF8;" title="Chia sẻ lộ trình giấc ngủ này">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>Chia Sẻ Lộ Trình</span>
+              </button>
             </div>
           </div>
 
@@ -1535,7 +1539,7 @@
         </div>
         <div class="profile-role-text" id="profile-display-role">Vui lòng Đăng Nhập hoặc Đăng Ký</div>
         <p class="profile-bio-text" id="profile-display-bio">
-          Đăng ký tài khoản để Mavis đồng hành & lưu trữ hồ sơ của bạn an toàn vào Cơ Sở Dữ Liệu SQL.
+          Đăng ký tài khoản để Mavis đồng hành & lưu trữ hồ sơ của bạn an toàn.
         </p>
 
         <!-- Gamified Streak Stats Strip (Duolingo Style) -->
@@ -1555,7 +1559,7 @@
         </div>
       </div>
 
-      <!-- Drawer Navigation Tabs: 4 Modern Tabs -->
+      <!-- Drawer Navigation Tabs: 3 Clean Tabs -->
       <div class="profile-nav-tabs">
         <button type="button" class="drawer-tab-btn active" id="drawer-tab-profile">
           <i class="fa-solid fa-user"></i>
@@ -1568,10 +1572,6 @@
         <button type="button" class="drawer-tab-btn" id="drawer-tab-switch">
           <i class="fa-solid fa-users"></i>
           <span>Tài Khoản</span>
-        </button>
-        <button type="button" class="drawer-tab-btn" id="drawer-tab-services">
-          <i class="fa-solid fa-database"></i>
-          <span>Dữ Liệu SQL</span>
         </button>
       </div>
 
@@ -1773,42 +1773,7 @@
         </button>
       </div>
 
-      <!-- TAB PANE 4: DỮ LIỆU & NHẬT KÝ (SERVICES & DATABASE) -->
-      <div class="drawer-tab-pane" id="pane-service-usage" style="display: none;">
-        <div class="db-service-summary-card">
-          <div class="db-summary-header">
-            <div class="db-chip"><i class="fa-solid fa-database"></i> IndexedDB Database</div>
-            <span class="db-sync-badge"><i class="fa-solid fa-circle-check"></i> Đang đồng bộ</span>
-          </div>
-          <h4 class="db-user-active-title">Dữ liệu tài khoản: <span id="db-active-username">Khách (Chưa đăng nhập)</span></h4>
-          <p class="db-summary-desc">
-            Dữ liệu nhịp sinh học, bài chẩn đoán 5 trụ cột và phiên sóng não được mã hóa an toàn trên thiết bị và đồng bộ đám mây.
-          </p>
-          <div class="db-action-row">
-            <button type="button" class="btn-db-action" id="export-db-json-btn">
-              <i class="fa-solid fa-download"></i> Tải Backup (JSON)
-            </button>
-            <button type="button" class="btn-db-action btn-db-reset" id="reset-db-btn" title="Khôi phục dữ liệu mặc định">
-              <i class="fa-solid fa-rotate-right"></i> Reset Mặc Định
-            </button>
-          </div>
-          <div class="db-action-row" style="margin-top: 0.6rem;">
-            <button type="button" class="btn-db-action" id="manual-cloud-sync-btn" style="border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;">
-              <i class="fa-solid fa-cloud-arrow-up"></i> Đồng Bộ Cloud Ngay
-            </button>
-            <a href="admin.html" target="_blank" class="btn-db-action" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; border-color: rgba(245, 158, 11, 0.45); color: #FBBF24; font-weight: 600;" title="Mở Cổng Quản Trị SQL Dành Cho Founder">
-              <i class="fa-solid fa-crown"></i> Cổng Quản Trị
-            </a>
-          </div>
-        </div>
 
-        <div class="service-timeline-wrap">
-          <h5 class="timeline-title"><i class="fa-solid fa-clock-rotate-left"></i> Nhật Ký Hoạt Động & Dịch Vụ</h5>
-          <div class="service-timeline-list" id="service-usage-list">
-            <!-- Dynamic items rendered by JS -->
-          </div>
-        </div>
-      </div>
 
       <!-- Drawer Bottom Action Row -->
       <div style="display: flex; gap: 0.6rem; margin-top: auto; padding-top: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">

@@ -245,6 +245,11 @@ const SleepSyncDB = (function() {
     );
 
     window.dispatchEvent(new CustomEvent('sleepsync:user-updated', { detail: updated }));
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    }).catch(() => {});
     syncWithCloudServer();
     return updated;
   }
@@ -288,6 +293,11 @@ const SleepSyncDB = (function() {
     );
 
     window.dispatchEvent(new CustomEvent('sleepsync:user-changed', { detail: newUser }));
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newUser)
+    }).catch(() => {});
     syncWithCloudServer();
     return newUser;
   }
@@ -347,6 +357,26 @@ const SleepSyncDB = (function() {
     }
 
     window.dispatchEvent(new CustomEvent('sleepsync:usage-logged', { detail: logEntry }));
+
+    // Instant real-time persistence to SQLite database
+    const currentUser = getCurrentUser();
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    fetch('/api/logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: logEntry.userId,
+        userName: currentUser ? currentUser.fullName : 'Người dùng',
+        serviceType: logEntry.serviceType,
+        title: logEntry.title,
+        detail: logEntry.detail,
+        timestamp: logEntry.timestamp,
+        device: isMobile ? 'Mobile App (PWA)' : 'Web Browser',
+        icon: logEntry.icon,
+        badgeColor: logEntry.badgeColor
+      })
+    }).catch(() => {});
+
     if (serviceType.includes('GUARDRAIL') || serviceType.includes('AUTH')) {
       syncWithCloudServer();
     }
@@ -392,6 +422,13 @@ const SleepSyncDB = (function() {
       'Hoàn thành chẩn đoán 5 trụ cột y khoa',
       `Điểm số giấc ngủ dự báo: ${diag.score}%. Lịch vi-hành động đã sẵn sàng.`
     );
+
+    // Instant real-time persistence to SQLite database
+    fetch('/api/diagnoses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(diag)
+    }).catch(() => {});
 
     // Synchronize to cloud server immediately
     syncWithCloudServer();
@@ -684,6 +721,16 @@ const SleepSyncDB = (function() {
     }
 
     setCurrentUser(user.id);
+
+    // Instant real-time persistence of social user to SQLite
+    try {
+      await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user)
+      });
+    } catch (e) {}
+
     logServiceUsage(
       'AUTH_LOGIN',
       `Đăng nhập ${provider.toUpperCase()}`,
