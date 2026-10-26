@@ -51,21 +51,163 @@ def check_guardrails(text):
     return any(re.search(p, lower, re.IGNORECASE) for p in FORBIDDEN_PATTERNS)
 
 
+
+def build_targeted_health_advice(answers, user_bedtime="23:00"):
+    """
+    Builds strictly personalized, symptom-specific solutions based ONLY
+    on what the user actually reported. Never recommends for conditions the user does not have.
+    """
+    ans = answers or {}
+    def has(key, val):
+        v = ans.get(key)
+        if isinstance(v, list):
+            return val in v
+        return v == val
+
+    items = []
+
+    # 1. Điện thoại trên giường / Nghiện màn hình TikTok/FB
+    if has("bed_phone", "lướt_tiktok_fb") or has("env_light", "screen_heavy"):
+        items.append(
+            "<p><strong>📱 Cắt Đứt Vòng Lặp Dopamine & Cai Nghiện Điện Thoại Giường Ngủ:</strong> "
+            "Kích hoạt chế độ Grayscale (màn hình đen trắng) từ 21:00 để triệt tiêu sức hút thị giác của video ngắn TikTok/Facebook. "
+            f"Cắm sạc điện thoại ở bàn làm việc cách giường ít nhất 2 mét trước {user_bedtime} để phá vỡ phản xạ với tay lướt màn hình ban đêm. "
+            "Dùng đồng hồ báo thức rời thay vì để điện thoại ngay đầu giường.</p>"
+        )
+
+    # 2. Căng thẳng / Suy nghĩ miên man / Trạng thái cảm xúc
+    if has("stress_level", "medium") or has("stress_level", "high") or has("mood_state", "anxious") or has("mood_state", "brain_fog"):
+        items.append(
+            "<p style=\"margin-top:0.4rem;\"><strong>🧠 Xả Trầm Não Bộ (Brain Dump) & Giảm Cortisol:</strong> "
+            "Dành 3 phút trước khi ngủ viết toàn bộ suy nghĩ, nỗi lo và danh sách việc cần làm ngày mai ra 1 cuốn sổ tay (kỹ thuật Brain Dump) "
+            "để dọn sạch bộ nhớ đệm của vỏ não trước trán. Kết hợp bài tập thở 4-7-8 (hít 4s - giữ 7s - thở 8s) để kích hoạt hệ thần kinh đối giao cảm.</p>"
+        )
+
+    # 3. Trào ngược dạ dày (GERD) - CHỈ hiển thị nếu người dùng THỰC SỰ chọn hoặc ăn tối quá muộn
+    if has("chronic_condition", "gerd") or has("dinner_habit", "heavy_late"):
+        items.append(
+            "<p style=\"margin-top:0.4rem;\"><strong>🫀 Khắc Phục Trào Ngược Axit Dạ Dày (GERD):</strong> "
+            "Ăn tối trước giờ ngủ ít nhất 3 tiếng. Khi ngủ, nằm nghiêng sang bên TRÁI "
+            "(tư thế này giữ van tâm vị cơ thắt thực quản nằm phía trên mức dịch vị axit, chống trào ngược tự nhiên). "
+            "Kê đầu giường hoặc gối nâng cao thêm 10-15cm.</p>"
+        )
+
+    # 4. Đau mỏi cổ vai gáy - CHỈ hiển thị nếu người dùng THỰC SỰ bị
+    if has("physical_pain", "neck_back_pain") or "neck" in str(ans.get("physical_pain", [])):
+        items.append(
+            "<p style=\"margin-top:0.4rem;\"><strong>🦴 Khắc Phục Đau Mỏi Cổ Vai Gáy:</strong> "
+            "Dùng gối cao vừa phải (7-10cm) nâng đỡ đường cong sinh lý cột sống cổ C1-C7. Tránh tuyệt đối tư thế nằm sấp. "
+            "Đặt 1 chiếc gối mỏng dưới khớp gối khi nằm ngửa để giải tỏa áp lực đĩa đệm cột sống thắt lưng.</p>"
+        )
+
+    # 5. Đau đầu căng thẳng
+    if has("physical_pain", "headache"):
+        items.append(
+            "<p style=\"margin-top:0.4rem;\"><strong>💆 Giảm Đau Đầu Căng Thẳng:</strong> "
+            "Chườm ấm vùng mắt và trán 5 phút trước giờ ngủ, kết hợp day ấn nhẹ huyệt Thái Dương và huyệt Phong Trì sau gáy "
+            "để giải tỏa co thắt mạch máu não và thư giãn màng não.</p>"
+        )
+
+    # 6. Nhiệt độ phòng nóng hoặc Bốc hỏa mãn kinh
+    if has("env_temp", "hot") or has("hormone_state", "menopause_hotflash"):
+        items.append(
+            "<p style=\"margin-top:0.4rem;\"><strong>❄️ Khắc Phục Nhiệt Độ Nóng & Bốc Hỏa:</strong> "
+            "Cài đặt điều hòa ở mức lý tưởng 24-26°C hoặc dùng quạt nhẹ thoảng chân. "
+            "Tắm nước ấm trước giờ ngủ 45 phút để kích hoạt cơ chế giãn mạch ngoại vi, giúp cơ thể hạ nhiệt độ trung tâm 1°C khi vào giường.</p>"
+        )
+
+    # 7. Tiểu đêm
+    if has("chronic_condition", "nocturia") or has("dinner_habit", "drink_lots_water"):
+        items.append(
+            "<p style=\"margin-top:0.4rem;\"><strong>🚽 Khắc Phục Thức Giấc Tiểu Đêm:</strong> "
+            "Cắt giảm toàn bộ lượng nước uống sau 20:00. Áp dụng kỹ thuật 'đi tiểu kép' (Double Voiding): "
+            f"1 lần lúc chuẩn bị ngủ và 1 lần nữa sát lúc bước lên giường lúc {user_bedtime}.</p>"
+        )
+
+    # 8. Cà phê muộn
+    if has("caffeine_usage", "late_high") or has("caffeine_usage", "medium_afternoon"):
+        items.append(
+            "<p style=\"margin-top:0.4rem;\"><strong>☕ Quản Trị Cữ Caffeine:</strong> "
+            f"Dừng nạp cà phê/trà đậm ít nhất 8 tiếng trước giờ ngủ {user_bedtime} để gan đào thải hoàn toàn Caffeine, "
+            "giúp thụ thể Adenosine tự nhiên gắn kết tạo áp lực buồn ngủ sinh học.</p>"
+        )
+
+    # Fallback nếu người dùng hoàn toàn khỏe mạnh và không có thói quen xấu nào
+    if not items:
+        items.append(
+            "<p>✨ <strong>Thể Trạng & Thói Quen Rất Tốt:</strong> Bạn không gặp vấn đề bệnh lý hay đau nhức cơ thể. "
+            f"Chỉ cần duy trì phòng ngủ thoáng mát (24-26°C), giữ nhịp sinh học đều đặn và cất điện thoại trước {user_bedtime} "
+            "là bạn sẽ duy trì được giấc ngủ sâu NREM tối ưu nhất.</p>"
+        )
+
+    return "".join(items)
+
+
+def build_tailored_desk_exercises(answers):
+    """
+    Returns desk exercises strictly tailored to physical pain and habits.
+    If user has NO neck/back pain, NEVER recommends Chin-Tuck C5-C7!
+    Instead provides Eye relief (20-20-20), Box Breathing, and full-body stretch.
+    """
+    ans = answers or {}
+    def has(key, val):
+        v = ans.get(key)
+        if isinstance(v, list):
+            return val in v
+        return v == val
+
+    has_neck = has("physical_pain", "neck_back_pain") or "neck" in str(ans.get("physical_pain", []))
+
+    if has_neck:
+        return [
+            "<strong>Động tác Chin-Tuck (1 phút):</strong> Ngồi thẳng lưng, thu cằm về phía sau như tạo 2 cằm, giữ 5 giây rồi thả lỏng. Lặp lại 5 lần để giải tỏa chèn ép rễ thần kinh đốt sống cổ C5-C7.",
+            "<strong>Mở Ngực & Xương Bả Vai (1 phút):</strong> Đan hai tay ra sau gáy, hít sâu ưỡn ngực mở rộng hai khuỷu tay sang hai bên, thở ra từ từ để kéo giãn cơ ngực và giải phóng vai gáy.",
+            "<strong>Kéo Giãn Thắt Lưng Tại Ghế (1 phút):</strong> Ngồi xoay thân người nhẹ nhàng sang trái rồi sang phải, tay giữ vào thành ghế để giải tỏa áp lực đĩa đệm thắt lưng."
+        ]
+    else:
+        return [
+            "<strong>Quy Tắc Thư Giãn Mắt 20-20-20 (Khi làm việc & dùng điện thoại):</strong> Cứ sau 20 phút nhìn màn hình, hướng tầm mắt nhìn một vật cách xa 6 mét trong 20 giây để thư giãn cơ thể mi mắt.",
+            "<strong>Thở Hộp Vuông Box Breathing 4-4-4-4 (3 phút):</strong> Hít vào 4 giây - Nín thở 4 giây - Thở ra 4 giây - Nín thở 4 giây. Giúp hạ nhịp tim, giảm mệt mỏi và reset hệ thần kinh đang căng thẳng.",
+            "<strong>Vươn Vai & Giãn Toàn Thân Tại Chỗ (1 phút):</strong> Đan hai tay vươn thẳng lên cao qua đầu, hít sâu kéo căng toàn bộ cơ liên sườn và cột sống để kích thích máu huyết lưu thông."
+        ]
+
+
 def ensure_full_micro_schedule(schedule_tasks, current_hour, current_time_str, user_bedtime, answers):
     """
     Guarantees a complete, chronotherapeutic roadmap of 4-6 micro-actions
     starting from the user's CURRENT time of day through bedtime.
+    Strictly tailors content to user answers and eliminates advice for non-existent diseases.
     """
     has_gerd = False
     has_caffeine = False
     has_neck = False
+    has_bed_phone = False
+
     if isinstance(answers, dict):
-        if answers.get("chronic_condition") == "gerd" or "gerd" in str(answers.get("chronic_condition", [])):
+        if answers.get("chronic_condition") == "gerd" or "gerd" in str(answers.get("chronic_condition", [])) or answers.get("dinner_habit") == "heavy_late":
             has_gerd = True
         if answers.get("caffeine_usage") in ["late_high", "medium_afternoon"]:
             has_caffeine = True
-        if "neck" in str(answers.get("physical_pain", [])) or answers.get("physical_pain") == "neck_shoulder":
+        if "neck" in str(answers.get("physical_pain", [])) or answers.get("physical_pain") == "neck_shoulder" or "neck_back_pain" in str(answers.get("physical_pain", [])):
             has_neck = True
+        if "lướt" in str(answers.get("bed_phone", [])) or "tiktok" in str(answers.get("bed_phone", [])) or answers.get("bed_phone") == "lướt_tiktok_fb":
+            has_bed_phone = True
+
+    # First, sanitize any tasks passed in from AI to strip hallucinated conditions
+    if isinstance(schedule_tasks, list):
+        for t in schedule_tasks:
+            t_title = str(t.get("title", ""))
+            t_desc = str(t.get("desc", ""))
+            if not has_gerd:
+                if "gerd" in t_title.lower() or "trào ngược" in t_title.lower():
+                    t["title"] = "🚶 Vi-đi bộ 5 phút sau ăn trưa & Thư giãn"
+                if "gerd" in t_desc.lower() or "trào ngược" in t_desc.lower():
+                    t["desc"] = "Đi dạo nhẹ nhàng 5 phút kích thích tiêu hóa bữa trưa êm ái, chợp mắt Power Nap tối đa 15-20 phút để phục hồi năng lượng não bộ."
+            if not has_neck:
+                if "chin-tuck" in t_title.lower() or "c5-c7" in t_title.lower() or "cổ vai gáy" in t_title.lower():
+                    t["title"] = "🧘 Thư giãn mắt 20-20-20 & Bài tập thở Box Breathing 4-4-4-4"
+                if "c5-c7" in t_desc.lower() or "thu cằm" in t_desc.lower() or "đốt sống cổ" in t_desc.lower():
+                    t["desc"] = "Nhìn xa 6m trong 20 giây giải tỏa áp lực điều tiết của mắt khi nhìn màn hình, kết hợp 3 phút thở 4 thì để xoa dịu hệ thần kinh và hạ hormone căng thẳng."
 
     pool = []
 
@@ -74,9 +216,13 @@ def ensure_full_micro_schedule(schedule_tasks, current_hour, current_time_str, u
         pool.append({
             "id": "m_noon",
             "time": "12:15 - 12:20 (5 phút sau ăn trưa)",
-            "tag": "Chống trào ngược & Nhu động ruột" if has_gerd else "Đi bộ nhẹ & Phục hồi",
-            "title": "🚶 Vi-đi bộ 5 phút quanh văn phòng (Không nằm ngay sau ăn)",
-            "desc": "Giúp cơ thắt thực quản dưới đóng kín, hỗ trợ tiêu hóa thức ăn và ngăn trào ngược axit dạ dày (GERD). Chợp mắt Power Nap tối đa 15-20 phút."
+            "tag": "Chống trào ngược & Nhu động ruột" if has_gerd else "Đi dạo nhẹ & Phục hồi",
+            "title": "🚶 Vi-đi bộ 5 phút quanh văn phòng (Chống trào ngược axit)" if has_gerd else "🚶 Đi dạo nhẹ nhàng 5 phút & Chợp mắt Power-Nap 15-20 phút",
+            "desc": (
+                "Giúp cơ thắt thực quản dưới đóng kín, hỗ trợ tiêu hóa thức ăn và ngăn trào ngược axit dạ dày (GERD). Chợp mắt Power Nap tối đa 15-20 phút."
+                if has_gerd else
+                "Đi dạo nhẹ nhàng giúp kích thích nhu động ruột tiêu hóa bữa trưa êm ái, sau đó chợp mắt ngắn 15-20 phút để phục hồi sự tỉnh táo cho não bộ mà không làm mất áp lực ngủ tối."
+            )
         })
 
     # 2. Đầu chiều (13:00 - 14:30)
@@ -94,9 +240,13 @@ def ensure_full_micro_schedule(schedule_tasks, current_hour, current_time_str, u
         pool.append({
             "id": "m_afternoon",
             "time": "15:45 - 15:50 (5 phút xả áp lực)",
-            "tag": "Giải tỏa cổ vai gáy & Cortisol" if has_neck else "Xả stress & Thở Box Breathing",
-            "title": "🧘 Bài tập Chin-Tuck 10 lần + Thở chậm Box Breathing 4-4-4-4",
-            "desc": "Thu cằm về sau giữ 5 giây giải phóng chèn ép rễ thần kinh đốt sống cổ C5-C7, hít thở 4 thì để hạ nồng độ hormone căng thẳng."
+            "tag": "Giải tỏa đốt sống cổ & Cortisol" if has_neck else "Thư giãn mắt & Reset năng lượng",
+            "title": "🧘 Bài tập Chin-Tuck 10 lần + Giãn cơ cổ vai gáy" if has_neck else "🧘 Thư giãn mắt 20-20-20 & Bài tập thở Box Breathing 4-4-4-4",
+            "desc": (
+                "Thu cằm về sau giữ 5 giây giải phóng chèn ép rễ thần kinh đốt sống cổ C5-C7, giảm áp lực do ngồi lâu."
+                if has_neck else
+                "Nhìn xa 6m trong 20 giây giải tỏa áp lực điều tiết của mắt khi nhìn màn hình máy tính/điện thoại, kết hợp 3 phút thở 4 thì để xoa dịu hệ thần kinh và hạ hormone căng thẳng."
+            )
         })
 
     # 4. Bữa tối & Hoàng hôn (17:30 - 19:30)
@@ -105,7 +255,7 @@ def ensure_full_micro_schedule(schedule_tasks, current_hour, current_time_str, u
             "id": "m_dinner",
             "time": "18:30 - 19:00 (Bữa tối nhanh)",
             "tag": "Dinh dưỡng Tryptophan & Tiêu hóa",
-            "title": "🥗 Bữa tối thanh đạm giàu Magie & Ngừng nước nhiều sau 20:00",
+            "title": "🥗 Bữa tối thanh đạm giàu Magie & Cắt giảm nước sau 20:00",
             "desc": "Trứng luộc lòng đào / Ức gà + Canh rau bina/rau ngót + 1 quả kiwi tráng miệng. Cắt giảm uống nhiều nước sau 20:00 để tránh thức giấc tiểu đêm."
         })
 
@@ -114,9 +264,13 @@ def ensure_full_micro_schedule(schedule_tasks, current_hour, current_time_str, u
     pool.append({
         "id": "m_pre_bed",
         "time": f"{pre_bed_hour}:00 - {pre_bed_hour}:15 (30p trước ngủ)",
-        "tag": "Digital Sunset & Hạ thân nhiệt",
-        "title": "🛀 Tắm nước ấm 10 phút & Kích hoạt Digital Sunset",
-        "desc": "Nước ấm kích hoạt giãn mạch ngoại vi, hạ thân nhiệt trung tâm 1°C để cơ thể chuyển sang trạng thái ngủ sâu. Cất điện thoại xa giường."
+        "tag": "Cắt vòng lặp Dopamine màn hình" if has_bed_phone else "Digital Sunset & Hạ thân nhiệt",
+        "title": "📱 Kích hoạt Grayscale & Cất điện thoại cách xa giường 2m" if has_bed_phone else "🛀 Tắm nước ấm 10 phút & Kích hoạt Digital Sunset",
+        "desc": (
+            "Chuyển màn hình điện thoại sang chế độ đen trắng (Grayscale) và cắm sạc ở bàn làm việc cách xa giường ngủ, ngăn thói quen lướt TikTok/FB trên giường."
+            if has_bed_phone else
+            "Nước ấm kích hoạt giãn mạch ngoại vi, hạ thân nhiệt trung tâm 1°C để cơ thể chuyển sang trạng thái ngủ sâu. Cất điện thoại xa giường."
+        )
     })
 
     # 6. Vào giường ru ngủ
@@ -245,13 +399,24 @@ NGUYÊN TẮC BẢO VỆ PHÁP LÝ & AN TOÀN Y TẾ:
 - TUYỆT ĐỐI KHÔNG tư vấn, không kê đơn, không nhắc tới bất kỳ loại thuốc ngủ hay thực phẩm chức năng (TPCN, viên uống) nào.
 - Chỉ tư vấn giải pháp nhịp sinh học tự nhiên, dinh dưỡng bữa ăn thường ngày, vi-vận động 2-5 phút, ánh sáng, nhiệt độ phòng.
 
+QUY TẮC CỐT LÕI VỀ CÁ NHÂN HÓA - TUYỆT ĐỐI KHÔNG KHUYÊN BỆNH NGƯỜI DÙNG KHÔNG BỊ:
+- ĐẶC BIỆT LƯU Ý VỀ BỆNH LÝ & CƠ THỂ:
+  + Nếu người dùng trả lời `physical_pain: ["none"]` hoặc không chọn đau cổ vai gáy: TUYỆT ĐỐI KHÔNG được đưa ra bất kỳ lời khuyên nào về đau cổ vai gáy, đốt sống cổ C5-C7 hay các bài tập thoái hóa cổ. Thay vào đó, 'deskExercises' BẮT BUỘC là các bài tập: Thư giãn mắt 20-20-20 khi dùng điện thoại/máy tính, Thở chậm Box Breathing 4-4-4-4, Vươn vai giãn toàn thân tại chỗ.
+  + Nếu người dùng trả lời `chronic_condition: ["none"]` hoặc không chọn GERD: TUYỆT ĐỐI KHÔNG được nhắc đến trào ngược axit dạ dày, cơ thắt thực quản GERD hay áp lực tiêu hóa dạ dày.
+  + Nếu người dùng trả lời `dinner_habit: ["light_early"]`: Tuyệt đối KHÔNG khuyên giải pháp chống đầy bụng khó tiêu do ăn muộn.
+- TẬP TRUNG TỐI ĐA VÀO ĐÚNG VẤN ĐỀ NGƯỜI DÙNG THỰC SỰ GẶP PHẢI:
+  + Nếu người dùng chọn `bed_phone: ["lướt_tiktok_fb"]` hoặc `env_light: ["screen_heavy"]`: Trong 'targetedHealth', BẮT BUỘC phải tư vấn giải pháp đặc trị cắt cơn nghiện màn hình trước khi ngủ (bật Grayscale đen trắng từ 21h, đặt sạc điện thoại cách giường 2m, dùng đồng hồ báo thức vật lý).
+  + Nếu người dùng chọn `stress_level: ["medium" hoặc "high"]` hoặc `mood_state: ["anxious" hoặc "brain_fog"]`: Trong 'targetedHealth', BẮT BUỘC tư vấn kỹ thuật xả rác não bộ (Brain Dump) 3 phút với sổ tay và bài tập thở 4-7-8 hạ nồng độ Cortisol.
+  + Nếu người dùng chọn `caffeine_usage: ["late_high" hoặc "medium_afternoon"]`: Khuyên về Caffeine Curfew trước 8 tiếng.
+  + Nếu người dùng chọn `env_temp: ["hot"]`: Khuyên về hạ nhiệt độ phòng 24-26°C và cơ chế hạ thân nhiệt trung tâm.
+
 QUY TẮC BẮT BUỘC VỀ ĐỒNG BỘ THỜI GIAN THỰC (REALTIME CHRONOTHERAPY):
 1. 'realtimeActionNow': BẮT BUỘC là lời khuyên hành động NGAY BÂY GIỜ phù hợp chính xác với khung giờ {current_time_str} ({period_label}).
    - Hiện tại là {period_label} ({current_time_str}): Tuyệt đối KHÔNG được khuyên sai lệch (ví dụ KHÔNG ĐƯỢC nói là sáng sớm hay đêm muộn khi đang là {period_label})!
-   - Nếu là Buổi trưa ({current_time_str}): Khuyên ăn trưa thanh đạm, chốt cữ cà phê trước 12:00, đi bộ nhẹ 5 phút chống trào ngược axit dạ dày (GERD), chợp mắt power-nap 15-20 phút.
-   - Nếu là Buổi chiều: Khuyên dừng nạp caffeine, 3 phút giải tỏa cổ vai gáy Chin-Tuck / Box Breathing, uống nước ấm.
+   - Nếu là Buổi trưa ({current_time_str}): Khuyên ăn trưa thanh đạm, chốt cữ cà phê trước 12:00, đi bộ nhẹ 5 phút kích thích tiêu hóa (chống trào ngược chỉ nếu có bệnh GERD), chợp mắt power-nap 15-20 phút.
+   - Nếu là Buổi chiều: Khuyên dừng nạp caffeine, 3 phút xoa dịu thần kinh / thư giãn mắt hoặc thả lỏng vai gáy (chỉ nếu có đau mỏi), uống nước ấm.
    - Nếu là Hoàng hôn / Tối: Thực đơn ăn tối giàu Tryptophan, cắt giảm uống nước sau 20:00.
-   - Nếu là Tiền ngủ / Đêm: Kích hoạt Digital Sunset, tắm nước ấm 10 phút, bật sóng não Delta 4Hz.
+   - Nếu là Tiền ngủ / Đêm: Cắt cơn nghiện lướt điện thoại nếu có, kích hoạt Digital Sunset, tắm nước ấm 10 phút, bật sóng não Delta 4Hz.
 
 2. 'microSchedule': Lịch trình vi-hành động (2-5 phút) BẮT BUỘC PHẢI BẮT ĐẦU TỪ THỜI ĐIỂM HIỆN TẠI ({current_time_str}) VÀ DÀN TRẢI DẦN ĐẾN GIỜ ĐI NGỦ ({user_bedtime}).
    - Phải có ĐỦ TỪ 4 ĐẾN 5 VI-HÀNH ĐỘNG trải đều các mốc (Trưa -> Đầu chiều -> Xế chiều -> Bữa tối -> Tiền ngủ).
@@ -309,6 +474,9 @@ YÊU CẦU ĐẦU RA: Trả về ĐÚNG MỘT JSON OBJECT duy nhất (không b�
         'gemini-flash-latest'
     ]
 
+    has_gerd_flag = (answers.get("chronic_condition") == "gerd") or ("gerd" in str(answers.get("chronic_condition", []))) or (answers.get("dinner_habit") == "heavy_late") or ("heavy_late" in str(answers.get("dinner_habit", [])))
+    has_neck_flag = ("neck" in str(answers.get("physical_pain", []))) or (answers.get("physical_pain") == "neck_shoulder") or ("neck_back_pain" in str(answers.get("physical_pain", [])))
+
     for model_name in models_to_try:
         try:
             gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
@@ -345,11 +513,12 @@ YÊU CẦU ĐẦU RA: Trả về ĐÚNG MỘT JSON OBJECT duy nhất (không b�
                         "p1_stress": 50, "p2_env": 30, "p3_lifestyle": 55, "p4_physio": 30, "p5_health": 35
                     }
 
-                # Sanity check: Ensure realtimeActionNow matches actual current hour
+                # Sanity check: Ensure realtimeActionNow matches actual current hour and symptoms
                 rt_now = str(parsed.get("realtimeActionNow", ""))
                 if 11 <= current_hour < 14:
                     if any(w in rt_now.lower() for w in ["sáng sớm", "04:", "03:", "02:", "đêm muộn", "chuẩn bị ngủ", "chúc bạn ngủ"]):
-                        parsed["realtimeActionNow"] = f"🥪 <strong>Khung giờ hiện tại ({current_time_str} - Buổi trưa):</strong> Thời điểm vàng nạp lại năng lượng & chốt cữ Caffeine. Bữa trưa ăn thanh đạm, đứng dậy đi dạo nhẹ nhàng 5 phút để tránh trào ngược dạ dày (GERD). Ngủ trưa chớp nhoáng (Power Nap) đúng 15-20 phút, không ngủ quá 30 phút để bảo tồn áp lực buồn ngủ ban đêm."
+                        digest_tip = "đứng dậy đi dạo nhẹ nhàng 5 phút để chống trào ngược axit dạ dày (GERD)" if has_gerd_flag else "đứng dậy đi dạo nhẹ nhàng 5 phút kích thích tiêu hóa êm ái"
+                        parsed["realtimeActionNow"] = f"🥪 <strong>Khung giờ hiện tại ({current_time_str} - Buổi trưa):</strong> Thời điểm vàng nạp lại năng lượng & chốt cữ Caffeine. Bữa trưa ăn thanh đạm, {digest_tip}. Ngủ trưa chớp nhoáng (Power Nap) đúng 15-20 phút, không ngủ quá 30 phút để bảo tồn áp lực buồn ngủ ban đêm."
 
                 # Ensure microSchedule is complete and covers daytime to bedtime
                 parsed["microSchedule"] = ensure_full_micro_schedule(
@@ -364,14 +533,31 @@ YÊU CẦU ĐẦU RA: Trả về ĐÚNG MỘT JSON OBJECT duy nhất (không b�
                     na = parsed["nutritionAdvice"]
                     if "dinnerItems" not in na and "dinnerHighlights" in na:
                         na["dinnerItems"] = na["dinnerHighlights"]
-                    if "targetedHealth" not in na and "targetedCare" in na:
-                        na["targetedHealth"] = f"<p>{na['targetedCare']}</p>"
-                    if "deskExercises" not in na or not na["deskExercises"]:
-                        na["deskExercises"] = [
-                            "<strong>Động tác Chin-Tuck (1 phút):</strong> Ngồi thẳng lưng, thu cằm về phía sau như tạo 2 cằm, giữ 5 giây rồi thả lỏng.",
-                            "<strong>Động tác Mở Ngực Xương Bả Vai (1 phút):</strong> Đan hai tay ra sau gáy, hít sâu ưỡn ngực mở rộng khuỷu tay sang hai bên.",
-                            "<strong>Thả Lỏng Mắt 20-20-20 (30 giây):</strong> Nhìn xa 6 mét trong 20 giây để thư giãn mắt."
-                        ]
+                    
+                    # Strictly tailor targetedHealth & deskExercises so diseases user does NOT have are never displayed
+                    curr_th = str(na.get("targetedHealth", "") or na.get("targetedCare", "")).lower()
+                    need_rebuild_th = False
+                    if not has_gerd_flag and ("gerd" in curr_th or "trào ngược" in curr_th or "dạ dày" in curr_th):
+                        need_rebuild_th = True
+                    if not has_neck_flag and ("c5-c7" in curr_th or "đốt sống cổ" in curr_th or "cổ vai gáy" in curr_th):
+                        need_rebuild_th = True
+                    if ("lướt" in str(answers.get("bed_phone", [])) or "tiktok" in str(answers.get("bed_phone", []))) and ("điện thoại" not in curr_th and "grayscale" not in curr_th and "tiktok" not in curr_th):
+                        need_rebuild_th = True
+                    
+                    if need_rebuild_th or not na.get("targetedHealth"):
+                        na["targetedHealth"] = build_targeted_health_advice(answers, user_bedtime)
+                        na["targetedCare"] = na["targetedHealth"]
+
+                    # For desk exercises, ensure no chin-tuck / C5-C7 if user has no neck pain
+                    curr_exercises = na.get("deskExercises", [])
+                    if not has_neck_flag:
+                        if any(k in str(curr_exercises).lower() for k in ["c5-c7", "chin-tuck", "đốt sống cổ", "cổ vai gáy", "khớp cổ"]):
+                            na["deskExercises"] = build_tailored_desk_exercises(answers)
+                    if not na.get("deskExercises"):
+                        na["deskExercises"] = build_tailored_desk_exercises(answers)
+
+                parsed["geminiModelUsed"] = model_name
+                return parsed
 
                 parsed["geminiModelUsed"] = model_name
                 return parsed
@@ -548,9 +734,11 @@ def run_semantic_nlp_analysis(answers, custom_answers, user, current_hour, curre
     if 5 <= current_hour < 11:
         rt_action = f"☀️ <strong>Khung giờ hiện tại ({current_time_str} - Buổi sáng):</strong> Bạn đang ở pha đỉnh tiết Cortisol. Hãy chốt cữ cà phê trước 10:30, uống 1 cốc nước ấm 300ml và đón ánh nắng tự nhiên 10 phút để cài đặt nhịp sinh học cho giấc ngủ tối nay."
     elif 11 <= current_hour < 14:
-        rt_action = f"🥪 <strong>Khung giờ hiện tại ({current_time_str} - Buổi trưa):</strong> Thời điểm vàng nạp lại năng lượng & chốt cữ Caffeine. Bữa trưa ăn thanh đạm, đứng dậy đi dạo nhẹ nhàng 5 phút để tránh trào ngược dạ dày (GERD). Ngủ trưa chớp nhoáng (Power Nap) đúng 15-20 phút, không ngủ quá 30 phút để bảo tồn áp lực buồn ngủ ban đêm."
+        noon_tip = "đứng dậy đi dạo nhẹ nhàng 5 phút để tránh trào ngược dạ dày (GERD)" if (has('chronic_condition', 'gerd') or has('dinner_habit', 'heavy_late')) else "đứng dậy đi dạo nhẹ nhàng 5 phút kích thích tiêu hóa êm ái"
+        rt_action = f"🥪 <strong>Khung giờ hiện tại ({current_time_str} - Buổi trưa):</strong> Thời điểm vàng nạp lại năng lượng & chốt cữ Caffeine. Bữa trưa ăn thanh đạm, {noon_tip}. Ngủ trưa chớp nhoáng (Power Nap) đúng 15-20 phút, không ngủ quá 30 phút để bảo tồn áp lực buồn ngủ ban đêm."
     elif 14 <= current_hour < 17:
-        rt_action = f"⏳ <strong>Khung giờ hiện tại ({current_time_str} - Buổi chiều):</strong> Điểm trũng thể lực. Dừng nhìn màn hình 3 phút, làm động tác Chin-Tuck giãn cơ cổ vai gáy. Tuyệt đối không nạp thêm cà phê hay nước ngọt sau 14:00."
+        afternoon_tip = "làm động tác Chin-Tuck giãn cơ cổ vai gáy" if has('physical_pain', 'neck_back_pain') else "áp dụng quy tắc mắt 20-20-20 & thở Box Breathing xoa dịu thần kinh"
+        rt_action = f"⏳ <strong>Khung giờ hiện tại ({current_time_str} - Buổi chiều):</strong> Điểm trũng thể lực. Dừng nhìn màn hình 3 phút, {afternoon_tip}. Tuyệt đối không nạp thêm cà phê hay nước ngọt sau 14:00."
     elif 17 <= current_hour < 21:
         rt_action = f"🌅 <strong>Khung giờ hiện tại ({current_time_str} - Hoàng hôn & Tối):</strong> Tuyến tùng chuẩn bị tiết melatonin. Bữa tối kết thúc trước 19:30 với thực phẩm giàu Tryptophan (trứng luộc, ức gà, canh rau bina). Uống ít nước sau 20:00 để tránh tiểu đêm."
     elif 21 <= current_hour < 23:
@@ -577,6 +765,9 @@ def run_semantic_nlp_analysis(answers, custom_answers, user, current_hour, curre
         user_bedtime,
         answers
     )
+
+    targeted_health_content = build_targeted_health_advice(answers, user_bedtime)
+    tailored_exercises = build_tailored_desk_exercises(answers)
 
     return {
         "predictedScore": predicted_score,
@@ -607,13 +798,9 @@ def run_semantic_nlp_analysis(answers, custom_answers, user, current_hour, curre
                 "Canh rau bina hoặc canh rau ngót luộc (giàu Magie tự nhiên giãn cơ bắp)",
                 "1-2 quả Kiwi tráng miệng (giúp tăng thời lượng ngủ sâu NREM)"
             ],
-            "targetedHealth": f"<p>Thiết lập nhiệt độ phòng ngủ 24-26°C và hoàn tất việc cất điện thoại trước {user_bedtime} ít nhất 45 phút để tuyến tùng giải phóng Melatonin tự nhiên.</p>",
-            "targetedCare": f"Thiết lập nhiệt độ phòng ngủ 24-26°C và hoàn tất việc cất điện thoại trước {user_bedtime} ít nhất 45 phút.",
-            "deskExercises": [
-                "<strong>Động tác Chin-Tuck (1 phút):</strong> Ngồi thẳng lưng, thu cằm về phía sau như tạo 2 cằm, giữ 5 giây rồi thả lỏng. Lặp lại 5 lần để giải tỏa đốt sống cổ C5-C7.",
-                "<strong>Động tác Mở Ngực Xương Bả Vai (1 phút):</strong> Đan hai tay ra sau gáy, hít sâu ưỡn ngực mở rộng khuỷu tay sang hai bên. Thở ra từ từ.",
-                "<strong>Thả Lỏng Mắt 20-20-20 (30 giây):</strong> Cứ mỗi 20 phút, nhìn vào một vật cách xa 20 feet (6 mét) trong 20 giây để thư giãn cơ thể mi mắt."
-            ]
+            "targetedHealth": targeted_health_content,
+            "targetedCare": targeted_health_content,
+            "deskExercises": tailored_exercises
         }
     }
 

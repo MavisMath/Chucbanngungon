@@ -1375,14 +1375,20 @@ function generateMicroActionSchedule(ans) {
   const hour = new Date().getHours();
   const pool = [];
 
+  const hasGerd = hasAns('chronic_condition', 'gerd') || hasAns('dinner_habit', 'heavy_late');
+  const hasNeck = hasAns('physical_pain', 'neck_back_pain');
+  const hasBedPhone = hasAns('bed_phone', 'lướt_tiktok_fb') || hasAns('env_light', 'screen_heavy');
+
   // Mốc Trưa (11:00 - 13:00)
   if (hour <= 12) {
     pool.push({
       id: 'm1',
       time: '12:15 - 12:20 (5 phút sau ăn trưa)',
-      tag: hasAns('chronic_condition', 'gerd') ? 'Chống trào ngược & Nhu động ruột' : 'Đi bộ nhẹ & Tiêu hóa',
-      title: '🚶 Vi-đi bộ 5 phút quanh văn phòng (Không nằm ngay sau ăn)',
-      desc: 'Giúp cơ thắt thực quản dưới đóng kín, hỗ trợ nhu động ruột tiêu hóa thức ăn và ngăn ngừa trào ngược axit dạ dày (GERD). Chợp mắt Power Nap tối đa 15-20 phút.',
+      tag: hasGerd ? 'Chống trào ngược & Nhu động ruột' : 'Đi dạo nhẹ & Phục hồi',
+      title: hasGerd ? '🚶 Vi-đi bộ 5 phút quanh văn phòng (Chống trào ngược axit)' : '🚶 Đi dạo nhẹ nhàng 5 phút & Chợp mắt Power-Nap 15-20 phút',
+      desc: hasGerd
+        ? 'Giúp cơ thắt thực quản dưới đóng kín, hỗ trợ nhu động ruột tiêu hóa thức ăn và ngăn ngừa trào ngược axit dạ dày (GERD). Chợp mắt Power Nap tối đa 15-20 phút.'
+        : 'Đi dạo nhẹ nhàng giúp kích thích nhu động ruột tiêu hóa bữa trưa êm ái, sau đó chợp mắt ngắn 15-20 phút để phục hồi sự tỉnh táo cho não bộ mà không làm mất áp lực ngủ tối.',
       completed: false
     });
   }
@@ -1404,9 +1410,11 @@ function generateMicroActionSchedule(ans) {
     pool.push({
       id: 'm3',
       time: '15:45 - 15:50 (5 phút xả áp lực)',
-      tag: 'Xả Cortisol & Cổ vai gáy',
-      title: '🧘 Bài tập Chin-Tuck 10 lần + Thở Box Breathing 4-4-4-4',
-      desc: 'Thu cằm về sau tạo 2 cằm giữ 5 giây giải phóng chèn ép rễ thần kinh đốt sống cổ C5-C7, hít thở 4 thì để hạ nồng độ hormone căng thẳng.',
+      tag: hasNeck ? 'Giải tỏa đốt sống cổ & Cortisol' : 'Thư giãn mắt & Reset năng lượng',
+      title: hasNeck ? '🧘 Bài tập Chin-Tuck 10 lần + Giãn cơ cổ vai gáy' : '🧘 Thư giãn mắt 20-20-20 & Bài tập thở Box Breathing 4-4-4-4',
+      desc: hasNeck
+        ? 'Thu cằm về sau tạo 2 cằm giữ 5 giây giải phóng chèn ép rễ thần kinh đốt sống cổ C5-C7, giảm áp lực do ngồi lâu.'
+        : 'Nhìn xa 6m trong 20 giây giải tỏa áp lực điều tiết của mắt khi nhìn màn hình, kết hợp 3 phút thở 4 thì để xoa dịu hệ thần kinh và hạ hormone căng thẳng.',
       completed: false
     });
   }
@@ -1427,9 +1435,11 @@ function generateMicroActionSchedule(ans) {
   pool.push({
     id: 'm5',
     time: '21:30 - 22:00 (30 phút trước ngủ)',
-    tag: 'Digital Sunset & Hạ thân nhiệt',
-    title: '🛀 Tắm nước ấm 10 phút & Kích hoạt Digital Sunset',
-    desc: 'Nước ấm kích hoạt giãn mạch ngoại vi hạ thân nhiệt trung tâm 1°C. Cất điện thoại xa giường ít nhất 2 mét.',
+    tag: hasBedPhone ? 'Cắt vòng lặp Dopamine màn hình' : 'Digital Sunset & Hạ thân nhiệt',
+    title: hasBedPhone ? '📱 Kích hoạt Grayscale & Cất điện thoại cách xa giường 2m' : '🛀 Tắm nước ấm 10 phút & Kích hoạt Digital Sunset',
+    desc: hasBedPhone
+      ? 'Chuyển màn hình điện thoại sang chế độ đen trắng (Grayscale) và cắm sạc ở bàn làm việc cách xa giường ngủ, ngăn thói quen lướt TikTok/FB trên giường.'
+      : 'Nước ấm kích hoạt giãn mạch ngoại vi hạ thân nhiệt trung tâm 1°C. Cất điện thoại xa giường ít nhất 2 mét.',
     completed: false
   });
 
@@ -1446,8 +1456,8 @@ function generateMicroActionSchedule(ans) {
   return pool;
 }
 
-// Generate targeted nutrition & health hacks
-function generateNutritionAdvice(ans) {
+// Generate targeted nutrition & health hacks strictly tailored to user symptoms
+function generateNutritionAdvice(ans, targetBedtime = '23:00') {
   const hasAns = (key, val) => {
     const v = ans[key];
     if (Array.isArray(v)) return v.includes(val);
@@ -1461,28 +1471,63 @@ function generateNutritionAdvice(ans) {
     "<strong>Trà an thần nhẹ:</strong> 1 tách nhỏ trà hoa cúc hoặc trà tim sen ấm lúc 20:00."
   ];
 
-  let targetedHealth = '';
-  if (hasAns('chronic_condition', 'gerd')) {
-    targetedHealth += `<p><strong>🫀 Khắc phục Trào Ngược GERD:</strong> Ăn tối trước giờ ngủ ít nhất 3 tiếng. Khi ngủ, nằm nghiêng sang bên TRÁI (tư thế này giữ cơ thắt thực quản nằm phía trên mức dịch vị axit). Kê đầu giường cao thêm 10-15cm.</p>`;
-  }
-  if (hasAns('physical_pain', 'neck_back_pain')) {
-    targetedHealth += `<p style="margin-top:0.4rem;"><strong>🦴 Khắc phục Đau Cổ Vai Gáy:</strong> Dùng gối cao vừa phải (7-10cm) nâng đỡ đường cong sinh lý cổ. Không nằm sấp. Đặt 1 chiếc gối mỏng dưới đầu gối khi nằm ngửa để giảm áp lực lên cột sống thắt lưng.</p>`;
-  }
-  if (hasAns('hormone_state', 'menopause_hotflash')) {
-    targetedHealth += `<p style="margin-top:0.4rem;"><strong>🔥 Khắc phục Bốc Hỏa Tiền Mãn Kinh:</strong> Giữ nhiệt độ phòng ở mức 23-24°C. Dùng chăn ga chất liệu cotton hoặc lụa thoáng khí. Uống 1 ngụm trà hoa cúc mát để hạ hỏa.</p>`;
-  }
-  if (hasAns('chronic_condition', 'nocturia') || hasAns('dinner_habit', 'drink_lots_water')) {
-    targetedHealth += `<p style="margin-top:0.4rem;"><strong>🚽 Khắc phục Tiểu Đêm:</strong> Cắt giảm hoàn toàn nước sau 20:00. Thực hiện kỹ thuật 'đi tiểu kép' (Double Voiding): đi tiểu 1 lần lúc 21:45 và 1 lần nữa ngay trước khi nằm lên giường lúc 22:30.</p>`;
-  }
-  if (!targetedHealth) {
-    targetedHealth = `<p>Tình trạng thể chất của bạn hiện rất tốt! Chỉ cần duy trì môi trường ngủ mát mẻ (24-26°C) và tránh ánh sáng xanh màn hình là bạn sẽ có giấc ngủ sâu hoàn hảo.</p>`;
+  const healthItems = [];
+
+  // 1. Điện thoại trên giường / Nghiện màn hình TikTok/FB
+  if (hasAns('bed_phone', 'lướt_tiktok_fb') || hasAns('env_light', 'screen_heavy')) {
+    healthItems.push(`<p><strong>📱 Cắt Đứt Vòng Lặp Dopamine & Cai Nghiện Điện Thoại Giường Ngủ:</strong> Kích hoạt chế độ Grayscale (màn hình đen trắng) từ 21:00 để triệt tiêu sức hút thị giác của video ngắn TikTok/Facebook. Cắm sạc điện thoại ở bàn làm việc cách giường ít nhất 2 mét trước ${targetBedtime} để phá vỡ phản xạ với tay lướt màn hình ban đêm. Dùng đồng hồ báo thức rời thay vì để điện thoại ngay đầu giường.</p>`);
   }
 
-  const deskExercises = [
-    "<strong>Động tác Chin-Tuck (1 phút):</strong> Ngồi thẳng lưng, thu cằm về phía sau như tạo 2 cằm, giữ 5 giây rồi thả lỏng. Lặp lại 5 lần để giải tỏa đốt sống cổ C5-C7.",
-    "<strong>Động tác Mở Ngực Xương Bả Vai (1 phút):</strong> Đan hai tay ra sau gáy, hít sâu ưỡn ngực mở rộng khuỷu tay sang hai bên. Thở ra từ từ.",
-    "<strong>Thả Lỏng Mắt 20-20-20 (30 giây):</strong> Cứ mỗi 20 phút, nhìn vào một vật cách xa 20 feet (6 mét) trong 20 giây để thư giãn cơ thể mi mắt."
-  ];
+  // 2. Căng thẳng / Suy nghĩ miên man / Trạng thái cảm xúc
+  if (hasAns('stress_level', 'medium') || hasAns('stress_level', 'high') || hasAns('mood_state', 'anxious') || hasAns('mood_state', 'brain_fog')) {
+    healthItems.push(`<p style="margin-top:0.4rem;"><strong>🧠 Xả Trầm Não Bộ (Brain Dump) & Giảm Cortisol:</strong> Dành 3 phút trước khi ngủ viết toàn bộ suy nghĩ, nỗi lo và danh sách việc cần làm ngày mai ra 1 cuốn sổ tay (kỹ thuật Brain Dump) để dọn sạch bộ nhớ đệm của vỏ não trước trán. Kết hợp bài tập thở 4-7-8 (hít 4s - giữ 7s - thở 8s) để kích hoạt hệ thần kinh đối giao cảm.</p>`);
+  }
+
+  // 3. Trào ngược dạ dày (GERD) - CHỈ hiển thị nếu người dùng THỰC SỰ chọn hoặc ăn tối quá muộn
+  if (hasAns('chronic_condition', 'gerd') || hasAns('dinner_habit', 'heavy_late')) {
+    healthItems.push(`<p style="margin-top:0.4rem;"><strong>🫀 Khắc Phục Trào Ngược Axit Dạ Dày (GERD):</strong> Ăn tối trước giờ ngủ ít nhất 3 tiếng. Khi ngủ, nằm nghiêng sang bên TRÁI (tư thế này giữ van tâm vị cơ thắt thực quản nằm phía trên mức dịch vị axit, chống trào ngược tự nhiên). Kê đầu giường hoặc gối nâng cao thêm 10-15cm.</p>`);
+  }
+
+  // 4. Đau mỏi cổ vai gáy - CHỈ hiển thị nếu người dùng THỰC SỰ bị
+  if (hasAns('physical_pain', 'neck_back_pain')) {
+    healthItems.push(`<p style="margin-top:0.4rem;"><strong>🦴 Khắc Phục Đau Mỏi Cổ Vai Gáy:</strong> Dùng gối cao vừa phải (7-10cm) nâng đỡ đường cong sinh lý cột sống cổ C1-C7. Tránh tuyệt đối tư thế nằm sấp. Đặt 1 chiếc gối mỏng dưới khớp gối khi nằm ngửa để giải tỏa áp lực đĩa đệm cột sống thắt lưng.</p>`);
+  }
+
+  // 5. Đau đầu căng thẳng
+  if (hasAns('physical_pain', 'headache')) {
+    healthItems.push(`<p style="margin-top:0.4rem;"><strong>💆 Giảm Đau Đầu Căng Thẳng:</strong> Chườm ấm vùng mắt và trán 5 phút trước giờ ngủ, kết hợp day ấn nhẹ huyệt Thái Dương và huyệt Phong Trì sau gáy để giải tỏa co thắt mạch máu não.</p>`);
+  }
+
+  // 6. Nhiệt độ phòng nóng hoặc Bốc hỏa mãn kinh
+  if (hasAns('env_temp', 'hot') || hasAns('hormone_state', 'menopause_hotflash')) {
+    healthItems.push(`<p style="margin-top:0.4rem;"><strong>❄️ Khắc Phục Nhiệt Độ Nóng & Bốc Hỏa:</strong> Cài đặt điều hòa ở mức lý tưởng 24-26°C hoặc dùng quạt nhẹ thoảng chân. Tắm nước ấm trước giờ ngủ 45 phút để kích hoạt cơ chế giãn mạch ngoại vi, giúp cơ thể hạ nhiệt độ trung tâm 1°C khi vào giường.</p>`);
+  }
+
+  // 7. Tiểu đêm
+  if (hasAns('chronic_condition', 'nocturia') || hasAns('dinner_habit', 'drink_lots_water')) {
+    healthItems.push(`<p style="margin-top:0.4rem;"><strong>🚽 Khắc Phục Thức Giấc Tiểu Đêm:</strong> Cắt giảm toàn bộ lượng nước uống sau 20:00. Áp dụng kỹ thuật 'đi tiểu kép' (Double Voiding): 1 lần lúc chuẩn bị ngủ và 1 lần nữa sát lúc bước lên giường.</p>`);
+  }
+
+  let targetedHealth = healthItems.join('');
+  if (!targetedHealth) {
+    targetedHealth = `<p>✨ <strong>Thể Trạng & Thói Quen Rất Tốt:</strong> Bạn không gặp vấn đề bệnh lý hay căng thẳng lớn. Chỉ cần duy trì phòng ngủ thoáng mát (24-26°C), giữ nhịp sinh học đều đặn và cất điện thoại trước ${targetBedtime} là bạn sẽ duy trì được giấc ngủ sâu NREM tối ưu nhất.</p>`;
+  }
+
+  // Tailored desk exercises
+  let deskExercises = [];
+  if (hasAns('physical_pain', 'neck_back_pain')) {
+    deskExercises = [
+      "<strong>Động tác Chin-Tuck (1 phút):</strong> Ngồi thẳng lưng, thu cằm về phía sau như tạo 2 cằm, giữ 5 giây rồi thả lỏng. Lặp lại 5 lần để giải tỏa chèn ép rễ thần kinh đốt sống cổ C5-C7.",
+      "<strong>Mở Ngực & Xương Bả Vai (1 phút):</strong> Đan hai tay ra sau gáy, hít sâu ưỡn ngực mở rộng hai khuỷu tay sang hai bên, thở ra từ từ để kéo giãn cơ ngực và giải phóng vai gáy.",
+      "<strong>Kéo Giãn Thắt Lưng Tại Ghế (1 phút):</strong> Ngồi xoay thân người nhẹ nhàng sang trái rồi sang phải, tay giữ vào thành ghế để giải tỏa áp lực đĩa đệm thắt lưng."
+    ];
+  } else {
+    deskExercises = [
+      "<strong>Quy Tắc Thư Giãn Mắt 20-20-20 (Khi làm việc & dùng điện thoại):</strong> Cứ sau 20 phút nhìn màn hình, hướng tầm mắt nhìn một vật cách xa 6 mét trong 20 giây để thư giãn cơ thể mi mắt.",
+      "<strong>Thở Hộp Vuông Box Breathing 4-4-4-4 (3 phút):</strong> Hít vào 4 giây - Nín thở 4 giây - Thở ra 4 giây - Nín thở 4 giây. Giúp hạ nhịp tim, giảm mệt mỏi và reset hệ thần kinh đang căng thẳng.",
+      "<strong>Vươn Vai & Giãn Toàn Thân Tại Chỗ (1 phút):</strong> Đan hai tay vươn thẳng lên cao qua đầu, hít sâu kéo căng toàn bộ cơ liên sườn và cột sống để kích thích máu huyết lưu thông."
+    ];
+  }
 
   return { dinnerItems, targetedHealth, deskExercises };
 }
@@ -1623,6 +1668,15 @@ function renderDashboard(data) {
     }
   }
 
+  const checkAns = (k, v) => {
+    const val = (AppState.answers || {})[k];
+    if (Array.isArray(val)) return val.includes(v);
+    return val === v;
+  };
+  const hasGerd = checkAns('chronic_condition', 'gerd') || checkAns('dinner_habit', 'heavy_late');
+  const hasNeck = checkAns('physical_pain', 'neck_back_pain');
+  const hasBedPhone = checkAns('bed_phone', 'lướt_tiktok_fb') || checkAns('env_light', 'screen_heavy');
+
   // Micro-schedule timeline
   renderMicroSchedule(data.microSchedule);
 
@@ -1635,17 +1689,32 @@ function renderDashboard(data) {
 
   const targetedHealthEl = document.getElementById('targeted-health-content');
   if (targetedHealthEl) {
-    const tHealth = data.nutritionAdvice && (data.nutritionAdvice.targetedHealth || data.nutritionAdvice.targetedCare);
-    targetedHealthEl.innerHTML = tHealth || '<p>Duy trì không gian ngủ thoáng mát (24-26°C) và cất điện thoại trước giờ ngủ.</p>';
+    let tHealth = data.nutritionAdvice && (data.nutritionAdvice.targetedHealth || data.nutritionAdvice.targetedCare);
+    const lowerTh = (tHealth || '').toLowerCase();
+    // Extra safety: If AI returned text mentioning GERD or digestion pressure when user doesn't have GERD, rebuild
+    if (!hasGerd && (lowerTh.includes('gerd') || lowerTh.includes('trào ngược') || lowerTh.includes('áp lực lên dạ dày'))) {
+      tHealth = generateNutritionAdvice(AppState.answers, AppState.user?.targetBedtime).targetedHealth;
+    }
+    // If user has bed_phone but tHealth doesn't address it
+    if (hasBedPhone && !lowerTh.includes('điện thoại') && !lowerTh.includes('tiktok') && !lowerTh.includes('màn hình')) {
+      tHealth = generateNutritionAdvice(AppState.answers, AppState.user?.targetBedtime).targetedHealth;
+    }
+    targetedHealthEl.innerHTML = tHealth || generateNutritionAdvice(AppState.answers, AppState.user?.targetBedtime).targetedHealth;
   }
 
   const exerciseList = document.getElementById('desk-exercise-list');
-  const exercises = (data.nutritionAdvice && data.nutritionAdvice.deskExercises) || [
-    "<strong>Động tác Chin-Tuck (1 phút):</strong> Ngồi thẳng lưng, thu cằm về phía sau như tạo 2 cằm, giữ 5 giây rồi thả lỏng. Lặp lại 5 lần để giải tỏa đốt sống cổ C5-C7.",
-    "<strong>Động tác Mở Ngực Xương Bả Vai (1 phút):</strong> Đan hai tay ra sau gáy, hít sâu ưỡn ngực mở rộng khuỷu tay sang hai bên. Thở ra từ từ.",
-    "<strong>Thả Lỏng Mắt 20-20-20 (30 giây):</strong> Cứ mỗi 20 phút, nhìn vào một vật cách xa 20 feet (6 mét) trong 20 giây để thư giãn cơ thể mi mắt."
-  ];
   if (exerciseList) {
+    let exercises = (data.nutritionAdvice && data.nutritionAdvice.deskExercises) || [];
+    // If user has NO neck pain, NEVER show chin-tuck or C5-C7
+    if (!hasNeck) {
+      const hasSpine = exercises.some(e => e.toLowerCase().includes('c5-c7') || e.toLowerCase().includes('chin-tuck') || e.toLowerCase().includes('đốt sống cổ') || e.toLowerCase().includes('cổ vai gáy') || e.toLowerCase().includes('khớp cổ'));
+      if (hasSpine || exercises.length === 0) {
+        exercises = generateNutritionAdvice(AppState.answers, AppState.user?.targetBedtime).deskExercises;
+      }
+    }
+    if (!exercises || exercises.length === 0) {
+      exercises = generateNutritionAdvice(AppState.answers, AppState.user?.targetBedtime).deskExercises;
+    }
     exerciseList.innerHTML = exercises.map(item => `<li>${item}</li>`).join('');
   }
 }
@@ -1677,7 +1746,44 @@ function animateNumber(obj, start, end, duration) {
 function renderMicroSchedule(tasks) {
   const container = document.getElementById('schedule-timeline');
   container.innerHTML = '';
-  AppState.readinessTasks = tasks;
+
+  const checkAns = (k, v) => {
+    const val = (AppState.answers || {})[k];
+    if (Array.isArray(val)) return val.includes(v);
+    return val === v;
+  };
+  const hasGerd = checkAns('chronic_condition', 'gerd') || checkAns('dinner_habit', 'heavy_late');
+  const hasNeck = checkAns('physical_pain', 'neck_back_pain');
+
+  // Sanitize tasks for display
+  const sanitizedTasks = (tasks || []).map(task => {
+    const t = { ...task };
+    if (!hasGerd) {
+      if (t.title && (t.title.includes('trào ngược') || t.title.toLowerCase().includes('gerd'))) {
+        t.title = '🚶 Vi-đi bộ 5 phút sau ăn trưa & Thư giãn';
+      }
+      if (t.desc && (t.desc.includes('trào ngược') || t.desc.toLowerCase().includes('gerd'))) {
+        t.desc = 'Đi dạo nhẹ nhàng 5 phút kích thích tiêu hóa bữa trưa êm ái, chợp mắt Power Nap tối đa 15-20 phút để phục hồi năng lượng não bộ.';
+      }
+      if (t.tag && t.tag.toLowerCase().includes('trào ngược')) {
+        t.tag = 'Đi dạo nhẹ & Tiêu hóa';
+      }
+    }
+    if (!hasNeck) {
+      if (t.title && (t.title.includes('Chin-Tuck') || t.title.includes('C5-C7') || t.title.includes('cổ vai gáy'))) {
+        t.title = '🧘 Thư giãn mắt 20-20-20 & Bài tập thở Box Breathing 4-4-4-4';
+      }
+      if (t.desc && (t.desc.includes('C5-C7') || t.desc.includes('thu cằm') || t.desc.includes('đốt sống cổ'))) {
+        t.desc = 'Nhìn xa 6m trong 20 giây giải tỏa áp lực điều tiết của mắt khi nhìn màn hình, kết hợp 3 phút thở 4 thì để xoa dịu hệ thần kinh và hạ hormone căng thẳng.';
+      }
+      if (t.tag && t.tag.includes('cổ vai gáy')) {
+        t.tag = 'Thư giãn mắt & Reset năng lượng';
+      }
+    }
+    return t;
+  });
+
+  AppState.readinessTasks = sanitizedTasks;
 
   // Dynamic schedule heading based on current local hour
   const scheduleTitle = document.querySelector('.schedule-title');
@@ -1692,7 +1798,7 @@ function renderMicroSchedule(tasks) {
     }
   }
 
-  tasks.forEach((task) => {
+  sanitizedTasks.forEach((task) => {
     const itemEl = document.createElement('div');
     itemEl.className = `timeline-item ${task.completed ? 'completed' : ''}`;
     itemEl.innerHTML = `

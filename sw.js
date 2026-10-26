@@ -3,7 +3,7 @@
  * Enables offline caching, instant app launch, and background sync readiness.
  */
 
-const CACHE_NAME = 'sleepsync-cache-v4';
+const CACHE_NAME = 'sleepsync-cache-v5';
 const STATIC_ASSETS = [
   './',
   './index.html',
