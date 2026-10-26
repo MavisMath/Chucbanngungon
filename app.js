@@ -1114,12 +1114,21 @@ async function runCompleteDiagnosis() {
   stepTitle.textContent = "1/3. Phân tích tương quan 5 trụ cột y khoa & ngôn ngữ tự nhiên...";
   stepDesc.textContent = "Đánh giá mức độ kích hoạt Adrenaline/Cortisol, đào thải Caffeine và trích xuất câu trả lời tự điền...";
 
-  // Start the AI analysis API call in parallel
+  // Start the AI analysis API call in parallel with local client time
+  const now = new Date();
+  const currentHours = String(now.getHours()).padStart(2, '0');
+  const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+  const localTimeStr = `${currentHours}:${currentMinutes}`;
+
   const aiPayload = {
     answers: AppState.answers || {},
     customAnswers: AppState.customAnswers || {},
     user: AppState.currentUser || null,
-    currentTime: new Date().toISOString(),
+    currentTime: localTimeStr, // Exact local HH:MM to prevent UTC timezone mismatch
+    localTime: localTimeStr,
+    localHour: now.getHours(),
+    localMinute: now.getMinutes(),
+    timezoneOffset: now.getTimezoneOffset(),
     device: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'Mobile Web' : 'Desktop Web'
   };
 
@@ -1160,6 +1169,32 @@ async function runCompleteDiagnosis() {
   let result;
   if (apiResponse && apiResponse.success && apiResponse.analysis) {
     const aiData = apiResponse.analysis;
+    const curH = new Date().getHours();
+
+    // Sanity check: Ensure realtime advice is synchronized with local time
+    let realtimeAdvice = aiData.realtimeActionNow || '';
+    if (!realtimeAdvice || (curH >= 11 && curH < 14 && (realtimeAdvice.includes('sáng sớm') || realtimeAdvice.includes('04:') || realtimeAdvice.includes('03:') || realtimeAdvice.includes('đêm muộn')))) {
+      realtimeAdvice = generateRealtimeAdvice(AppState.answers);
+    }
+
+    // Ensure microSchedule covers from current time to bedtime
+    let microSchedule = (Array.isArray(aiData.microSchedule) && aiData.microSchedule.length >= 3)
+      ? aiData.microSchedule
+      : generateMicroActionSchedule(AppState.answers);
+
+    // If microSchedule only has late night actions, merge daytime tasks from default
+    const hasDaytime = microSchedule.some(t => {
+      const m = (t.time || '').match(/(\d{1,2}):/);
+      return m && parseInt(m[1], 10) >= curH && parseInt(m[1], 10) < 20;
+    });
+    if (!hasDaytime && curH < 18) {
+      const defTasks = generateMicroActionSchedule(AppState.answers).filter(t => {
+        const m = (t.time || '').match(/(\d{1,2}):/);
+        return m && parseInt(m[1], 10) >= curH - 1 && parseInt(m[1], 10) < 21;
+      });
+      microSchedule = [...defTasks, ...microSchedule];
+    }
+
     result = {
       predictedScore: aiData.predictedScore,
       verdictTitle: aiData.verdictTitle,
@@ -1168,10 +1203,10 @@ async function runCompleteDiagnosis() {
       deepSleepPct: aiData.deepSleepPct || 16,
       remSleepPct: aiData.remSleepPct || 19,
       pillars: aiData.pillars || { p1_stress: 50, p2_env: 30, p3_lifestyle: 50, p4_physio: 30, p5_health: 20 },
-      realtimeAdvice: aiData.realtimeActionNow || '',
-      realtimeActionNow: aiData.realtimeActionNow || '',
+      realtimeAdvice: realtimeAdvice,
+      realtimeActionNow: realtimeAdvice,
       customInsights: aiData.customInsights || [],
-      microSchedule: aiData.microSchedule || [],
+      microSchedule: microSchedule,
       nutritionAdvice: aiData.nutritionAdvice || {
         dinnerItems: [],
         targetedHealth: '',
@@ -1299,80 +1334,116 @@ function generateRealtimeAdvice(ans) {
   const hour = new Date().getHours();
   let text = '';
 
-  if (hour >= 6 && hour < 12) {
-    text = `☀️ <strong>Khung giờ hiện tại (Sáng):</strong> Bạn đang ở đỉnh cao giải phóng năng lượng Cortisol. `;
+  if (hour >= 5 && hour < 11) {
+    text = `☀️ <strong>Khung giờ hiện tại (Buổi sáng):</strong> Bạn đang ở đỉnh cao giải phóng năng lượng Cortisol. `;
     if (hasAns('caffeine_usage', 'late_high')) {
-      text += `<strong>HÀNH ĐỘNG NGAY:</strong> Hãy chốt cữ cà phê cuối cùng trước 11:00 trưa nay để đảm bảo gan kịp chuyển hóa hết nồng độ trước giờ ngủ. Uống 1 cốc nước ấm 300ml để bù nước cho não bộ.`;
+      text += `<strong>HÀNH ĐỘNG NGAY:</strong> Hãy chốt cữ cà phê cuối cùng trước 10:30 sáng nay để đảm bảo gan kịp chuyển hóa hết nồng độ trước giờ ngủ. Uống 1 cốc nước ấm 300ml để bù nước cho não bộ.`;
     } else {
       text += `Uống đủ nước và tập trung giải quyết các công việc đòi hỏi tư duy cao nhất trong buổi sáng này!`;
     }
-  } else if (hour >= 12 && hour < 14) {
-    text = `🥪 <strong>Khung giờ hiện tại (Buổi trưa):</strong> Thời điểm vàng phục hồi. `;
+  } else if (hour >= 11 && hour < 14) {
+    text = `🥪 <strong>Khung giờ hiện tại (Buổi trưa):</strong> Thời điểm vàng phục hồi & nạp năng lượng. `;
     if (hasAns('dinner_habit', 'heavy_late') || hasAns('chronic_condition', 'gerd')) {
-      text += `<strong>HÀNH ĐỘNG DỄ LÀM:</strong> Bữa trưa không nên ăn quá no nhiều dầu mỡ. Sau khi ăn, đứng dậy đi dạo nhẹ nhàng 5 phút quanh văn phòng, tuyệt đối không nằm ngay để tránh trào ngược dạ dày thực quản!`;
+      text += `<strong>HÀNH ĐỘNG DỄ LÀM:</strong> Bữa trưa không nên ăn quá no nhiều dầu mỡ. Sau khi ăn, đứng dậy đi dạo nhẹ nhàng 5 phút quanh văn phòng, tuyệt đối không nằm ngay để tránh trào ngược dạ dày thực quản! Chợp mắt Power Nap đúng 15-20 phút.`;
     } else {
-      text += `Ăn trưa thanh đạm, nhắm mắt nghỉ ngơi (Power Nap) 15-20 phút, không ngủ quá 30 phút để tránh làm tan áp lực buồn ngủ ban đêm.`;
+      text += `Ăn trưa thanh đạm, chốt cữ cà phê cuối cùng trước 12:00, nhắm mắt nghỉ ngơi (Power Nap) 15-20 phút, không ngủ quá 30 phút để bảo tồn áp lực buồn ngủ ban đêm.`;
     }
   } else if (hour >= 14 && hour < 17) {
     text = `⏳ <strong>Khung giờ hiện tại (Xế chiều):</strong> `;
-    text += `<strong>VI-HÀNH ĐỘNG 3 PHÚT:</strong> Dừng nhìn màn hình, đứng dậy vươn vai và thực hiện bài tập xoay cổ vai gáy (Neck & Shoulder stretch) để giải tỏa căng cơ do ngồi máy tính. Tuyệt đối không nạp thêm cà phê hay nước tăng lực từ giờ này.`;
-  } else if (hour >= 17 && hour < 20) {
-    text = `🌅 <strong>Khung giờ hiện tại (Hoàng hôn):</strong> `;
-    text += `<strong>ĐỒNG BỘ NHỊP SINH HỌC:</strong> Đi dạo ngoài trời 15 phút đón ánh sáng đỏ hoàng hôn (báo hiệu cho nhân SCN chuẩn bị tiết melatonin). Bữa tối ăn nhẹ nhàng với thực đơn giàu Magie & Tryptophan trước 19:30.`;
+    text += `<strong>VI-HÀNH ĐỘNG 3 PHÚT:</strong> Dừng nhìn màn hình, đứng dậy vươn vai và thực hiện bài tập Chin-Tuck xoay cổ vai gáy để giải tỏa căng cơ do ngồi máy tính. Tuyệt đối không nạp thêm cà phê hay nước tăng lực từ giờ này.`;
+  } else if (hour >= 17 && hour < 21) {
+    text = `🌅 <strong>Khung giờ hiện tại (Hoàng hôn & Tối):</strong> `;
+    text += `<strong>ĐỒNG BỘ NHỊP SINH HỌC:</strong> Đi dạo ngoài trời 15 phút đón ánh sáng đỏ hoàng hôn (báo hiệu cho nhân SCN chuẩn bị tiết melatonin). Bữa tối ăn nhẹ nhàng với thực đơn giàu Magie & Tryptophan trước 19:30, cắt giảm nước sau 20:00.`;
+  } else if (hour >= 21 && hour < 23) {
+    text = `🌙 <strong>Khung giờ hiện tại (Tiền ngủ):</strong> `;
+    text += `<strong>DIGITAL SUNSET NGAY BÂY GIỜ:</strong> Bật chế độ lọc ánh sáng vàng trên điện thoại hoặc cất điện thoại cách xa giường ngủ. Tắm nước ấm 10 phút để hạ thân nhiệt trung tâm 1°C, bật máy phát sóng não Delta 4Hz bên dưới và điều chỉnh nhiệt độ phòng về 24°C - 26°C.`;
   } else {
-    text = `🌙 <strong>Khung giờ hiện tại (Tối muộn):</strong> `;
-    text += `<strong>DIGITAL SUNSET NGAY BÂY GIỜ:</strong> Bật chế độ lọc ánh sáng vàng trên điện thoại hoặc cất điện thoại cách xa giường ngủ. Bật máy phát sóng não Delta 4Hz bên dưới và điều chỉnh nhiệt độ phòng về 24°C - 26°C.`;
+    text = `💤 <strong>Khung giờ hiện tại (Đêm muộn):</strong> `;
+    text += `<strong>CẤT THIẾT BỊ NGAY LẬP TỨC:</strong> Đã qua giờ vàng tiết Melatonin! Cất điện thoại xa tầm tay, bật âm thanh Sóng Não Delta 4Hz ru ngủ trên ứng dụng, nhắm mắt hít thở chậm 4-7-8 để não bộ chìm vào giấc ngủ phục hồi.`;
   }
 
   return text;
 }
 
-// Generate Micro-Action Schedule (2-5 mins) tailored to calendar free slots
+// Generate Micro-Action Schedule (2-5 mins) tailored to calendar free slots & current hour
 function generateMicroActionSchedule(ans) {
-  const list = [
-    {
+  const hasAns = (key, val) => {
+    const v = ans[key];
+    if (Array.isArray(v)) return v.includes(val);
+    return v === val;
+  };
+  const hour = new Date().getHours();
+  const pool = [];
+
+  // Mốc Trưa (11:00 - 13:00)
+  if (hour <= 12) {
+    pool.push({
       id: 'm1',
       time: '12:15 - 12:20 (5 phút sau ăn trưa)',
-      tag: 'Chống trào ngược & Hạ đường huyết',
-      title: '🚶 Vi-đi bộ 5 phút quanh văn phòng (Không nằm ngay)',
-      desc: 'Giúp cơ thắt thực quản dưới đóng kín, hỗ trợ nhu động ruột tiêu hóa thức ăn và ngăn ngừa trào ngược axit dạ dày (GERD).',
+      tag: hasAns('chronic_condition', 'gerd') ? 'Chống trào ngược & Nhu động ruột' : 'Đi bộ nhẹ & Tiêu hóa',
+      title: '🚶 Vi-đi bộ 5 phút quanh văn phòng (Không nằm ngay sau ăn)',
+      desc: 'Giúp cơ thắt thực quản dưới đóng kín, hỗ trợ nhu động ruột tiêu hóa thức ăn và ngăn ngừa trào ngược axit dạ dày (GERD). Chợp mắt Power Nap tối đa 15-20 phút.',
       completed: false
-    },
-    {
+    });
+  }
+
+  // Mốc Đầu chiều (13:00 - 14:30)
+  if (hour <= 14) {
+    pool.push({
       id: 'm2',
-      time: '14:00 (1 phút)',
+      time: '14:00 (1 phút tại bàn làm việc)',
       tag: 'Caffeine Curfew',
-      title: '🚰 Đổi sang nước ấm hoặc trà hoa cúc (Ngừng Caffeine)',
-      desc: 'Khoảng cách 8,5 tiếng trước giờ ngủ. Uống 1 ngụm nước ấm bù khoáng cho gan thanh lọc.',
+      title: '🚰 Chốt cữ Caffeine - Đổi sang nước ấm hoặc trà hoa cúc',
+      desc: 'Đảm bảo khoảng cách 8-9 tiếng trước giờ ngủ để gan đào thải hết chất kích thích và Adenosine tự nhiên tích tụ kịp thời.',
       completed: false
-    },
-    {
+    });
+  }
+
+  // Mốc Xế chiều (14:30 - 16:30)
+  if (hour <= 16) {
+    pool.push({
       id: 'm3',
-      time: '15:45 - 15:50 (5 phút tại khe trống chiều)',
-      tag: 'Xả Cortisol & Giải đau cổ vai gáy',
-      title: '🧘 3 Phút bài tập giãn cơ cổ vai gáy + Thở Box Breathing',
-      desc: 'Hít sâu 4s, giữ 4s, thở ra 4s, giữ 4s (4 chu kỳ). Xoay nhẹ khớp cổ sang hai bên để giãn bó cơ thang và cơ ức đòn chũm.',
+      time: '15:45 - 15:50 (5 phút xả áp lực)',
+      tag: 'Xả Cortisol & Cổ vai gáy',
+      title: '🧘 Bài tập Chin-Tuck 10 lần + Thở Box Breathing 4-4-4-4',
+      desc: 'Thu cằm về sau tạo 2 cằm giữ 5 giây giải phóng chèn ép rễ thần kinh đốt sống cổ C5-C7, hít thở 4 thì để hạ nồng độ hormone căng thẳng.',
       completed: false
-    },
-    {
+    });
+  }
+
+  // Mốc Bữa tối & Hoàng hôn (17:30 - 19:30)
+  if (hour <= 19) {
+    pool.push({
       id: 'm4',
       time: '18:30 - 19:00 (Bữa tối nhanh)',
-      tag: 'Dinh dưỡng giàu Tryptophan',
-      title: '🥗 Ăn tối thanh đạm dưới 10 phút chuẩn bị',
-      desc: 'Trứng luộc / Ức gà nướng + Canh rau bina luộc + 1 quả chuối hoặc kiwi tráng miệng. Ngừng uống nước sau 20:00 nếu hay tiểu đêm.',
+      tag: 'Dinh dưỡng Tryptophan & Tiêu hóa',
+      title: '🥗 Bữa tối thanh đạm giàu Magie & Cắt giảm nước sau 20:00',
+      desc: 'Trứng luộc lòng đào / Ức gà + Canh rau bina/rau ngót + 1 quả chuối hoặc kiwi tráng miệng. Ngừng uống nước sau 20:00 để tránh thức giấc tiểu đêm.',
       completed: false
-    },
-    {
-      id: 'm5',
-      time: '21:30 - 22:00 (Thư giãn trước ngủ)',
-      tag: 'Hạ thân nhiệt & Sóng não Delta',
-      title: '🛀 Tắm nước ấm 10 phút, chỉnh điều hòa 24-26°C & Bật sóng Delta',
-      desc: 'Nước ấm kích hoạt giãn mạch ngoại vi hạ thân nhiệt trung tâm 1°C. Để điện thoại xa giường và bật máy phát Web Audio API.',
-      completed: false
-    }
-  ];
+    });
+  }
 
-  return list;
+  // Mốc Tiền ngủ (21:00 - 22:15)
+  pool.push({
+    id: 'm5',
+    time: '21:30 - 22:00 (30 phút trước ngủ)',
+    tag: 'Digital Sunset & Hạ thân nhiệt',
+    title: '🛀 Tắm nước ấm 10 phút & Kích hoạt Digital Sunset',
+    desc: 'Nước ấm kích hoạt giãn mạch ngoại vi hạ thân nhiệt trung tâm 1°C. Cất điện thoại xa giường ít nhất 2 mét.',
+    completed: false
+  });
+
+  // Mốc Vào giường ru ngủ
+  pool.push({
+    id: 'm6',
+    time: '22:30 - 22:45 (Vào giường ngủ)',
+    tag: 'Sóng não Delta & Ru ngủ',
+    title: '🎧 Bật sóng não Delta 4Hz ru ngủ & Hít thở 4-7-8',
+    desc: 'Bật máy phát âm thanh sóng não ru ngủ trên ứng dụng, điều chỉnh phòng 24-26°C, hít vào 4s, giữ 7s, thở ra 8s để chìm vào giấc ngủ phục hồi.',
+    completed: false
+  });
+
+  return pool;
 }
 
 // Generate targeted nutrition & health hacks
@@ -1607,6 +1678,19 @@ function renderMicroSchedule(tasks) {
   const container = document.getElementById('schedule-timeline');
   container.innerHTML = '';
   AppState.readinessTasks = tasks;
+
+  // Dynamic schedule heading based on current local hour
+  const scheduleTitle = document.querySelector('.schedule-title');
+  if (scheduleTitle) {
+    const curH = new Date().getHours();
+    if (curH < 13) {
+      scheduleTitle.textContent = 'Các Vi-Hành Động Trưa, Chiều & Tối (Thời Gian Thực)';
+    } else if (curH < 18) {
+      scheduleTitle.textContent = 'Các Vi-Hành Động Chiều & Tối (Thời Gian Thực)';
+    } else {
+      scheduleTitle.textContent = 'Các Vi-Hành Động Tối & Trước Khi Ngủ (Thời Gian Thực)';
+    }
+  }
 
   tasks.forEach((task) => {
     const itemEl = document.createElement('div');

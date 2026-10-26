@@ -11,7 +11,7 @@ import re
 import json
 import urllib.request
 import urllib.error
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 # Google Gemini API Key is loaded securely from environment variable or .env file
 DEFAULT_GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
@@ -51,6 +51,102 @@ def check_guardrails(text):
     return any(re.search(p, lower, re.IGNORECASE) for p in FORBIDDEN_PATTERNS)
 
 
+def ensure_full_micro_schedule(schedule_tasks, current_hour, current_time_str, user_bedtime, answers):
+    """
+    Guarantees a complete, chronotherapeutic roadmap of 4-6 micro-actions
+    starting from the user's CURRENT time of day through bedtime.
+    """
+    has_gerd = False
+    has_caffeine = False
+    has_neck = False
+    if isinstance(answers, dict):
+        if answers.get("chronic_condition") == "gerd" or "gerd" in str(answers.get("chronic_condition", [])):
+            has_gerd = True
+        if answers.get("caffeine_usage") in ["late_high", "medium_afternoon"]:
+            has_caffeine = True
+        if "neck" in str(answers.get("physical_pain", [])) or answers.get("physical_pain") == "neck_shoulder":
+            has_neck = True
+
+    pool = []
+
+    # 1. Trưa (11:00 - 13:00)
+    if current_hour <= 12:
+        pool.append({
+            "id": "m_noon",
+            "time": "12:15 - 12:20 (5 phút sau ăn trưa)",
+            "tag": "Chống trào ngược & Nhu động ruột" if has_gerd else "Đi bộ nhẹ & Phục hồi",
+            "title": "🚶 Vi-đi bộ 5 phút quanh văn phòng (Không nằm ngay sau ăn)",
+            "desc": "Giúp cơ thắt thực quản dưới đóng kín, hỗ trợ tiêu hóa thức ăn và ngăn trào ngược axit dạ dày (GERD). Chợp mắt Power Nap tối đa 15-20 phút."
+        })
+
+    # 2. Đầu chiều (13:00 - 14:30)
+    if current_hour <= 14:
+        pool.append({
+            "id": "m_curfew",
+            "time": "14:00 (1 phút tại bàn làm việc)",
+            "tag": "Caffeine Curfew",
+            "title": "🚰 Chốt cữ Caffeine - Đổi sang nước ấm hoặc trà hoa cúc",
+            "desc": f"Đảm bảo khoảng cách 8-9 tiếng trước giờ ngủ {user_bedtime} để Adenosine tự nhiên tích tụ kịp thời trong não bộ, gan đào thải hết chất kích thích."
+        })
+
+    # 3. Xế chiều (14:30 - 16:30)
+    if current_hour <= 16:
+        pool.append({
+            "id": "m_afternoon",
+            "time": "15:45 - 15:50 (5 phút xả áp lực)",
+            "tag": "Giải tỏa cổ vai gáy & Cortisol" if has_neck else "Xả stress & Thở Box Breathing",
+            "title": "🧘 Bài tập Chin-Tuck 10 lần + Thở chậm Box Breathing 4-4-4-4",
+            "desc": "Thu cằm về sau giữ 5 giây giải phóng chèn ép rễ thần kinh đốt sống cổ C5-C7, hít thở 4 thì để hạ nồng độ hormone căng thẳng."
+        })
+
+    # 4. Bữa tối & Hoàng hôn (17:30 - 19:30)
+    if current_hour <= 19:
+        pool.append({
+            "id": "m_dinner",
+            "time": "18:30 - 19:00 (Bữa tối nhanh)",
+            "tag": "Dinh dưỡng Tryptophan & Tiêu hóa",
+            "title": "🥗 Bữa tối thanh đạm giàu Magie & Ngừng nước nhiều sau 20:00",
+            "desc": "Trứng luộc lòng đào / Ức gà + Canh rau bina/rau ngót + 1 quả kiwi tráng miệng. Cắt giảm uống nhiều nước sau 20:00 để tránh thức giấc tiểu đêm."
+        })
+
+    # 5. Tiền ngủ (21:00 - 22:15)
+    pre_bed_hour = int(user_bedtime.split(':')[0]) - 1 if ':' in user_bedtime else 22
+    pool.append({
+        "id": "m_pre_bed",
+        "time": f"{pre_bed_hour}:00 - {pre_bed_hour}:15 (30p trước ngủ)",
+        "tag": "Digital Sunset & Hạ thân nhiệt",
+        "title": "🛀 Tắm nước ấm 10 phút & Kích hoạt Digital Sunset",
+        "desc": "Nước ấm kích hoạt giãn mạch ngoại vi, hạ thân nhiệt trung tâm 1°C để cơ thể chuyển sang trạng thái ngủ sâu. Cất điện thoại xa giường."
+    })
+
+    # 6. Vào giường ru ngủ
+    pool.append({
+        "id": "m_bedtime",
+        "time": f"{user_bedtime} (Vào giường ngủ)",
+        "tag": "Sóng não Delta & Ru ngủ",
+        "title": "🎧 Bật sóng não Delta 4Hz ru ngủ & Hít thở 4-7-8",
+        "desc": "Bật máy phát âm thanh sóng não ru ngủ trên ứng dụng, điều chỉnh phòng 24-26°C, nhắm mắt thả lỏng toàn thân để chìm vào giấc ngủ phục hồi."
+    })
+
+    # If AI provided at least 4 items and covers daytime when current_hour is daytime, validate it
+    if isinstance(schedule_tasks, list) and len(schedule_tasks) >= 4:
+        has_daytime_task = any(
+            any(k in (str(t.get("time", "")) + str(t.get("title", ""))) for k in ["11:", "12:", "13:", "14:", "15:", "16:", "17:", "18:", "trưa", "chiều"])
+            for t in schedule_tasks
+        )
+        if has_daytime_task or current_hour >= 18:
+            return schedule_tasks
+
+    # If AI returned fewer tasks or missing daytime, intelligently merge with pool
+    if isinstance(schedule_tasks, list) and len(schedule_tasks) > 0:
+        existing_str = " ".join(str(t.get("time", "")) + str(t.get("title", "")) for t in schedule_tasks)
+        earlier_tasks = [p for p in pool if not any(p["time"][:5] in existing_str for _ in [0])]
+        combined = earlier_tasks + schedule_tasks
+        return combined[:6]
+
+    return pool
+
+
 def analyze_sleep_survey(payload):
     """
     Main entry point for AI analysis.
@@ -59,13 +155,32 @@ def analyze_sleep_survey(payload):
     answers = payload.get("answers", {})
     custom_answers = payload.get("customAnswers", {}) or {}
     user = payload.get("user", {}) or {}
-    current_time_str = payload.get("currentTime") or datetime.now().strftime("%H:%M")
-    
-    # Extract current hour
-    try:
-        current_hour = int(current_time_str.split(":")[0])
-    except Exception:
-        current_hour = datetime.now().hour
+
+    # Extract current time in Vietnam local timezone
+    client_local_hour = payload.get("localHour")
+    client_local_time = payload.get("localTime") or payload.get("currentTime")
+
+    current_hour = None
+    current_time_str = None
+
+    if client_local_hour is not None:
+        try:
+            current_hour = int(client_local_hour)
+        except Exception:
+            pass
+
+    if client_local_time and isinstance(client_local_time, str):
+        match = re.search(r"(\d{1,2}):(\d{2})", client_local_time)
+        if match and "T" not in client_local_time:
+            current_time_str = f"{int(match.group(1)):02d}:{match.group(2)}"
+            if current_hour is None:
+                current_hour = int(match.group(1))
+
+    # If client passed ISO string or missing, use Vietnam timezone UTC+7
+    if not current_time_str or current_hour is None:
+        vn_time = datetime.now(timezone(timedelta(hours=7)))
+        current_time_str = vn_time.strftime("%H:%M")
+        current_hour = vn_time.hour
 
     # Priority 1: Cloud Gemini AI (if key is set in payload, env, or default)
     api_key = payload.get("apiKey") or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or DEFAULT_GEMINI_KEY
@@ -96,19 +211,29 @@ def run_gemini_analysis(api_key, answers, custom_answers, user, current_hour, cu
     user_role = user.get("occupation") or user.get("role") or "Tự do"
     user_bedtime = user.get("targetBedtime") or "23:00"
     user_age = user.get("age") or "Trưởng thành"
-    
+
     # Filter non-empty custom answers
     active_custom = {k: v.strip() for k, v in custom_answers.items() if v and v.strip()}
-    
+
+    period_label = (
+        "Buổi sáng sớm" if 5 <= current_hour < 9 else
+        "Buổi sáng" if 9 <= current_hour < 11 else
+        "Buổi trưa (Ăn trưa & Nghỉ trưa)" if 11 <= current_hour < 14 else
+        "Buổi chiều (Xế chiều)" if 14 <= current_hour < 17 else
+        "Hoàng hôn & Bữa tối" if 17 <= current_hour < 20 else
+        "Tiền ngủ (Chuẩn bị ngủ)" if 20 <= current_hour < 23 else
+        "Đêm muộn"
+    )
+
     prompt = f"""Bạn là Mavis - Trợ lý AI Giác Quan & Nhịp Sinh Học Y Khoa của SleepSync.
 Nhiệm vụ: Phân tích kết quả khảo sát 5 trụ cột y khoa giấc ngủ của người dùng, ĐẶC BIỆT chú trọng giải mã các câu trả lời tự gõ ở mục 'Khác' và đưa ra lời khuyên cá nhân hóa ngay tại thời điểm thực này.
 
-THÔNG TIN NGƯỜI DÙNG:
+THÔNG TIN NGƯỜI DÙNG & MỐC THỜI GIAN THỰC (BẮT BUỘC ĐỐI CHIẾU CHÍNH XÁC):
 - Họ tên: {user_name}
 - Nghề nghiệp: {user_role}
 - Tuổi tác: {user_age}
 - Giờ đi ngủ mục tiêu: {user_bedtime}
-- Thời gian hiện tại lúc làm khảo sát: {current_time_str} (Khung giờ: {current_hour}h)
+- THỜI ĐIỂM THỰC HIỆN KHẢO SÁT: {current_time_str} ({period_label}, Khung giờ: {current_hour}h)
 
 CÂU TRẢ LỜI 5 TRỤ CỘT:
 {json.dumps(answers, ensure_ascii=False, indent=2)}
@@ -119,6 +244,18 @@ CÂU TRẢ LỜI 5 TRỤ CỘT:
 NGUYÊN TẮC BẢO VỆ PHÁP LÝ & AN TOÀN Y TẾ:
 - TUYỆT ĐỐI KHÔNG tư vấn, không kê đơn, không nhắc tới bất kỳ loại thuốc ngủ hay thực phẩm chức năng (TPCN, viên uống) nào.
 - Chỉ tư vấn giải pháp nhịp sinh học tự nhiên, dinh dưỡng bữa ăn thường ngày, vi-vận động 2-5 phút, ánh sáng, nhiệt độ phòng.
+
+QUY TẮC BẮT BUỘC VỀ ĐỒNG BỘ THỜI GIAN THỰC (REALTIME CHRONOTHERAPY):
+1. 'realtimeActionNow': BẮT BUỘC là lời khuyên hành động NGAY BÂY GIỜ phù hợp chính xác với khung giờ {current_time_str} ({period_label}).
+   - Hiện tại là {period_label} ({current_time_str}): Tuyệt đối KHÔNG được khuyên sai lệch (ví dụ KHÔNG ĐƯỢC nói là sáng sớm hay đêm muộn khi đang là {period_label})!
+   - Nếu là Buổi trưa ({current_time_str}): Khuyên ăn trưa thanh đạm, chốt cữ cà phê trước 12:00, đi bộ nhẹ 5 phút chống trào ngược axit dạ dày (GERD), chợp mắt power-nap 15-20 phút.
+   - Nếu là Buổi chiều: Khuyên dừng nạp caffeine, 3 phút giải tỏa cổ vai gáy Chin-Tuck / Box Breathing, uống nước ấm.
+   - Nếu là Hoàng hôn / Tối: Thực đơn ăn tối giàu Tryptophan, cắt giảm uống nước sau 20:00.
+   - Nếu là Tiền ngủ / Đêm: Kích hoạt Digital Sunset, tắm nước ấm 10 phút, bật sóng não Delta 4Hz.
+
+2. 'microSchedule': Lịch trình vi-hành động (2-5 phút) BẮT BUỘC PHẢI BẮT ĐẦU TỪ THỜI ĐIỂM HIỆN TẠI ({current_time_str}) VÀ DÀN TRẢI DẦN ĐẾN GIỜ ĐI NGỦ ({user_bedtime}).
+   - Phải có ĐỦ TỪ 4 ĐẾN 5 VI-HÀNH ĐỘNG trải đều các mốc (Trưa -> Đầu chiều -> Xế chiều -> Bữa tối -> Tiền ngủ).
+   - TUYỆT ĐỐI KHÔNG chỉ đưa 1-2 hành động lúc 22h đêm khi người dùng đang làm khảo sát vào ban ngày! Người dùng cần có hành động ngay trưa nay và chiều nay.
 
 YÊU CẦU ĐẦU RA: Trả về ĐÚNG MỘT JSON OBJECT duy nhất (không bọc trong markdown codeblock), theo schema sau:
 {{
@@ -144,10 +281,10 @@ YÊU CẦU ĐẦU RA: Trả về ĐÚNG MỘT JSON OBJECT duy nhất (không b�
       "actionableSolution": "Hành động khắc phục phi dược lý cụ thể, dễ làm"
     }}
   ],
-  "realtimeActionNow": "Lời khuyên hành động ngay lập tức tương ứng với khung giờ {current_time_str}",
+  "realtimeActionNow": "Lời khuyên hành động ngay lập tức tại mốc {current_time_str} ({period_label})",
   "microSchedule": [
     {{
-      "time": "15:45 - 15:50",
+      "time": "12:15 - 12:20",
       "title": "Tên vi-hành động 2-5 phút",
       "desc": "Chi tiết hướng dẫn",
       "tag": "Thẻ phân loại"
@@ -207,6 +344,21 @@ YÊU CẦU ĐẦU RA: Trả về ĐÚNG MỘT JSON OBJECT duy nhất (không b�
                     parsed["pillars"] = {
                         "p1_stress": 50, "p2_env": 30, "p3_lifestyle": 55, "p4_physio": 30, "p5_health": 35
                     }
+
+                # Sanity check: Ensure realtimeActionNow matches actual current hour
+                rt_now = str(parsed.get("realtimeActionNow", ""))
+                if 11 <= current_hour < 14:
+                    if any(w in rt_now.lower() for w in ["sáng sớm", "04:", "03:", "02:", "đêm muộn", "chuẩn bị ngủ", "chúc bạn ngủ"]):
+                        parsed["realtimeActionNow"] = f"🥪 <strong>Khung giờ hiện tại ({current_time_str} - Buổi trưa):</strong> Thời điểm vàng nạp lại năng lượng & chốt cữ Caffeine. Bữa trưa ăn thanh đạm, đứng dậy đi dạo nhẹ nhàng 5 phút để tránh trào ngược dạ dày (GERD). Ngủ trưa chớp nhoáng (Power Nap) đúng 15-20 phút, không ngủ quá 30 phút để bảo tồn áp lực buồn ngủ ban đêm."
+
+                # Ensure microSchedule is complete and covers daytime to bedtime
+                parsed["microSchedule"] = ensure_full_micro_schedule(
+                    parsed.get("microSchedule", []),
+                    current_hour,
+                    current_time_str,
+                    user_bedtime,
+                    answers
+                )
 
                 if "nutritionAdvice" in parsed:
                     na = parsed["nutritionAdvice"]
@@ -393,18 +545,18 @@ def run_semantic_nlp_analysis(answers, custom_answers, user, current_hour, curre
     rem_sleep = max(11, min(24, round(21 - (p3 * 0.07) - (p2 * 0.04))))
 
     # Real-time action based on CURRENT local hour
-    if 6 <= current_hour < 12:
-        rt_action = f"☀️ <strong>Khung giờ hiện tại ({current_time_str} - Sáng):</strong> Bạn đang ở pha đỉnh tiết Cortisol. Hãy chốt cữ cà phê trước 10:30, uống 1 cốc nước ấm 300ml và đón ánh nắng tự nhiên 10 phút để cài đặt nhịp sinh học cho giấc ngủ tối nay."
-    elif 12 <= current_hour < 14:
-        rt_action = f"🥪 <strong>Khung giờ hiện tại ({current_time_str} - Nghỉ trưa):</strong> Thời điểm vàng nạp lại năng lượng. Ăn trưa thanh đạm, đứng đi dạo nhẹ nhàng 5 phút để tránh trào ngược. Ngủ trưa chớp nhoáng (Power Nap) đúng 15-20 phút, không ngủ quá 30 phút."
+    if 5 <= current_hour < 11:
+        rt_action = f"☀️ <strong>Khung giờ hiện tại ({current_time_str} - Buổi sáng):</strong> Bạn đang ở pha đỉnh tiết Cortisol. Hãy chốt cữ cà phê trước 10:30, uống 1 cốc nước ấm 300ml và đón ánh nắng tự nhiên 10 phút để cài đặt nhịp sinh học cho giấc ngủ tối nay."
+    elif 11 <= current_hour < 14:
+        rt_action = f"🥪 <strong>Khung giờ hiện tại ({current_time_str} - Buổi trưa):</strong> Thời điểm vàng nạp lại năng lượng & chốt cữ Caffeine. Bữa trưa ăn thanh đạm, đứng dậy đi dạo nhẹ nhàng 5 phút để tránh trào ngược dạ dày (GERD). Ngủ trưa chớp nhoáng (Power Nap) đúng 15-20 phút, không ngủ quá 30 phút để bảo tồn áp lực buồn ngủ ban đêm."
     elif 14 <= current_hour < 17:
-        rt_action = f"⏳ <strong>Khung giờ hiện tại ({current_time_str} - Chiều):</strong> Điểm trũng thể lực. Dừng nhìn màn hình 3 phút, làm động tác Chin-tuck giãn cơ cổ vai gáy. Tuyệt đối không nạp thêm cà phê hay nước ngọt sau 14:00."
-    elif 17 <= current_hour < 20:
-        rt_action = f"🌅 <strong>Khung giờ hiện tại ({current_time_str} - Hoàng hôn):</strong> Tuyến tùng chuẩn bị tiết melatonin. Bữa tối kết thúc trước 19:30 với thực phẩm giàu Tryptophan (trứng luộc, ức gà, canh rau bina). Uống ít nước sau 20:00."
-    elif 20 <= current_hour < 22:
+        rt_action = f"⏳ <strong>Khung giờ hiện tại ({current_time_str} - Buổi chiều):</strong> Điểm trũng thể lực. Dừng nhìn màn hình 3 phút, làm động tác Chin-Tuck giãn cơ cổ vai gáy. Tuyệt đối không nạp thêm cà phê hay nước ngọt sau 14:00."
+    elif 17 <= current_hour < 21:
+        rt_action = f"🌅 <strong>Khung giờ hiện tại ({current_time_str} - Hoàng hôn & Tối):</strong> Tuyến tùng chuẩn bị tiết melatonin. Bữa tối kết thúc trước 19:30 với thực phẩm giàu Tryptophan (trứng luộc, ức gà, canh rau bina). Uống ít nước sau 20:00 để tránh tiểu đêm."
+    elif 21 <= current_hour < 23:
         rt_action = f"🌙 <strong>Khung giờ hiện tại ({current_time_str} - Tiền ngủ):</strong> Kích hoạt 'Digital Sunset' ngay! Chuyển màn hình điện thoại sang ánh sáng vàng ấm, bật điều hòa 24-26°C. Tắm nước ấm 10 phút để hạ thân nhiệt trung tâm trước mốc {user_bedtime}."
     else:
-        rt_action = f"💤 <strong>Khung giờ hiện tại ({current_time_str} - Đêm muộn):</strong> Đã qua giờ vàng tiết Melatonin! Cất điện thoại xa tầm tay ngay lập tức, bật âm thanh Sóng Não Delta 4Hz trong ứng dụng và nhắm mắt hít thở chậm 4-7-8 để não bộ chìm vào giấc ngủ."
+        rt_action = f"💤 <strong>Khung giờ hiện tại ({current_time_str} - Đêm muộn):</strong> Đã qua giờ vàng tiết Melatonin! Cất điện thoại xa tầm tay ngay lập tức, bật âm thanh Sóng Não Delta 4Hz trong ứng dụng và nhắm mắt hít thở chậm 4-7-8 để não bộ chìm vào giấc ngủ phục hồi."
 
     # Verdict
     if predicted_score >= 80:
@@ -417,44 +569,14 @@ def run_semantic_nlp_analysis(answers, custom_answers, user, current_hour, curre
         verdict_title = "Báo Động Kém: Nguy Cơ Mất Ngủ & Mệt Mỏi Sáng Mai"
         verdict_desc = f"Hệ thần kinh đang bị kích thích mạnh kết hợp các vấn đề riêng bạn vừa gõ. Cần áp dụng quy trình cấp cứu giấc ngủ trước mốc {user_bedtime}."
 
-    # Micro schedule
-    micro_schedule = [
-        {
-            "id": "m1",
-            "time": "12:15 (5 phút)",
-            "tag": "Tiêu hóa & Chống trào ngược",
-            "title": "🚶 Vi-đi bộ 5 phút quanh văn phòng (Không nằm ngay)",
-            "desc": "Giúp cơ thắt thực quản dưới đóng kín, hỗ trợ nhu động ruột tiêu hóa và ngăn trào ngược axit dạ dày."
-        },
-        {
-            "id": "m2",
-            "time": "14:00 (1 phút)",
-            "tag": "Caffeine Curfew",
-            "title": "🚰 Đổi sang nước ấm hoặc trà hoa cúc (Ngừng nạp Caffeine)",
-            "desc": f"Đảm bảo khoảng cách 8-9 tiếng trước giờ ngủ {user_bedtime} để gan kịp đào thải nồng độ chất kích thích."
-        },
-        {
-            "id": "m3",
-            "time": "15:45 (3 phút)",
-            "tag": "Giải tỏa cổ vai gáy",
-            "title": "🧘 Động tác Chin-Tuck 10 lần + Thở Box Breathing",
-            "desc": "Thu cằm về sau tạo 2 cằm giữ 5 giây, giải tỏa chèn ép đốt sống cổ và hạ nhịp tim."
-        },
-        {
-            "id": "m4",
-            "time": "19:00 (Bữa tối nhanh)",
-            "tag": "Dinh dưỡng giấc ngủ",
-            "title": "🥗 Bữa tối thanh đạm giàu Magie & Tryptophan",
-            "desc": "Trứng luộc lòng đào + Canh rau bina + 1 quả kiwi tráng miệng. Cắt giảm nước sau 20:00."
-        },
-        {
-            "id": "m5",
-            "time": f"{int(user_bedtime.split(':')[0])-1 if ':' in user_bedtime else 22}:15",
-            "tag": "Sóng não Delta",
-            "title": "🎧 Tắm nước ấm & Bật sóng não Delta 4Hz",
-            "desc": "Nước ấm kích hoạt giãn mạch hạ thân nhiệt 1°C, đưa não bộ vào pha ru ngủ nhanh chóng."
-        }
-    ]
+    # Micro schedule tailored to current time of day
+    micro_schedule = ensure_full_micro_schedule(
+        [],
+        current_hour,
+        current_time_str,
+        user_bedtime,
+        answers
+    )
 
     return {
         "predictedScore": predicted_score,
