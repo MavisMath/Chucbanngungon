@@ -120,8 +120,8 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
   // ==========================================
   const GEMINI_CONFIG = {
     apiKey: (typeof window !== 'undefined' && window.GEMINI_API_KEY) || (typeof localStorage !== 'undefined' ? localStorage.getItem('sleepsync_gemini_key') || '' : ''),
-    model: 'gemini-3.5-flash-lite',
-    altModel: 'gemini-3.1-flash-lite'
+    model: 'gemini-3.1-flash-lite',
+    altModel: 'gemini-3.5-flash'
   };
 
   // ==========================================
@@ -160,7 +160,7 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
     // Step 3: Call Backend Server AI Chat Endpoint (/api/ai/chat)
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
@@ -274,6 +274,12 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
         `• **Động tác Chin-Tuck (1 phút)**: Rất phù hợp nếu bạn ${userRole ? 'làm ' + userRole : 'ngồi máy tính nhiều'}. Ngồi thẳng, dùng 2 ngón tay đẩy cằm về sau tạo cằm đôi, giữ 5 giây, lặp lại 10 lần.\n` +
         `• **Mở ngực & Xoay bả vai**: Đan hai tay sau gáy, mở rộng khuỷu tay hết cỡ, hít sâu giữ 10 giây để giải phóng nhóm cơ nâng vai.\n` +
         `• **Gối ngủ công thái học**: Nâng đỡ đúng độ cong đốt sống cổ C1-C7, tránh dùng gối quá cao gây gập cổ chèn ép tuần hoàn máu não.`;
+    } else if (qLower.includes('cãi') || qLower.includes('chồng') || qLower.includes('vợ') || qLower.includes('người yêu') || qLower.includes('buồn') || qLower.includes('khóc') || qLower.includes('tâm sự') || qLower.includes('ấm ức') || qLower.includes('bực') || qLower.includes('tâm trạng')) {
+      response = intro +
+        `• **Xoa dịu cảm xúc & Hạ Cortisol**: Mavis rất thấu hiểu cảm giác bất hòa hay cãi nhau khiến tim đập nhanh, thần kinh căng như dây đàn và suy nghĩ quẩn quanh trong đầu.\n` +
+        `• **Kỹ thuật thở 4-7-8 (3 phút)**: Đặt tay lên bụng, hít sâu mũi 4s -> nín thở 7s -> thở từ từ qua miệng 8s. Lặp lại 4 chu kỳ để kích hoạt hệ thần kinh phó giao cảm đưa nhịp tim chậm lại.\n` +
+        `• **Brain Dump (Xả suy nghĩ ra giấy)**: Hãy viết hết những điều bực bội, ấm ức ra một mảnh giấy nháp rồi gấp lại cất đi. Não bộ sẽ tự nhận tín hiệu "chuyện đã tạm gác lại" để bạn có thể nghỉ ngơi.\n` +
+        `• **Đừng ép mình ngủ ngay**: Hãy uống vài ngụm nước ấm, bật âm thanh mưa rào hoặc sóng não Delta 4Hz trong ứng dụng để vỗ về tâm trí nhé. Mavis chúc bạn sớm bình tâm! ❤️`;
     } else if (qLower.includes('stress') || qLower.includes('căng thẳng') || qLower.includes('lo') || qLower.includes('suy nghĩ') || qLower.includes('deadline')) {
       response = intro +
         `• **Kỹ thuật thở 4-7-8 (3 phút)**: Hít mũi 4s -> Nín thở 7s -> Thở miệng 8s (lặp lại 4 chu kỳ trên giường để kích hoạt hệ phó giao cảm).\n` +

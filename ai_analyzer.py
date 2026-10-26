@@ -467,11 +467,11 @@ YÊU CẦU ĐẦU RA: Trả về ĐÚNG MỘT JSON OBJECT duy nhất (không b�
 """
 
     models_to_try = [
-        'gemini-3.5-flash-lite',
         'gemini-3.1-flash-lite',
         'gemini-3.5-flash',
-        'gemma-4-26b-a4b-it',
-        'gemini-flash-latest'
+        'gemini-3.8-flash',
+        'gemini-flash-latest',
+        'gemini-3.5-flash-lite'
     ]
 
     has_gerd_flag = (answers.get("chronic_condition") == "gerd") or ("gerd" in str(answers.get("chronic_condition", []))) or (answers.get("dinner_habit") == "heavy_late") or ("heavy_late" in str(answers.get("dinner_habit", [])))
@@ -482,13 +482,19 @@ YÊU CẦU ĐẦU RA: Trả về ĐÚNG MỘT JSON OBJECT duy nhất (không b�
             gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
             payload_data = json.dumps({
                 "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.2, "maxOutputTokens": 2048}
+                "generationConfig": {
+                    "temperature": 0.2, 
+                    "maxOutputTokens": 2048,
+                    "thinkingConfig": {"thinkingBudget": 0}
+                }
             }).encode('utf-8')
 
             req = urllib.request.Request(gemini_url, data=payload_data, headers={'Content-Type': 'application/json'})
             with urllib.request.urlopen(req, timeout=14.0) as resp:
                 res_json = json.loads(resp.read().decode('utf-8'))
-                raw_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+                parts = res_json.get('candidates', [{}])[0].get('content', {}).get('parts', [])
+                text_parts = [p.get('text', '') for p in parts if not p.get('thought')]
+                raw_text = ('\n'.join(text_parts) if text_parts else (parts[-1].get('text', '') if parts else '')).strip()
 
                 # Clean markdown wrapper
                 if "```json" in raw_text:
@@ -855,11 +861,11 @@ QUY TẮC TRẢ LỜI:
 
     api_key = os.environ.get("GEMINI_API_KEY") or DEFAULT_GEMINI_KEY
     models_to_try = [
-        'gemini-3.5-flash-lite',
         'gemini-3.1-flash-lite',
         'gemini-3.5-flash',
-        'gemma-4-26b-a4b-it',
-        'gemini-flash-latest'
+        'gemini-3.8-flash',
+        'gemini-flash-latest',
+        'gemini-3.5-flash-lite'
     ]
 
     for model_name in models_to_try:
@@ -867,13 +873,19 @@ QUY TẮC TRẢ LỜI:
             gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
             payload_data = json.dumps({
                 "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.65, "maxOutputTokens": 2048}
+                "generationConfig": {
+                    "temperature": 0.65, 
+                    "maxOutputTokens": 2048,
+                    "thinkingConfig": {"thinkingBudget": 0}
+                }
             }).encode('utf-8')
 
             req = urllib.request.Request(gemini_url, data=payload_data, headers={'Content-Type': 'application/json'})
             with urllib.request.urlopen(req, timeout=12.0) as resp:
                 res_json = json.loads(resp.read().decode('utf-8'))
-                raw_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
+                parts = res_json.get('candidates', [{}])[0].get('content', {}).get('parts', [])
+                text_parts = [p.get('text', '') for p in parts if not p.get('thought')]
+                raw_text = ('\n'.join(text_parts) if text_parts else (parts[-1].get('text', '') if parts else '')).strip()
                 if raw_text:
                     return {
                         "success": True,
@@ -1169,11 +1181,11 @@ CÂU NÓI NHẬT KÝ MỚI NHẤT CỦA NGƯỜI DÙNG:
 Hãy bóc tách và phản hồi bằng JSON:"""
 
     models_to_try = [
-        'gemini-3.5-flash-lite',
         'gemini-3.1-flash-lite',
         'gemini-3.5-flash',
-        'gemma-4-26b-a4b-it',
-        'gemini-flash-latest'
+        'gemini-3.8-flash',
+        'gemini-flash-latest',
+        'gemini-3.5-flash-lite'
     ]
 
     for model_name in models_to_try:
@@ -1185,7 +1197,7 @@ Hãy bóc tách và phản hồi bằng JSON:"""
             }).encode('utf-8')
 
             req = urllib.request.Request(gemini_url, data=payload_data, headers={'Content-Type': 'application/json'})
-            with urllib.request.urlopen(req, timeout=10.0) as resp:
+            with urllib.request.urlopen(req, timeout=7.5) as resp:
                 res_json = json.loads(resp.read().decode('utf-8'))
                 raw_text = res_json['candidates'][0]['content']['parts'][0]['text'].strip()
 
