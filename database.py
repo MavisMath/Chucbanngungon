@@ -12,8 +12,17 @@ from datetime import datetime
 from contextlib import contextmanager
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_FILE = os.path.join(BASE_DIR, 'sleepsync.db')
+# Check for persistent volume paths commonly used on Render (/data or /var/data)
+if os.path.exists('/data') and os.access('/data', os.W_OK):
+    DATA_DIR = '/data'
+elif os.path.exists('/var/data') and os.access('/var/data', os.W_OK):
+    DATA_DIR = '/var/data'
+else:
+    DATA_DIR = BASE_DIR
+
+DB_FILE = os.path.join(DATA_DIR, 'sleepsync.db')
 SCHEMA_FILE = os.path.join(BASE_DIR, 'schema.sql')
+SEED_FILE = os.path.join(BASE_DIR, 'seed.sql')
 
 
 @contextmanager
@@ -35,7 +44,7 @@ def get_db():
 
 
 def init_db():
-    """Initializes tables and indexes from schema.sql."""
+    """Initializes tables and indexes from schema.sql, and seeds real user data if empty."""
     if os.path.exists(SCHEMA_FILE):
         with open(SCHEMA_FILE, 'r', encoding='utf-8') as f:
             schema_sql = f.read()
@@ -107,6 +116,21 @@ def init_db():
         """
     with get_db() as conn:
         conn.executescript(schema_sql)
+
+        # Check if users table is empty (e.g. freshly deployed on Render)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM users;")
+        user_count = cursor.fetchone()[0]
+
+        if user_count == 0 and os.path.exists(SEED_FILE):
+            try:
+                with open(SEED_FILE, 'r', encoding='utf-8') as f:
+                    seed_sql = f.read()
+                conn.executescript(seed_sql)
+                print(f"[SQL Database] Seeded database with pre-configured users and clinical records from seed.sql.", flush=True)
+            except Exception as e:
+                print(f"[SQL Database] Warning during seed execution: {e}", flush=True)
+
     print(f"[SQL Database] Initialized successfully. File: {DB_FILE}", flush=True)
 
 

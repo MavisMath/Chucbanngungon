@@ -64,11 +64,30 @@ Hệ thống AI ứng dụng nguyên lý **Khoa học thần kinh (Neuroscience)
 - Phát trực tiếp sóng não Delta 4Hz, tiếng mưa rào Pink Noise, sóng biển đêm và chuông xoay thiền Tây Tạng 432Hz.
 - Xuất toàn bộ vi-hành động sang file `.ics` để đồng bộ vào điện thoại kèm chuông nhắc trước 10 phút.
 
+### 6. 🗄️ Cơ Sở Dữ Liệu SQL (SQLite 3 Relational Database)
+- **Engine**: SQLite 3 chuẩn ACID với khóa ngoại (Foreign Keys) và chế độ ghi tốc độ cao WAL.
+- **Schema & Seed**: [schema.sql](schema.sql) khởi tạo bảng biểu và [seed.sql](seed.sql) tự động nạp dữ liệu người dùng thực tế ngay khi khởi chạy lần đầu trên Render/Docker.
+- **Tài khoản kiểm thử đã lưu sẵn trong SQL**:
+  - `12345678` - Mật khẩu: `250224` (Thắm Xinh Gái)
+  - `0376724162` - Mật khẩu: `2502` (Thắm)
+  - `0123456789` - Mật khẩu: `123456` (mavis)
+  - `0977112233` - Mật khẩu: `123456` (Trần Văn Nam)
+
 ---
 
-## 🚀 Hướng Dẫn Truy Cập Ứng Dụng
+## 🚀 Hướng Dẫn Triển Khai (Deploy lên Render)
 
-Ứng dụng đang chạy cục bộ tại:
-👉 **[http://localhost:8080/](http://localhost:8080/)**
+### Cách 1: Triển khai qua Docker (Khuyên dùng)
+1. Kết nối kho lưu trữ GitHub này với Render.
+2. Chọn **New Web Service** -> Chọn Repository `Chucbanngungon`.
+3. Render sẽ tự động nhận diện [Dockerfile](Dockerfile) và [render.yaml](render.yaml).
+4. Cài đặt biến môi trường (Environment Variable) trên Render:
+   - `PORT`: `8080`
+   - `GEMINI_API_KEY`: Điền API key Google Gemini của bạn.
+5. Bấm **Deploy**. Cơ sở dữ liệu SQL sẽ tự động kích hoạt và nạp đầy đủ dữ liệu từ [seed.sql](seed.sql).
 
-Hoặc nhấp đúp trực tiếp vào file: `d:\Ngủ ngon\index.html`.
+### Cách 2: Triển khai Python Native Web Service
+- **Runtime**: `Python 3`
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `python server.py`
+- Tự động nhận diện cổng `$PORT` và tự động tạo cơ sở dữ liệu SQL.
