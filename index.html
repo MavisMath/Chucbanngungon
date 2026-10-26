@@ -1559,7 +1559,7 @@
         </div>
       </div>
 
-      <!-- Drawer Navigation Tabs: 3 Clean Tabs -->
+      <!-- Drawer Navigation Tabs: 2 Clean Tabs (Overview & Edit) -->
       <div class="profile-nav-tabs">
         <button type="button" class="drawer-tab-btn active" id="drawer-tab-profile">
           <i class="fa-solid fa-user"></i>
@@ -1568,10 +1568,6 @@
         <button type="button" class="drawer-tab-btn" id="drawer-tab-edit">
           <i class="fa-solid fa-pen"></i>
           <span>Chỉnh Sửa</span>
-        </button>
-        <button type="button" class="drawer-tab-btn" id="drawer-tab-switch">
-          <i class="fa-solid fa-users"></i>
-          <span>Tài Khoản</span>
         </button>
       </div>
 
@@ -1752,36 +1748,10 @@
         </form>
       </div>
 
-      <!-- TAB PANE 3: CHUYỂN ĐỔI TÀI KHOẢN (FACEBOOK ACCOUNT SWITCHER) -->
-      <div class="drawer-tab-pane" id="pane-user-switch" style="display: none;">
-        <div class="profile-section-title">
-          <i class="fa-solid fa-users"></i>
-          <span>TÀI KHOẢN TRÊN THIẾT BỊ NÀY</span>
-        </div>
-        <p style="font-size: 0.8rem; color: #94A3B8; margin: 0 0 0.8rem;">
-          Chạm 1 lần để chuyển đổi nhanh giữa các tài khoản đã đăng nhập mà không cần nhập lại mật khẩu:
-        </p>
-
-        <!-- Account Switcher Dynamic List -->
-        <div class="account-switch-list" id="account-switch-list-container">
-          <!-- Dynamic items rendered by JS -->
-        </div>
-
-        <button type="button" class="btn-profile-edit" id="btn-switch-add-account" style="margin-top: 0.5rem;">
-          <i class="fa-solid fa-user-plus"></i>
-          <span>+ Đăng Nhập Hoặc Đăng Ký Tài Khoản Khác</span>
-        </button>
-      </div>
-
-
-
       <!-- Drawer Bottom Action Row -->
       <div style="display: flex; gap: 0.6rem; margin-top: auto; padding-top: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-        <button type="button" class="btn-db-action" id="drawer-quick-switch-btn" style="flex: 1; border-color: rgba(56, 189, 248, 0.35); color: #38BDF8;" title="Đổi tài khoản">
-          <i class="fa-solid fa-arrow-right-arrow-left"></i> Đổi Tài Khoản
-        </button>
-        <button type="button" class="btn-db-action btn-db-reset" id="drawer-logout-btn" style="flex: 1;" title="Đăng xuất khỏi hệ thống">
-          <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
+        <button type="button" class="btn-db-action btn-db-reset" id="drawer-logout-btn" style="flex: 1; border-color: rgba(244, 63, 94, 0.4); color: #FDA4AF; justify-content: center; font-weight: 600;" title="Đăng xuất khỏi hệ thống">
+          <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất An Toàn
         </button>
       </div>
 

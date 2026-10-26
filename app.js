@@ -2834,11 +2834,10 @@ function initUserProfileModule() {
     }
   });
 
-  // Drawer 3-Tabs Navigation Switcher (Overview, Edit Profile, Account Switcher)
+  // Drawer 2-Tabs Navigation Switcher (Overview & Edit Profile)
   const drawerTabs = [
     { btnId: 'drawer-tab-profile', paneId: 'pane-user-profile', key: 'profile' },
-    { btnId: 'drawer-tab-edit', paneId: 'pane-user-edit', key: 'edit' },
-    { btnId: 'drawer-tab-switch', paneId: 'pane-user-switch', key: 'switch' }
+    { btnId: 'drawer-tab-edit', paneId: 'pane-user-edit', key: 'edit' }
   ];
 
   function switchDrawerTab(targetKey) {
@@ -2856,8 +2855,6 @@ function initUserProfileModule() {
 
     if (targetKey === 'edit') {
       populateDrawerEditForm();
-    } else if (targetKey === 'switch') {
-      renderFacebookAccountSwitcher();
     }
   }
 
@@ -2868,21 +2865,12 @@ function initUserProfileModule() {
     }
   });
 
-  // Quick switch triggers inside drawer
+  // Quick edit triggers inside drawer
   const gotoEditBtn = document.getElementById('btn-goto-edit-tab');
   const quickChangeAvatarBtn = document.getElementById('btn-quick-change-avatar');
-  const quickSwitchBtn = document.getElementById('drawer-quick-switch-btn');
-  const addAccountBtn = document.getElementById('btn-switch-add-account');
 
   if (gotoEditBtn) gotoEditBtn.addEventListener('click', () => switchDrawerTab('edit'));
   if (quickChangeAvatarBtn) quickChangeAvatarBtn.addEventListener('click', () => switchDrawerTab('edit'));
-  if (quickSwitchBtn) quickSwitchBtn.addEventListener('click', () => switchDrawerTab('switch'));
-  if (addAccountBtn) {
-    addAccountBtn.addEventListener('click', () => {
-      closeProfileDrawer();
-      openUserAuthModal('register');
-    });
-  }
 
   // In-Drawer Avatar Picker Grid
   const drawerAvatarGrid = document.getElementById('drawer-avatar-picker-grid');
@@ -3076,65 +3064,7 @@ function populateDrawerEditForm() {
   });
 }
 
-// Render Facebook-style 1-Click Account Switcher Cards
-function renderFacebookAccountSwitcher() {
-  if (!window.SleepSyncDB) return;
-  const listContainer = document.getElementById('account-switch-list-container');
-  if (!listContainer) return;
 
-  const users = SleepSyncDB.getAllUsers();
-  const currentUser = SleepSyncDB.getCurrentUser();
-
-  if (!users || users.length === 0) {
-    listContainer.innerHTML = `
-      <div style="text-align: center; padding: 2.5rem 1.5rem; color: var(--text-dim);">
-        <i class="fa-solid fa-users" style="font-size: 2.2rem; opacity: 0.35; margin-bottom: 0.8rem; display: block;"></i>
-        <div style="font-size: 0.95rem; font-weight: 700; color: #F8FAFC; margin-bottom: 0.4rem;">Chưa có tài khoản nào</div>
-        <p style="font-size: 0.82rem; line-height: 1.5; margin: 0 auto; max-width: 280px;">Hãy tạo tài khoản hoặc đăng nhập với số điện thoại của bạn để Mavis lưu trữ hồ sơ.</p>
-      </div>
-    `;
-    return;
-  }
-
-  listContainer.innerHTML = users.map(u => {
-    const isCurrent = currentUser && u.id === currentUser.id;
-    return `
-      <div class="account-switch-card ${isCurrent ? 'active' : ''}">
-        <div class="account-switch-avatar">
-          ${getAvatarSvg(u.avatarType)}
-        </div>
-        <div class="account-switch-info">
-          <div class="account-switch-name">
-            <span>${u.fullName}</span>
-            <i class="fa-solid fa-circle-check verified-badge" style="color: #38BDF8; font-size: 0.85rem;" title="Đã xác minh"></i>
-          </div>
-          <div class="account-switch-meta">
-            <span>${u.role || u.occupation} • ${u.age}</span>
-            <span class="account-switch-streak"><i class="fa-solid fa-fire text-amber"></i> ${u.streakDays || 1} ngày streak</span>
-          </div>
-        </div>
-        <div>
-          ${isCurrent 
-            ? '<span class="account-switch-badge current"><i class="fa-solid fa-circle-check"></i> Đang hoạt động</span>'
-            : `<button type="button" class="btn-account-switch-action" data-userid="${u.id}"><i class="fa-solid fa-arrow-right-arrow-left"></i> Chuyển</button>`
-          }
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  listContainer.querySelectorAll('.btn-account-switch-action').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.dataset.userid;
-      const targetUser = users.find(u => u.id === targetId);
-      SleepSyncDB.setCurrentUser(targetId);
-      renderActiveUserProfile();
-      showAppToast('Chuyển tài khoản', `Đã chuyển sang tài khoản ${targetUser ? targetUser.fullName : ''}!`, 'success');
-      const tabProfileBtn = document.getElementById('drawer-tab-profile');
-      if (tabProfileBtn) tabProfileBtn.click();
-    });
-  });
-}
 
 function openProfileDrawer() {
   const drawer = document.getElementById('user-profile-drawer');

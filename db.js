@@ -104,15 +104,13 @@ const SleepSyncDB = (function() {
   async function init() {
     let mirror = loadLocalStorageMirror();
 
-    // Clean up any legacy sample accounts (Hùng, Mai, Hoàng, demo) from localStorage
+    // Strict User Isolation: Ensure client storage only contains the active user's own record!
     if (mirror && Array.isArray(mirror.users)) {
-      mirror.users = mirror.users.filter(u => {
-        const id = u.id || '';
-        return !['user_hungnv', 'user_maitt', 'user_hoanglm', 'user_google_demo', 'user_facebook_demo', 'user_apple_demo'].includes(id);
-      });
-      if (['user_hungnv', 'user_maitt', 'user_hoanglm', 'user_google_demo', 'user_facebook_demo', 'user_apple_demo'].includes(mirror.activeUserId)) {
-        mirror.activeUserId = null;
-        try { localStorage.removeItem(STORAGE_KEY_ACTIVE_USER); } catch(e) {}
+      const activeId = mirror.activeUserId || localStorage.getItem(STORAGE_KEY_ACTIVE_USER);
+      if (activeId) {
+        mirror.users = mirror.users.filter(u => u.id === activeId);
+      } else {
+        mirror.users = [];
       }
     }
 
@@ -185,10 +183,10 @@ const SleepSyncDB = (function() {
     return !!getCurrentUser();
   }
 
-  // Get all users
+  // Get all users (Strict Isolation: Only returns the current active user)
   function getAllUsers() {
-    if (!inMemoryData || !inMemoryData.users) return [];
-    return [...inMemoryData.users];
+    const current = getCurrentUser();
+    return current ? [current] : [];
   }
 
   // Switch active user
@@ -196,6 +194,8 @@ const SleepSyncDB = (function() {
     const user = inMemoryData.users.find(u => u.id === userId);
     if (!user) return false;
 
+    // Strict isolation: only retain this active user
+    inMemoryData.users = [user];
     inMemoryData.activeUserId = userId;
     user.lastLoginAt = new Date().toISOString();
     try {
@@ -203,13 +203,6 @@ const SleepSyncDB = (function() {
       localStorage.removeItem('sleepsync_explicit_logout');
     } catch(e) {}
     saveLocalStorageMirror(inMemoryData);
-
-    // Log the switch/login event
-    logServiceUsage(
-      'AUTH_LOGIN',
-      'Đổi tài khoản đăng nhập',
-      `Đã chuyển sang tài khoản ${user.fullName} (${user.role}).`
-    );
 
     // Notify listeners
     window.dispatchEvent(new CustomEvent('sleepsync:user-changed', { detail: user }));
@@ -479,9 +472,10 @@ const SleepSyncDB = (function() {
   // Cloud Synchronizer between Web and Mobile App
   async function syncWithCloudServer() {
     try {
+      const currentUser = getCurrentUser();
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
       const payload = {
-        users: inMemoryData.users || [],
+        users: currentUser ? [currentUser] : [],
         serviceUsage: inMemoryData.serviceUsage || [],
         diagnoses: inMemoryData.diagnoses || [],
         deviceType: isMobile ? 'Mobile App (PWA)' : 'Web Browser'
@@ -497,9 +491,16 @@ const SleepSyncDB = (function() {
         const result = await res.json();
         if (result.success && result.data) {
           const serverData = result.data;
-          if (Array.isArray(serverData.users) && serverData.users.length > 0) {
-            inMemoryData.users = serverData.users;
+          // Strict User Isolation: only update current active user
+          if (currentUser && Array.isArray(serverData.users)) {
+            const updatedSelf = serverData.users.find(u => u.id === currentUser.id);
+            if (updatedSelf) {
+              inMemoryData.users = [updatedSelf];
+            }
+          } else if (!currentUser) {
+            inMemoryData.users = [];
           }
+
           if (Array.isArray(serverData.serviceUsage)) {
             inMemoryData.serviceUsage = serverData.serviceUsage;
           }
@@ -508,8 +509,6 @@ const SleepSyncDB = (function() {
           }
           saveLocalStorageMirror(inMemoryData);
           syncMemoryToIndexedDB();
-          console.log('[SleepSyncDB] Cloud sync complete. Total users:', inMemoryData.users.length);
-          window.dispatchEvent(new CustomEvent('sleepsync:cloud-synced', { detail: result }));
           return true;
         }
       }
@@ -538,13 +537,8 @@ const SleepSyncDB = (function() {
       const data = await res.json();
       if (data.success && data.user) {
         const user = data.user;
-        const existingIdx = inMemoryData.users.findIndex(u => u.id === user.id);
-        if (existingIdx !== -1) {
-          inMemoryData.users[existingIdx] = user;
-        } else {
-          inMemoryData.users.push(user);
-        }
-
+        // Strict Isolation: client only retains this newly logged-in user
+        inMemoryData.users = [user];
         inMemoryData.activeUserId = user.id;
 
         // If server returned user's diagnoses, merge them
@@ -625,12 +619,9 @@ const SleepSyncDB = (function() {
       const data = await res.json();
       if (data.success && data.user) {
         const newUser = data.user;
-        const existingIdx = inMemoryData.users.findIndex(u => u.id === newUser.id);
-        if (existingIdx !== -1) {
-          inMemoryData.users[existingIdx] = newUser;
-        } else {
-          inMemoryData.users.push(newUser);
-        }
+        // Strict Isolation: client only retains this newly registered user
+        inMemoryData.users = [newUser];
+        inMemoryData.activeUserId = newUser.id;
 
         setCurrentUser(newUser.id);
         syncMemoryToIndexedDB();
@@ -657,19 +648,28 @@ const SleepSyncDB = (function() {
   function logoutCurrentUser() {
     const currentUser = getCurrentUser();
     inMemoryData.activeUserId = null;
+    inMemoryData.users = [];
+    inMemoryData.diagnoses = [];
+    inMemoryData.serviceUsage = [];
+
     try {
       localStorage.removeItem(STORAGE_KEY_ACTIVE_USER);
+      localStorage.removeItem(STORAGE_KEY_MIRROR);
       localStorage.setItem('sleepsync_explicit_logout', 'true');
     } catch(e) {}
+
     saveLocalStorageMirror(inMemoryData);
 
     if (idb) {
       try {
-        const tx = idb.transaction(['meta'], 'readwrite');
+        const tx = idb.transaction(['users', 'service_usage', 'diagnoses', 'meta'], 'readwrite');
+        tx.objectStore('users').clear();
+        tx.objectStore('service_usage').clear();
+        tx.objectStore('diagnoses').clear();
         tx.objectStore('meta').put({ key: 'activeUserId', value: null });
       } catch (e) {}
     }
-    
+
     logServiceUsage(
       'AUTH_LOGOUT',
       'Đăng xuất tài khoản',
@@ -715,9 +715,10 @@ const SleepSyncDB = (function() {
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString()
       };
-      inMemoryData.users.push(user);
+      inMemoryData.users = [user];
     } else {
       user.lastLoginAt = new Date().toISOString();
+      inMemoryData.users = [user];
     }
 
     setCurrentUser(user.id);

@@ -265,12 +265,25 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
                 cd["device"] = device_type
                 database.save_diagnosis(cd)
 
-        full_data = database.export_full_database()
+        # Strict User Isolation: Never broadcast the full users table to ordinary clients!
+        synced_users = []
+        if body:
+            client_users = body.get("users", [])
+            for cu in client_users:
+                cid = cu.get("id")
+                if cid:
+                    u = database.get_user_by_id(cid)
+                    if u:
+                        synced_users.append(u)
+
         self.send_json({
             "success": True,
             "message": "Đồng bộ Cơ Sở Dữ Liệu SQL thành công!",
             "serverTime": datetime.now().isoformat(),
-            "data": full_data
+            "data": {
+                "users": synced_users,
+                "serverTime": datetime.now().isoformat()
+            }
         })
 
     def handle_save_user(self):
