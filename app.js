@@ -63,9 +63,9 @@ const AppState = {
   audio: {
     ctx: null,
     channels: {
-      binaural: { isPlaying: false, gainNode: null, leftOsc: null, rightOsc: null, volume: 0.7 },
-      rain: { isPlaying: false, gainNode: null, sourceNode: null, volume: 0.6 },
-      ocean: { isPlaying: false, gainNode: null, sourceNode: null, lfoNode: null, volume: 0.5 },
+      binaural: { isPlaying: false, gainNode: null, leftOsc: null, rightOsc: null, leftHarmonic: null, rightHarmonic: null, volume: 0.7 },
+      rain: { isPlaying: false, gainNode: null, sourceNode: null, volume: 0.7 },
+      ocean: { isPlaying: false, gainNode: null, sourceNode: null, lfoNode: null, volume: 0.6 },
       bowl: { isPlaying: false, gainNode: null, intervalId: null, volume: 0.65 }
     },
     timerDuration: 30,
@@ -1652,39 +1652,111 @@ function updateReadinessBar() {
 }
 
 // ==========================================
-// 9. WEB AUDIO API SOUND GENERATOR
+// 9. WEB AUDIO API SOUND GENERATOR (MOBILE OPTIMIZED)
 // ==========================================
-function getAudioContext() {
-  if (!AppState.audio.ctx) {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    AppState.audio.ctx = new AudioContext();
+let iosUnlockAudio = null;
+
+// iOS Silent Switch Bypass: HTML5 audio element playing silent WAV
+// forces iOS WebKit to switch audio session category to Playback (speaker routing)
+function ensureIosAudioUnlocked() {
+  try {
+    if (!iosUnlockAudio) {
+      iosUnlockAudio = new Audio();
+      iosUnlockAudio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+      iosUnlockAudio.loop = true;
+      iosUnlockAudio.volume = 0.01;
+      iosUnlockAudio.setAttribute('playsinline', '');
+      iosUnlockAudio.setAttribute('webkit-playsinline', '');
+    }
+    if (iosUnlockAudio.paused) {
+      const p = iosUnlockAudio.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {});
+      }
+    }
+  } catch (e) {
+    console.warn('[SleepSync Audio] iOS unlock notice:', e);
   }
-  if (AppState.audio.ctx.state === 'suspended') {
-    AppState.audio.ctx.resume();
+}
+
+async function getAudioContext() {
+  if (!AppState.audio.ctx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      AppState.audio.ctx = new AudioContextClass();
+    }
+  }
+  if (AppState.audio.ctx && AppState.audio.ctx.state === 'suspended') {
+    try {
+      await AppState.audio.ctx.resume();
+    } catch (e) {
+      console.warn('[SleepSync Audio] Resume warning:', e);
+    }
   }
   return AppState.audio.ctx;
 }
 
+// Global Touch/Click Unlock for mobile browsers (iOS Safari & Android Chrome)
+function initMobileAudioUnlock() {
+  const unlock = async () => {
+    try {
+      const ctx = await getAudioContext();
+      if (ctx) {
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+        // 1-sample silent buffer to unlock WebKit audio node graph
+        const buffer = ctx.createBuffer(1, 1, 22050);
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.start(0);
+      }
+      ensureIosAudioUnlocked();
+    } catch (e) {}
+
+    document.removeEventListener('touchstart', unlock, true);
+    document.removeEventListener('touchend', unlock, true);
+    document.removeEventListener('click', unlock, true);
+  };
+
+  document.addEventListener('touchstart', unlock, { capture: true, once: true, passive: true });
+  document.addEventListener('touchend', unlock, { capture: true, once: true, passive: true });
+  document.addEventListener('click', unlock, { capture: true, once: true });
+}
+
 function initAudioControls() {
+  // Mobile audio gesture pre-warm
+  initMobileAudioUnlock();
+
   // Header Quick Button
   const soundBtn = document.getElementById('soundscape-quick-btn');
   const soundDrawer = document.getElementById('sound-player-drawer');
-  soundBtn.addEventListener('click', () => {
-    if (!requireAuthGuard('mở máy phát âm thanh sóng não phục hồi')) {
-      return;
-    }
-    soundDrawer.style.display = soundDrawer.style.display === 'none' ? 'block' : 'none';
-    if (soundDrawer.style.display === 'block') {
-      soundDrawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  });
+  if (soundBtn && soundDrawer) {
+    soundBtn.addEventListener('click', async () => {
+      soundDrawer.style.display = soundDrawer.style.display === 'none' ? 'block' : 'none';
+      if (soundDrawer.style.display === 'block') {
+        soundDrawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        try {
+          await getAudioContext();
+          ensureIosAudioUnlocked();
+        } catch (e) {}
+      }
+    });
+  }
 
-  document.getElementById('close-player-btn').addEventListener('click', () => {
-    soundDrawer.style.display = 'none';
-  });
+  const closeBtn = document.getElementById('close-player-btn');
+  if (closeBtn && soundDrawer) {
+    closeBtn.addEventListener('click', () => {
+      soundDrawer.style.display = 'none';
+    });
+  }
 
   // Master Mute
-  document.getElementById('master-mute-btn').addEventListener('click', stopAllSounds);
+  const muteBtn = document.getElementById('master-mute-btn');
+  if (muteBtn) {
+    muteBtn.addEventListener('click', stopAllSounds);
+  }
 
   // Toggles
   document.querySelectorAll('.channel-toggle-btn').forEach(btn => {
@@ -1700,7 +1772,7 @@ function initAudioControls() {
       const channel = slider.dataset.channel;
       const val = parseFloat(e.target.value) / 100;
       AppState.audio.channels[channel].volume = val;
-      if (AppState.audio.channels[channel].gainNode) {
+      if (AppState.audio.channels[channel].gainNode && AppState.audio.ctx) {
         AppState.audio.channels[channel].gainNode.gain.setValueAtTime(val, AppState.audio.ctx.currentTime);
       }
     });
@@ -1717,14 +1789,20 @@ function initAudioControls() {
   });
 
   // Export Calendar ICS
-  document.getElementById('download-ics-btn').addEventListener('click', downloadIcsFile);
+  const icsBtn = document.getElementById('download-ics-btn');
+  if (icsBtn) {
+    icsBtn.addEventListener('click', downloadIcsFile);
+  }
 }
 
-function toggleChannel(channel, btn) {
-  if (!requireAuthGuard('nghe âm thanh sóng não thư giãn')) {
+async function toggleChannel(channel, btn) {
+  const ctx = await getAudioContext();
+  if (!ctx) {
+    showAppToast('Lỗi âm thanh', 'Trình duyệt không hỗ trợ Web Audio API.', 'error');
     return;
   }
-  const ctx = getAudioContext();
+
+  ensureIosAudioUnlocked();
   const chState = AppState.audio.channels[channel];
 
   if (chState.isPlaying) {
@@ -1732,7 +1810,13 @@ function toggleChannel(channel, btn) {
     btn.innerHTML = '<i class="fa-solid fa-play"></i> Bật';
     btn.classList.remove('playing');
   } else {
-    startChannel(channel);
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume();
+      } catch (e) {}
+    }
+
+    startChannel(channel, ctx);
     btn.innerHTML = '<i class="fa-solid fa-pause"></i> Tắt';
     btn.classList.add('playing');
 
@@ -1745,13 +1829,26 @@ function toggleChannel(channel, btn) {
       };
       SleepSyncDB.logServiceUsage('SOUND_PLAY', 'Phát âm thanh thư giãn', `Bật kênh âm thanh: ${names[channel] || channel}`);
     }
+
+    // MediaSession lockscreen controls
+    if ('mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: 'SleepSync AI - Âm thanh ru ngủ thư giãn',
+          artist: 'SleepSync Medical AI',
+          album: 'Delta Waves & Pink Noise Soundscape'
+        });
+        navigator.mediaSession.playbackState = 'playing';
+      } catch (e) {}
+    }
   }
 
   updateGlobalSoundIndicator();
 }
 
-function startChannel(channel) {
-  const ctx = getAudioContext();
+function startChannel(channel, ctx) {
+  if (!ctx) ctx = AppState.audio.ctx;
+  if (!ctx) return;
   const chState = AppState.audio.channels[channel];
 
   chState.gainNode = ctx.createGain();
@@ -1759,6 +1856,7 @@ function startChannel(channel) {
   chState.gainNode.connect(ctx.destination);
 
   if (channel === 'binaural') {
+    // 1. Stereo Binaural Delta Beats: 100Hz Left / 104Hz Right = 4Hz difference
     const merger = ctx.createChannelMerger(2);
     const leftOsc = ctx.createOscillator();
     leftOsc.type = 'sine';
@@ -1775,8 +1873,38 @@ function startChannel(channel) {
     leftOsc.start();
     rightOsc.start();
 
+    // 2. Mobile-Friendly Harmonic Under-tones (200Hz / 204Hz triangle waves)
+    // Smartphone speakers cannot physically produce pure 100Hz sine waves.
+    // This gentle harmonic pad makes the tone soothingly audible on mobile speakers while preserving delta entrainment!
+    const harmGain = ctx.createGain();
+    harmGain.gain.setValueAtTime(0.22, ctx.currentTime);
+
+    const harmFilter = ctx.createBiquadFilter();
+    harmFilter.type = 'lowpass';
+    harmFilter.frequency.setValueAtTime(320, ctx.currentTime);
+
+    const leftHarmonic = ctx.createOscillator();
+    leftHarmonic.type = 'triangle';
+    leftHarmonic.frequency.setValueAtTime(200, ctx.currentTime);
+
+    const rightHarmonic = ctx.createOscillator();
+    rightHarmonic.type = 'triangle';
+    rightHarmonic.frequency.setValueAtTime(204, ctx.currentTime);
+
+    const harmMerger = ctx.createChannelMerger(2);
+    leftHarmonic.connect(harmMerger, 0, 0);
+    rightHarmonic.connect(harmMerger, 0, 1);
+    harmMerger.connect(harmFilter);
+    harmFilter.connect(harmGain);
+    harmGain.connect(chState.gainNode);
+
+    leftHarmonic.start();
+    rightHarmonic.start();
+
     chState.leftOsc = leftOsc;
     chState.rightOsc = rightOsc;
+    chState.leftHarmonic = leftHarmonic;
+    chState.rightHarmonic = rightHarmonic;
     chState.isPlaying = true;
   } else if (channel === 'rain') {
     const bufferSize = ctx.sampleRate * 2;
@@ -1792,7 +1920,8 @@ function startChannel(channel) {
       b3 = 0.86650 * b3 + white * 0.3104856;
       b4 = 0.55000 * b4 + white * 0.5329522;
       b5 = -0.7616 * b5 - white * 0.0168980;
-      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.05;
+      // Multiplier increased to 0.20 so pink noise is audible and clear on mobile speakers
+      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.20;
       b6 = white * 0.115926;
     }
 
@@ -1802,7 +1931,7 @@ function startChannel(channel) {
 
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1200, ctx.currentTime);
+    filter.frequency.setValueAtTime(1600, ctx.currentTime);
 
     whiteNoise.connect(filter);
     filter.connect(chState.gainNode);
@@ -1814,7 +1943,7 @@ function startChannel(channel) {
     const bufferSize = ctx.sampleRate * 2;
     const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const output = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+    for (let i = 0; i < bufferSize; i++) output[i] = (Math.random() * 2 - 1) * 0.85;
 
     const noise = ctx.createBufferSource();
     noise.buffer = noiseBuffer;
@@ -1822,15 +1951,17 @@ function startChannel(channel) {
 
     const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(350, ctx.currentTime);
-    filter.Q.setValueAtTime(1.5, ctx.currentTime);
+    filter.frequency.setValueAtTime(420, ctx.currentTime);
+    filter.Q.setValueAtTime(1.2, ctx.currentTime);
 
     const waveGain = ctx.createGain();
+    waveGain.gain.setValueAtTime(0.45, ctx.currentTime);
+
     const lfo = ctx.createOscillator();
     lfo.frequency.setValueAtTime(0.08, ctx.currentTime);
 
     const lfoGain = ctx.createGain();
-    lfoGain.gain.setValueAtTime(0.35, ctx.currentTime);
+    lfoGain.gain.setValueAtTime(0.4, ctx.currentTime);
 
     lfo.connect(lfoGain);
     lfoGain.connect(waveGain.gain);
@@ -1849,7 +1980,7 @@ function startChannel(channel) {
     playSingingBowlChime(ctx, chState.gainNode);
     chState.intervalId = setInterval(() => {
       playSingingBowlChime(ctx, chState.gainNode);
-    }, 9000);
+    }, 8500);
     chState.isPlaying = true;
   }
 
@@ -1858,15 +1989,15 @@ function startChannel(channel) {
 
 function playSingingBowlChime(ctx, targetGain) {
   const baseFreq = 432;
-  const harmonics = [baseFreq, baseFreq * 2.76, baseFreq * 4.9];
-  const decays = [8.0, 5.0, 3.5];
+  const harmonics = [baseFreq, baseFreq * 2.0, baseFreq * 2.76, baseFreq * 4.9];
+  const decays = [8.0, 6.0, 5.0, 3.5];
 
   harmonics.forEach((freq, idx) => {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(0.25 / (idx + 1), ctx.currentTime);
+    gain.gain.setValueAtTime(0.35 / (idx + 1), ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + decays[idx]);
 
     osc.connect(gain);
@@ -1882,13 +2013,15 @@ function stopChannel(channel) {
   if (!chState.isPlaying) return;
 
   if (channel === 'binaural') {
-    if (chState.leftOsc) chState.leftOsc.stop();
-    if (chState.rightOsc) chState.rightOsc.stop();
+    if (chState.leftOsc) { try { chState.leftOsc.stop(); } catch (e) {} }
+    if (chState.rightOsc) { try { chState.rightOsc.stop(); } catch (e) {} }
+    if (chState.leftHarmonic) { try { chState.leftHarmonic.stop(); } catch (e) {} }
+    if (chState.rightHarmonic) { try { chState.rightHarmonic.stop(); } catch (e) {} }
   } else if (channel === 'rain') {
-    if (chState.sourceNode) chState.sourceNode.stop();
+    if (chState.sourceNode) { try { chState.sourceNode.stop(); } catch (e) {} }
   } else if (channel === 'ocean') {
-    if (chState.sourceNode) chState.sourceNode.stop();
-    if (chState.lfoNode) chState.lfoNode.stop();
+    if (chState.sourceNode) { try { chState.sourceNode.stop(); } catch (e) {} }
+    if (chState.lfoNode) { try { chState.lfoNode.stop(); } catch (e) {} }
   } else if (channel === 'bowl') {
     if (chState.intervalId) clearInterval(chState.intervalId);
   }
@@ -1902,6 +2035,14 @@ function stopAllSounds() {
     btn.innerHTML = '<i class="fa-solid fa-play"></i> Bật';
     btn.classList.remove('playing');
   });
+
+  if (iosUnlockAudio && !iosUnlockAudio.paused) {
+    try { iosUnlockAudio.pause(); } catch (e) {}
+  }
+  if ('mediaSession' in navigator) {
+    try { navigator.mediaSession.playbackState = 'none'; } catch (e) {}
+  }
+
   updateGlobalSoundIndicator();
 }
 
