@@ -1,5 +1,5 @@
 /**
- * SLEEPSYNC AI - CLIENT DATABASE ENGINE
+ * MAVIS CHÚC BẠN NGỦ NGON - CLIENT DATABASE ENGINE
  * Persistent storage for user profiles, authentication sessions, and service usage logs.
  * Backed by HTML5 IndexedDB with automated LocalStorage sync & fallback.
  */
@@ -406,7 +406,7 @@ const SleepSyncDB = (function() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `SleepSync_Database_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `Mavis_Database_Backup_${new Date().toISOString().slice(0,10)}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

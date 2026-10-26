@@ -1,5 +1,5 @@
 """
-SLEEPSYNC AI - SQL DATABASE ENGINE (SQLite 3)
+MAVIS CHÚC BẠN NGỦ NGON - SQL DATABASE ENGINE (SQLite 3)
 Provides ACID compliance, relational tables, foreign key constraints,
 and high-performance indexing for users, diagnoses, and service logs.
 Zero mock data: starts 100% clean for real user registrations.
@@ -58,7 +58,7 @@ def init_db():
             phone TEXT UNIQUE NOT NULL,
             email TEXT,
             password_hash TEXT NOT NULL,
-            role TEXT DEFAULT 'Thành viên SleepSync',
+            role TEXT DEFAULT 'Thành viên Mavis',
             bio TEXT DEFAULT 'Mục tiêu cải thiện chất lượng giấc ngủ sâu NREM 💤',
             age TEXT DEFAULT '28 tuổi',
             gender TEXT DEFAULT 'Khác',
@@ -157,7 +157,7 @@ def row_to_user_dict(row):
         "phone": row['phone'],
         "email": row['email'] or '',
         "password": row['password_hash'],
-        "role": row['role'] or 'Thành viên SleepSync',
+        "role": row['role'] or 'Thành viên Mavis',
         "bio": row['bio'] or 'Mục tiêu cải thiện chất lượng giấc ngủ sâu NREM 💤',
         "age": row['age'] or '28 tuổi',
         "gender": row['gender'] or 'Khác',
@@ -279,7 +279,7 @@ def create_user(user_data):
     username = user_data.get("username", phone).strip()
     email = user_data.get("email", "").strip()
     password = user_data.get("password", "123456").strip()
-    role = user_data.get("role", "Thành viên SleepSync")
+    role = user_data.get("role", "Thành viên Mavis")
     bio = user_data.get("bio", "Mục tiêu cải thiện chất lượng giấc ngủ sâu NREM 💤")
     age = user_data.get("age", "28 tuổi")
     gender = user_data.get("gender", "Khác")

@@ -1,4 +1,4 @@
-# Mavis SleepSync AI - Production Dependencies
+# Mavis chúc bạn ngủ ngon - Production Dependencies
 # The core server runs 100% on Python standard library (http.server, sqlite3, json, urllib).
 # Optional: psycopg2-binary can be enabled if connecting to Render Managed PostgreSQL via DATABASE_URL
 # psycopg2-binary>=2.9.9

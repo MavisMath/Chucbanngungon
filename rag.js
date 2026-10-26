@@ -1,5 +1,5 @@
 /**
- * SLEEPSYNC AI - RAG KNOWLEDGE BASE & AI CHATBOT ENGINE
+ * MAVIS CHÚC BẠN NGỦ NGON - RAG KNOWLEDGE BASE & AI CHATBOT ENGINE
  * 
  * Features:
  * 1. Retrieval-Augmented Generation (RAG) using verified chronobiology & sleep hygiene chunks.
@@ -195,7 +195,7 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
     // Step 4: Direct Client-Side Gemini API Call (if server is offline)
     if (GEMINI_CONFIG.apiKey) {
       try {
-        const systemPrompt = `Bạn là Mavis - Trợ lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ của SleepSync.
+        const systemPrompt = `Bạn là Mavis - Trợ lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ của Mavis chúc bạn ngủ ngon.
 Người dùng: ${userName} (${userRole}), Giờ ngủ đích: ${userBedtime}, Tình trạng: ${userConditions}.
 Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức khỏe, giấc ngủ, đau mỏi, dinh dưỡng, tâm lý bằng giọng văn dịu dàng, chu đáo, khoa học và dễ hiểu bằng tiếng Việt:`;
 
@@ -602,7 +602,9 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
         e.preventDefault();
         const text = input.value.trim();
         if (text) {
-          // Botchat always active 24/7 - no auth gate block!
+          if (window.requireAuthGuard && !window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis')) {
+            return;
+          }
           sendUserMessage(text);
           input.value = '';
         }
@@ -614,7 +616,9 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
       chip.addEventListener('click', () => {
         const query = chip.dataset.query;
         if (query) {
-          // Botchat always active 24/7 - no auth gate block!
+          if (window.requireAuthGuard && !window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis')) {
+            return;
+          }
           sendUserMessage(query);
         }
       });
@@ -636,6 +640,9 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
       recognizer.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         if (transcript) {
+          if (window.requireAuthGuard && !window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis')) {
+            return;
+          }
           input.value = transcript;
           sendUserMessage(transcript);
           input.value = '';
@@ -653,6 +660,9 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
       };
 
       micBtn.addEventListener('click', () => {
+        if (window.requireAuthGuard && !window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis')) {
+          return;
+        }
         try {
           recognizer.start();
         } catch (e) {
@@ -684,6 +694,9 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
     if (!chatWindow) return;
 
     if (chatWindow.style.display === 'none' || !chatWindow.classList.contains('active')) {
+      if (window.requireAuthGuard && !window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis')) {
+        return;
+      }
       openChatbot();
     } else {
       closeChatbot();
@@ -691,6 +704,9 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
   }
 
   function openChatbot() {
+    if (window.requireAuthGuard && !window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis')) {
+      return;
+    }
     const chatWindow = document.getElementById('ai-chatbot-window');
     if (!chatWindow) return;
 

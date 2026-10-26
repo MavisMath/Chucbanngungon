@@ -1,4 +1,4 @@
-# 🌙 SleepSync AI - Hệ Thống Chẩn Đoán Giấc Ngủ 5 Trụ Cột Y Khoa & Quét Lịch Biểu Công Việc
+# 🌙 Mavis chúc bạn ngủ ngon - Hệ Thống Chẩn Đoán Giấc Ngủ 5 Trụ Cột Y Khoa & Quét Lịch Biểu Công Việc
 
 Hệ thống AI ứng dụng nguyên lý **Khoa học thần kinh (Neuroscience)**, **Nhịp sinh học (Circadian Biology)** và các khuyến nghị lâm sàng y tế nhằm thu thập toàn diện các yếu tố ảnh hưởng đến giấc ngủ, đối chiếu với lịch biểu công việc trong ngày để đưa ra các **vi-hành động siêu dễ làm (2 - 5 phút)** theo thời gian thực.
 

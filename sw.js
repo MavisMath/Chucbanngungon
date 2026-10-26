@@ -1,9 +1,9 @@
 /**
- * SLEEPSYNC AI - SERVICE WORKER (PWA)
+ * MAVIS CHÚC BẠN NGỦ NGON - SERVICE WORKER (PWA)
  * Enables offline caching, instant app launch, and background sync readiness.
  */
 
-const CACHE_NAME = 'sleepsync-cache-v5';
+const CACHE_NAME = 'mavis-sleep-cache-v6';
 const STATIC_ASSETS = [
   './',
   './index.html',

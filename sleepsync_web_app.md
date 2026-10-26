@@ -70,7 +70,7 @@ export default function SleepSyncApp() {
         
         {/* Header */}
         <header className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-indigo-900 mb-2">🌙 SleepSync AI</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-indigo-900 mb-2">🌙 Mavis chúc bạn ngủ ngon</h1>
           <p className="text-slate-600">Ghi lại cảm xúc buổi trưa, tối ưu hóa giấc ngủ ban đêm</p>
         </header>
 

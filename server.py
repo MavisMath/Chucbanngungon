@@ -439,7 +439,7 @@ if __name__ == '__main__':
     database.init_db()
     server_address = ('0.0.0.0', PORT)
     httpd = ThreadingHTTPServer(server_address, SleepSyncAPIHandler)
-    print(f"SleepSync SQL server running on http://localhost:{PORT}", flush=True)
+    print(f"Mavis chúc bạn ngủ ngon server running on http://localhost:{PORT}", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

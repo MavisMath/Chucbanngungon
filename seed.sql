@@ -1,4 +1,4 @@
--- MAVIS SLEEPSYNC - DATABASE INITIAL SEED DATA
+-- MAVIS CHÚC BẠN NGỦ NGON - DATABASE INITIAL SEED DATA
 -- Auto-seeds initial accounts & diagnoses on fresh deployments (e.g. Render)
 
 INSERT OR IGNORE INTO users (id, username, full_name, phone, email, password_hash, role, bio, age, gender, occupation, target_bedtime, wake_time, fitness_level, health_conditions, avatar_type, verified, streak_days, created_at, last_login_at, updated_at) VALUES ('user_1792896601', '0376724162', 'Thắm', '0376724162', '', '2502', 'sinh viên', 'Mục tiêu cải thiện chất lượng giấc ngủ sâu NREM 💤', '22', 'Khác', 'sinh viên', '23:00', '06:30', 'Trung bình', '["Sức khỏe ổn định"]', 'programmer_laptop', 1, 1, '2026-10-25T21:08:37.502445', '2026-10-25T09:50:01.567550', '2026-10-26T11:41:55.446060');

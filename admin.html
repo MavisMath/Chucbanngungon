@@ -811,7 +811,7 @@
       </div>
       <h2 class="pin-title">Founder Admin Portal</h2>
       <p class="pin-desc">
-        Khu vực bảo mật dành riêng cho Người Sáng Lập SleepSync AI. Vui lòng nhập mã PIN để xác thực quyền quản trị.
+        Khu vực bảo mật dành riêng cho Người Sáng Lập Mavis chúc bạn ngủ ngon. Vui lòng nhập mã PIN để xác thực quyền quản trị.
       </p>
       <form id="pin-login-form">
         <input type="password" id="admin-pin-input" class="pin-input" placeholder="••••" maxlength="8" autofocus autocomplete="off">
@@ -871,7 +871,7 @@
           <span class="status-dot-pulse"></span>
           <span>Cloud Active</span>
         </div>
-        <a href="index.html" class="btn-action-ghost btn-link-app" target="_blank" title="Mở giao diện ứng dụng SleepSync">
+        <a href="index.html" class="btn-action-ghost btn-link-app" target="_blank" title="Mở giao diện ứng dụng Mavis chúc bạn ngủ ngon">
           <i class="fa-solid fa-mobile-screen"></i>
           <span>Mở Ứng Dụng</span>
         </a>
@@ -1588,8 +1588,8 @@
         fullName,
         phone,
         password,
-        role: role || 'Thành viên SleepSync',
-        occupation: role || 'Thành viên SleepSync',
+        role: role || 'Thành viên Mavis',
+        occupation: role || 'Thành viên Mavis',
         age: age || '30 tuổi',
         targetBedtime: targetBedtime || '23:00',
         wakeTime: wakeTime || '06:30',
@@ -1650,7 +1650,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `SleepSync_Founder_Database_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `Mavis_Founder_Database_Backup_${new Date().toISOString().slice(0, 10)}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -1685,7 +1685,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `SleepSync_Users_Export_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `Mavis_Users_Export_${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

@@ -1,5 +1,5 @@
 """
-MAVIS SLEEPSYNC AI - REAL-TIME HYPER-PERSONALIZED CLINICAL ANALYZER
+MAVIS CHÚC BẠN NGỦ NGON - REAL-TIME HYPER-PERSONALIZED CLINICAL ANALYZER
 Dual-Engine System:
 1. Cloud Engine: Google Gemini API (using user-provided key & Gemini 3.5 models)
 2. Local Smart Semantic Engine: Deep Rule-based & Semantic Vietnamese NLP Parser
@@ -379,7 +379,7 @@ def run_gemini_analysis(api_key, answers, custom_answers, user, current_hour, cu
         "Đêm muộn"
     )
 
-    prompt = f"""Bạn là Mavis - Trợ lý AI Giác Quan & Nhịp Sinh Học Y Khoa của SleepSync.
+    prompt = f"""Bạn là Mavis - Trợ lý AI Giác Quan & Nhịp Sinh Học Y Khoa của Mavis chúc bạn ngủ ngon.
 Nhiệm vụ: Phân tích kết quả khảo sát 5 trụ cột y khoa giấc ngủ của người dùng, ĐẶC BIỆT chú trọng giải mã các câu trả lời tự gõ ở mục 'Khác' và đưa ra lời khuyên cá nhân hóa ngay tại thời điểm thực này.
 
 THÔNG TIN NGƯỜI DÙNG & MỐC THỜI GIAN THỰC (BẮT BUỘC ĐỐI CHIẾU CHÍNH XÁC):
@@ -827,7 +827,7 @@ def chat_with_mavis(query, user=None, history=None):
     current_hour = datetime.now().hour
     current_time_str = datetime.now().strftime("%H:%M")
 
-    system_instruction = f"""Bạn là Mavis - Bé Trợ Lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ Thông Minh của SleepSync.
+    system_instruction = f"""Bạn là Mavis - Bé Trợ Lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ Thông Minh của Mavis chúc bạn ngủ ngon.
 Tính cách của bạn: Ngọt ngào, ấm áp, thông minh, tận tâm và khoa học như một người bạn thân kiêm chuyên gia sức khỏe gia đình.
 
 BẠN ĐƯỢC PHÉP TRẢ LỜI THOẢI MÁI, ĐA DẠNG VÀ TẬN TÌNH VỀ MỌI CHỦ ĐỀ SỨC KHỎE:
@@ -1070,7 +1070,7 @@ def extract_journal_intake(user_text, current_answers=None, history=None, user=N
     """
     Dedicated Clinical Voice Journal Intake & 5-Pillar Extraction Engine.
     Transforms arbitrary voice logs or free-form user journals into:
-    1. Structured 5-pillar values (mapped to SleepSync schema)
+    1. Structured 5-pillar values (mapped to 5-pillar schema)
     2. Qualitative custom notes (extra details, irregular schedules, life events)
     3. Missing pillar detection & natural follow-up clinical question
     4. Safe guardrails: Strictly refuses drug/supplement queries with friendly non-pharmacological advice.
@@ -1092,7 +1092,7 @@ def extract_journal_intake(user_text, current_answers=None, history=None, user=N
             "custom_notes": {},
             "missing_pillars": missing,
             "ai_response_text": (
-                "Chào bạn, Mavis là trợ lý điều hòa nhịp sinh học tự nhiên phi dược lý của SleepSync. "
+                "Chào bạn, Mavis là trợ lý điều hòa nhịp sinh học tự nhiên phi dược lý của Mavis chúc bạn ngủ ngon. "
                 "Để đảm bảo an toàn tuyệt đối và tuân thủ quy chuẩn y tế, Mavis không được phép kê đơn, chỉ định hoặc tư vấn các loại thuốc tân dược hay thực phẩm chức năng. "
                 "Nếu tình trạng mất ngủ kéo dài cần can thiệp y tế, bạn vui lòng thăm khám bác sĩ chuyên khoa nhé!\n\n"
                 "Tối nay, Mavis có thể đồng hành cùng bạn bằng phác đồ ánh sáng, nhiệt độ phòng ngủ, dinh dưỡng tự nhiên giàu Melatonin/Magie và kỹ thuật thở buông thư. "
@@ -1114,14 +1114,14 @@ def extract_journal_intake(user_text, current_answers=None, history=None, user=N
     if not api_key:
         return baseline
 
-    system_prompt = """Bạn là Bác Sĩ Tiếp Nhận Bệnh Án Lâm Sàng & Nhịp Sinh Học (Clinical Intake Specialist) của SleepSync.
+    system_prompt = """Bạn là Bác Sĩ Tiếp Nhận Bệnh Án Lâm Sàng & Nhịp Sinh Học (Clinical Intake Specialist) của Mavis chúc bạn ngủ ngon.
 Nhiệm vụ của bạn là lắng nghe nhật ký giọng nói hoặc tâm sự tự do của người dùng, sau đó:
 1. Bóc tách thông tin lâm sàng vào 5 Trụ Cột Y Khoa theo ĐÚNG các mã chuẩn (Schema).
 2. Nhận diện các chi tiết "THỪA" (ngữ cảnh riêng: làm ca đêm, cãi nhau, uống trà sữa 16h, chia tay...) để lưu vào custom_notes.
 3. Nhận diện các trụ cột "THIẾU" (chưa có thông tin) để đặt 1 câu hỏi dồn tự nhiên, ngắn gọn (chỉ 1 câu duy nhất).
 4. QUY TẮC BẤT DI BẤT DỊCH VỀ Y TẾ:
    - TUYỆT ĐỐI KHÔNG hỏi, gợi ý, kê đơn hoặc đề cập đến bất kỳ loại THUỐC, THUỐC NGỦ, THUỐC AN THẦN, hay THỰC PHẨM CHỨC NĂNG (TPCN) nào.
-   - SleepSync là hệ thống PHI DƯỢC LÝ (Non-pharmacological chronotherapy). Mọi can thiệp chỉ dựa trên ánh sáng, nhiệt độ phòng, thực phẩm tự nhiên (Tryptophan/Magie trong bữa ăn hàng ngày) và vi-vận động.
+   - Mavis chúc bạn ngủ ngon là hệ thống PHI DƯỢC LÝ (Non-pharmacological chronotherapy). Mọi can thiệp chỉ dựa trên ánh sáng, nhiệt độ phòng, thực phẩm tự nhiên (Tryptophan/Magie trong bữa ăn hàng ngày) và vi-vận động.
 
 SCHEMA 5 TRỤ CỘT (Chỉ gán nếu người dùng nhắc đến hoặc ngụ ý):
 - Trụ Cột 1 (Tâm Lý):

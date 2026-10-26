@@ -1,5 +1,5 @@
 /**
- * SLEEPSYNC AI - Clinical 5-Pillar Chronobiology & Sleep Intelligence Engine
+ * MAVIS CHÚC BẠN NGỦ NGON - Clinical 5-Pillar Chronobiology & Sleep Intelligence Engine
  * 1. Psychological & Mental (Stress, Cortisol, Anxiety, Depression)
  * 2. Environmental (Light, Screen, Temp 24-27°C, Noise)
  * 3. Habits & Lifestyle (Caffeine cutoff, Alcohol REM fragmentation, Heavy dinner, Phone on bed)
@@ -137,7 +137,7 @@ function showAppToast(title, message, type = 'success', duration = 3500) {
 }
 
 function showAuthRequiredToast(actionName = 'tiếp tục') {
-  showAppToast('Yêu cầu đăng nhập', `Vui lòng đăng nhập để ${actionName}!`, 'info');
+  showAppToast('Chế độ Khách (Giới hạn)', `Khách chỉ được trải nghiệm 'Thử nhanh trường hợp mẫu (Demo)'. Vui lòng Đăng nhập hoặc Tạo tài khoản để ${actionName}!`, 'info');
 }
 
 // Custom Promise-based Confirm Dialog (zero native confirm())
@@ -331,7 +331,7 @@ function requireAuthGuard(actionName = 'tiếp tục') {
     return true;
   }
   showAuthRequiredToast(actionName);
-  openUserAuthModal('login');
+  openUserAuthModal('register');
   return false;
 }
 
@@ -485,7 +485,9 @@ function initTabSwitchers() {
     syncQuizUIFromAnswers();
   });
   tabVoice.addEventListener('click', () => {
-    // Chatbot Voice / AI Talk mode is always accessible without requiring login/registration
+    if (!requireAuthGuard('sử dụng Trò Chuyện AI / Voice Talk Mode')) {
+      return;
+    }
     switchTab(tabVoice, secVoice, 'voice');
     renderTrackerPanel();
     if (AppState.talkState.history.length === 0) {
@@ -499,12 +501,24 @@ function initTabSwitchers() {
     switchTab(tabCal, secCal, 'calendar');
   });
 
-  // Quick Demo Fill Button
+  // Quick Demo Fill Button (Specially allowed for Guests!)
   document.getElementById('demo-fill-btn').addEventListener('click', () => {
-    if (!requireAuthGuard('thử nghiệm kịch bản trắc nghiệm mẫu')) {
-      return;
-    }
+    AppState.isDemoScenario = true;
     applyRealisticDemoScenario();
+    const confirmCheckbox = document.getElementById('user-info-confirm-checkbox');
+    if (confirmCheckbox) {
+      confirmCheckbox.checked = true;
+      const submitBtn = document.getElementById('wizard-submit-btn');
+      if (submitBtn) {
+        submitBtn.style.opacity = '1';
+        submitBtn.style.pointerEvents = 'auto';
+      }
+    }
+    showAppToast(
+      'Trường hợp Mẫu (Demo)',
+      'Đã nạp tình huống mẫu thực tế! Bấm "Xem Kết Quả Phân Tích & Lộ Trình" bên dưới để xem báo cáo chẩn đoán 5 trụ cột của Mavis.',
+      'info'
+    );
   });
 }
 
@@ -546,6 +560,12 @@ function initWizard() {
 
     grid.querySelectorAll('.opt-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        // Enforce Guest Mode gating: only demo allowed for unauthenticated visitors
+        if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
+          requireAuthGuard('tự làm bài chẩn đoán 5 trụ cột y khoa');
+          return;
+        }
+        AppState.isDemoScenario = false;
         const val = btn.dataset.value;
         let currentAnswers = getAnswerArray(qKey);
 
@@ -597,7 +617,19 @@ function initWizard() {
 
     // Custom input typing listener
     if (customInput) {
+      customInput.addEventListener('focus', () => {
+        if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
+          customInput.blur();
+          requireAuthGuard('nhập câu trả lời cá nhân');
+        }
+      });
       customInput.addEventListener('input', () => {
+        if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
+          customInput.blur();
+          requireAuthGuard('nhập câu trả lời cá nhân');
+          return;
+        }
+        AppState.isDemoScenario = false;
         AppState.customAnswers = AppState.customAnswers || {};
         AppState.customAnswers[qKey] = customInput.value.trim();
         renderTrackerPanel();
@@ -646,7 +678,7 @@ function initWizard() {
   });
 
   submitBtn.addEventListener('click', () => {
-    if (!requireAuthGuard('xem và lưu kết quả chẩn đoán 5 trụ cột y khoa')) {
+    if (!AppState.isDemoScenario && !requireAuthGuard('xem và lưu kết quả chẩn đoán 5 trụ cột cá nhân')) {
       return;
     }
     if (confirmCheckbox && !confirmCheckbox.checked) {
@@ -982,6 +1014,9 @@ function initTalkMode() {
 
   if (sendBtn) {
     sendBtn.addEventListener('click', () => {
+      if (!requireAuthGuard('gửi tin nhắn nhật ký trò chuyện cùng Bác sĩ AI Mavis')) {
+        return;
+      }
       const val = textInput.value.trim();
       if (val) {
         handleUserTalkInput(val);
@@ -991,19 +1026,46 @@ function initTalkMode() {
   }
 
   if (textInput) {
+    textInput.addEventListener('focus', () => {
+      if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
+        textInput.blur();
+        requireAuthGuard('gửi tin nhắn nhật ký trò chuyện cùng Bác sĩ AI Mavis');
+      }
+    });
     textInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
+        if (!requireAuthGuard('gửi tin nhắn nhật ký trò chuyện cùng Bác sĩ AI Mavis')) {
+          return;
+        }
         sendBtn.click();
       }
     });
   }
 
-  if (micBtn) micBtn.addEventListener('click', toggleTalkMic);
-  if (restartBtn) restartBtn.addEventListener('click', startTalkConversation);
+  if (micBtn) {
+    micBtn.addEventListener('click', () => {
+      if (!requireAuthGuard('thu âm giọng nói cùng Bác sĩ AI Mavis')) {
+        return;
+      }
+      toggleTalkMic();
+    });
+  }
+
+  if (restartBtn) {
+    restartBtn.addEventListener('click', () => {
+      if (!requireAuthGuard('bắt đầu lại buổi trò chuyện cùng Bác sĩ AI Mavis')) {
+        return;
+      }
+      startTalkConversation();
+    });
+  }
 
   // Quick Fix Buttons on Tracker Items
   document.querySelectorAll('.pillar-quick-fix-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (!requireAuthGuard('bổ sung thông tin 5 trụ cột y khoa')) {
+        return;
+      }
       const p = btn.dataset.pillar;
       const prompts = {
         p1: "Hôm nay tâm lý và mức độ áp lực, stress deadline của bạn thế nào?",
@@ -1028,6 +1090,9 @@ function initTalkMode() {
   const fastAnalyzeBtn = document.getElementById('tracker-analyze-now-btn');
   if (fastAnalyzeBtn) {
     fastAnalyzeBtn.addEventListener('click', () => {
+      if (!requireAuthGuard('phân tích chẩn đoán 5 trụ cột từ nhật ký')) {
+        return;
+      }
       runCompleteDiagnosis();
     });
   }
@@ -1071,7 +1136,7 @@ function addAiTalkMessage(text, replies = []) {
   if (!box) return;
   const bubble = document.createElement('div');
   bubble.className = 'chat-bubble ai';
-  bubble.innerHTML = `<strong>🤖 Trợ lý Y Khoa SleepSync:</strong><br>${text}`;
+  bubble.innerHTML = `<strong>🌙 Bé Trợ Lý Mavis:</strong><br>${text}`;
 
   if (replies && replies.length > 0) {
     const chipsWrap = document.createElement('div');
@@ -1118,7 +1183,7 @@ async function handleUserTalkInput(text) {
   const typingBubble = document.createElement('div');
   typingBubble.className = 'chat-bubble ai';
   typingBubble.id = 'ai-talk-typing-bubble';
-  typingBubble.innerHTML = '<strong>🤖 Trợ lý Y Khoa SleepSync:</strong><br><i class="fa-solid fa-circle-notch fa-spin"></i> <em>Mavis đang bóc tách nhật ký vào 5 trụ cột y khoa...</em>';
+  typingBubble.innerHTML = '<strong>🌙 Bé Trợ Lý Mavis:</strong><br><i class="fa-solid fa-circle-notch fa-spin"></i> <em>Mavis đang bóc tách nhật ký vào 5 trụ cột y khoa...</em>';
   box.appendChild(typingBubble);
   box.scrollTop = box.scrollHeight;
 
@@ -1229,6 +1294,9 @@ function initCalendarScanner() {
 
   // Add event quick button
   document.getElementById('add-event-quick-btn').addEventListener('click', () => {
+    if (!requireAuthGuard('thêm sự kiện lịch cá nhân')) {
+      return;
+    }
     const title = prompt("Nhập tên cuộc họp / công việc bận:", "Họp phòng ban đột xuất");
     if (!title) return;
     const time = prompt("Khung giờ (Ví dụ: 15:00 - 16:00):", "15:00 - 16:00");
@@ -1277,6 +1345,10 @@ function renderCalendarEvents() {
 }
 
 function handleIcsFileUpload(e) {
+  if (!requireAuthGuard('tải lên file lịch cá nhân .ics')) {
+    e.target.value = '';
+    return;
+  }
   const file = e.target.files[0];
   if (!file) return;
 
@@ -2166,6 +2238,9 @@ function initAudioControls() {
   const soundDrawer = document.getElementById('sound-player-drawer');
   if (soundBtn && soundDrawer) {
     soundBtn.addEventListener('click', async () => {
+      if (!requireAuthGuard('nghe âm thanh sóng não Delta & thư giãn thiên nhiên')) {
+        return;
+      }
       soundDrawer.style.display = soundDrawer.style.display === 'none' ? 'block' : 'none';
       if (soundDrawer.style.display === 'block') {
         soundDrawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2228,6 +2303,9 @@ function initAudioControls() {
 }
 
 async function toggleChannel(channel, btn) {
+  if (!requireAuthGuard('bật âm thanh sóng não & thư giãn')) {
+    return;
+  }
   const ctx = await getAudioContext();
   if (!ctx) {
     showAppToast('Lỗi âm thanh', 'Trình duyệt không hỗ trợ Web Audio API.', 'error');
@@ -2266,8 +2344,8 @@ async function toggleChannel(channel, btn) {
     if ('mediaSession' in navigator) {
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
-          title: 'SleepSync AI - Âm thanh ru ngủ thư giãn',
-          artist: 'SleepSync Medical AI',
+          title: 'Mavis chúc bạn ngủ ngon - Âm thanh ru ngủ thư giãn',
+          artist: 'Mavis Chúc Bạn Ngủ Ngon',
           album: 'Delta Waves & Pink Noise Soundscape'
         });
         navigator.mediaSession.playbackState = 'playing';
@@ -2497,6 +2575,9 @@ function resetAudioTimer() {
 // 10. CALENDAR (.ICS) EXPORT ENGINE
 // ==========================================
 function downloadIcsFile() {
+  if (!requireAuthGuard('xuất lịch trình ngủ và vi-hành động ra file iCal')) {
+    return;
+  }
   if (!AppState.analysisResult || !AppState.analysisResult.microSchedule) {
     showAppToast("Xuất file lịch", "Vui lòng hoàn thành chẩn đoán 5 trụ cột trước khi xuất file lịch!", "warning");
     return;
@@ -2511,10 +2592,10 @@ function downloadIcsFile() {
   let ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//SleepSync AI//5-Pillar Chrono-Schedule//VI',
+    'PRODID:-//Mavis chúc bạn ngủ ngon//5-Pillar Chrono-Schedule//VI',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:Lịch Can Thiệp Giấc Ngủ SleepSync'
+    'X-WR-CALNAME:Lịch Can Thiệp Giấc Ngủ Mavis'
   ];
 
   AppState.analysisResult.microSchedule.forEach((task, idx) => {
@@ -2532,11 +2613,11 @@ function downloadIcsFile() {
     const dtEnd = `${todayStr}T${String(eH).padStart(2, '0')}${String(eM).padStart(2, '0')}00`;
 
     ics.push('BEGIN:VEVENT');
-    ics.push(`UID:sleepsync-${todayStr}-${idx}@sleepsync.ai`);
+    ics.push(`UID:mavis-${todayStr}-${idx}@mavis.ai`);
     ics.push(`DTSTAMP:${todayStr}T120000Z`);
     ics.push(`DTSTART:${dtStart}`);
     ics.push(`DTEND:${dtEnd}`);
-    ics.push(`SUMMARY:🌙 [SleepSync] ${task.title}`);
+    ics.push(`SUMMARY:🌙 [Mavis] ${task.title}`);
     ics.push(`DESCRIPTION:${task.desc}`);
     ics.push('BEGIN:VALARM');
     ics.push('TRIGGER:-PT10M');
@@ -2552,7 +2633,7 @@ function downloadIcsFile() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `SleepSync_5Pillar_Schedule_${todayStr}.ics`;
+  a.download = `Mavis_5Pillar_Schedule_${todayStr}.ics`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -2577,6 +2658,9 @@ function initHistoryModule() {
 
   if (btn) {
     btn.addEventListener('click', () => {
+      if (!requireAuthGuard('xem lịch sử chẩn đoán cá nhân')) {
+        return;
+      }
       renderHistoryModal();
       if (modal) modal.style.display = 'flex';
     });
@@ -2598,6 +2682,10 @@ function initHistoryModule() {
 }
 
 function saveHistoryLog(result) {
+  if (AppState.isDemoScenario || (window.SleepSyncDB && !SleepSyncDB.isAuthenticated())) {
+    // Guest demo test - do not persist to user account history
+    return;
+  }
   const item = {
     id: Date.now(),
     dateStr: new Date().toLocaleDateString('vi-VN', {
@@ -2896,7 +2984,7 @@ function initUserProfileModule() {
     exportDbBtn.addEventListener('click', () => {
       if (window.SleepSyncDB) {
         SleepSyncDB.exportDatabaseBackup();
-        showAppToast('Xuất sao lưu', 'Đã tải xuống file sao lưu dữ liệu SleepSync JSON.', 'success');
+        showAppToast('Xuất sao lưu', 'Đã tải xuống file sao lưu dữ liệu Mavis chúc bạn ngủ ngon JSON.', 'success');
       }
     });
   }
@@ -3174,7 +3262,7 @@ function renderActiveUserProfile() {
   if (profileName) {
     profileName.innerHTML = `${user.fullName} <i class="fa-solid fa-circle-check verified-badge" style="color: #38BDF8; font-size: 0.95rem; margin-left: 4px;" title="Tài khoản đã xác minh"></i>`;
   }
-  if (profileRole) profileRole.textContent = user.role || user.occupation || 'Thành viên SleepSync';
+  if (profileRole) profileRole.textContent = user.role || user.occupation || 'Thành viên Mavis';
   if (profileBio) profileBio.textContent = user.bio || 'Mục tiêu cải thiện chất lượng giấc ngủ';
 
   // 3. Streak Stats (Duolingo Style)
@@ -3461,7 +3549,7 @@ function initUserAuthModal() {
           fullName,
           phone,
           password: password || '123456',
-          role: role || 'Thành viên SleepSync',
+          role: role || 'Thành viên Mavis',
           occupation: role || 'Tự do',
           age: age || '28 tuổi',
           targetBedtime: targetBedtime || '23:00',

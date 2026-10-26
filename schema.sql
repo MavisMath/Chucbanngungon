@@ -1,5 +1,5 @@
 -- ==============================================================================
--- MAVIS SLEEPSYNC AI - SQL DATABASE SCHEMA
+-- MAVIS CHÚC BẠN NGỦ NGON - SQL DATABASE SCHEMA
 -- Compatible with SQLite, PostgreSQL, and MySQL
 -- ==============================================================================
 
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone TEXT UNIQUE NOT NULL,
     email TEXT,
     password_hash TEXT NOT NULL,
-    role TEXT DEFAULT 'Thành viên SleepSync',
+    role TEXT DEFAULT 'Thành viên Mavis',
     bio TEXT DEFAULT 'Mục tiêu cải thiện chất lượng giấc ngủ sâu NREM 💤',
     age TEXT DEFAULT '28 tuổi',
     gender TEXT DEFAULT 'Khác',
