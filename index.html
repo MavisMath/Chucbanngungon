@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/icon-192.png">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=20261105_12">
+  <link rel="stylesheet" href="styles.css?v=20261105_13">
   
   <!-- Immediate Google OAuth Popup Bridge (For seamless 1-click popup login) -->
   <script>
@@ -2309,20 +2309,20 @@
 
       <!-- PANE 1: ĐĂNG NHẬP (LOGIN) -->
       <div id="pane-auth-login" class="auth-pane">
-        <!-- 1-Click Google Sign-In -->
+        <!-- 1-Click Google Sign-In: 1 Single Elegant Button Only -->
         <div class="google-auth-wrapper" style="width: 100%; margin-top: 0.5rem; margin-bottom: 0.85rem;">
-          <!-- Official Google Render Button Container -->
-          <div id="g_id_signin_container" style="display: flex; justify-content: center; width: 100%; margin-bottom: 0.45rem;"></div>
-          <button type="button" class="btn-google-primary-auth" id="btn-social-google" onclick="window.loginWithRealGoogle && window.loginWithRealGoogle()" title="Đăng nhập bảo mật 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-            <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
-              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
-              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
-              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-            </svg>
-            <span class="btn-google-text" style="letter-spacing: -0.01em; color: #1E293B;">Tiếp tục với tài khoản Google</span>
-            <span class="google-badge-quick" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: auto; border: 1px solid rgba(16, 185, 129, 0.25);">1 chạm</span>
-          </button>
+          <div id="g_id_signin_container" style="display: flex; justify-content: center; width: 100%; min-height: 44px;">
+            <button type="button" class="btn-google-primary-auth" id="btn-social-google" onclick="window.loginWithRealGoogle && window.loginWithRealGoogle()" title="Đăng nhập bảo mật 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+              <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span class="btn-google-text" style="letter-spacing: -0.01em; color: #1E293B;">Tiếp tục với tài khoản Google</span>
+              <span class="google-badge-quick" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: auto; border: 1px solid rgba(16, 185, 129, 0.25);">1 chạm</span>
+            </button>
+          </div>
           <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; font-size: 0.74rem; color: #94A3B8;">
             <i class="fa-solid fa-shield-halved" style="color: #10B981;"></i>
             <span>Bảo mật qua Google OAuth 2.0 • Không lưu mật khẩu</span>
@@ -2368,19 +2368,20 @@
 
       <!-- PANE 2: ĐĂNG KÝ (REGISTER) -->
       <div id="pane-auth-register" class="auth-pane" style="display: none;">
-        <!-- 1-Click Google Sign-In for register as well -->
+        <!-- 1-Click Google Sign-In for register: 1 Single Elegant Button Only -->
         <div class="google-auth-wrapper" style="width: 100%; margin-top: 0.5rem; margin-bottom: 0.85rem;">
-          <div id="g_id_signin_container_reg" style="display: flex; justify-content: center; width: 100%; margin-bottom: 0.45rem;"></div>
-          <button type="button" class="btn-google-primary-auth" id="btn-social-google-reg" onclick="window.loginWithRealGoogle && window.loginWithRealGoogle()" title="Đăng ký nhanh 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-            <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
-              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
-              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
-              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-            </svg>
-            <span class="btn-google-text" style="letter-spacing: -0.01em; color: #1E293B;">Đăng ký nhanh bằng Google</span>
-            <span class="google-badge-quick" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: auto; border: 1px solid rgba(16, 185, 129, 0.25);">1 chạm</span>
-          </button>
+          <div id="g_id_signin_container_reg" style="display: flex; justify-content: center; width: 100%; min-height: 44px;">
+            <button type="button" class="btn-google-primary-auth" id="btn-social-google-reg" onclick="window.loginWithRealGoogle && window.loginWithRealGoogle()" title="Đăng ký nhanh 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+              <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span class="btn-google-text" style="letter-spacing: -0.01em; color: #1E293B;">Đăng ký nhanh bằng Google</span>
+              <span class="google-badge-quick" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: auto; border: 1px solid rgba(16, 185, 129, 0.25);">1 chạm</span>
+            </button>
+          </div>
         </div>
 
         <div class="social-divider-wrap" style="margin: 1.1rem 0;">
@@ -2579,10 +2580,10 @@
   </button>
 
   <!-- Client Database Engine -->
-  <script src="db.js?v=20261105_12"></script>
+  <script src="db.js?v=20261105_13"></script>
   <!-- RAG Knowledge Base & AI Chatbot Engine -->
-  <script src="rag.js?v=20261105_12"></script>
+  <script src="rag.js?v=20261105_13"></script>
   <!-- Main Javascript Logic -->
-  <script src="app.js?v=20261105_12"></script>
+  <script src="app.js?v=20261105_13"></script>
 </body>
 </html>
