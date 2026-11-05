@@ -727,12 +727,22 @@ function goToWizardStep(step) {
   }
 }
 
-// Render dynamic summary confirmation table at Step 6
+// Render dynamic compact 5-pillar cards & detailed table at Step 6
 function renderConfirmationSummaryTable() {
+  const compactGrid = document.getElementById('summary-pillars-compact-grid');
   const tbody = document.getElementById('summary-confirmation-tbody');
-  if (!tbody) return;
+  if (tbody) tbody.innerHTML = '';
+  if (compactGrid) compactGrid.innerHTML = '';
 
-  tbody.innerHTML = '';
+  const PILLARS_CONFIG = [
+    { id: 1, name: '1. Tâm Lý & Căng Thẳng', icon: 'fa-brain', keys: ['stress_level', 'mood_state'] },
+    { id: 2, name: '2. Môi Trường Phòng Ngủ', icon: 'fa-house-chimney-window', keys: ['env_light', 'env_temp', 'env_noise'] },
+    { id: 3, name: '3. Thói Quen & Lối Sống', icon: 'fa-mug-hot', keys: ['caffeine_usage', 'alcohol_nicotine', 'dinner_habit', 'bed_phone'] },
+    { id: 4, name: '4. Sinh Lý & Nội Tiết', icon: 'fa-venus-mars', keys: ['age_group', 'hormone_state'] },
+    { id: 5, name: '5. Bệnh Lý & Thể Chất', icon: 'fa-stethoscope', keys: ['physical_pain', 'chronic_condition'] }
+  ];
+
+  const answersByPillar = { 1: [], 2: [], 3: [], 4: [], 5: [] };
 
   QUESTION_METADATA.forEach(item => {
     const grid = document.querySelector(`.options-grid[data-question="${item.key}"]`);
@@ -740,6 +750,7 @@ function renderConfirmationSummaryTable() {
     const customInput = qBlock ? qBlock.querySelector('.custom-answer-input') : null;
     
     let selectedLabels = [];
+    let pillarPillBadges = [];
 
     if (grid) {
       grid.querySelectorAll('.opt-btn.selected').forEach(btn => {
@@ -748,13 +759,16 @@ function renderConfirmationSummaryTable() {
           const customVal = (AppState.customAnswers && AppState.customAnswers[item.key]) || (customInput ? customInput.value.trim() : '');
           if (customVal) {
             selectedLabels.push(`<span class="answer-badge badge-custom"><i class="fa-solid fa-pen-nib"></i> Khác: <strong>${escapeHtml(customVal)}</strong></span>`);
+            pillarPillBadges.push(`<span class="summary-pillar-badge badge-custom-pill"><i class="fa-solid fa-pen-nib"></i> ${escapeHtml(customVal.slice(0, 24))}${customVal.length > 24 ? '...' : ''}</span>`);
           } else {
-            selectedLabels.push(`<span class="answer-badge badge-custom"><i class="fa-solid fa-pen-nib"></i> Khác: <em>(chưa điền nội dung)</em></span>`);
+            selectedLabels.push(`<span class="answer-badge badge-custom"><i class="fa-solid fa-pen-nib"></i> Khác: <em>(chưa điền)</em></span>`);
+            pillarPillBadges.push(`<span class="summary-pillar-badge badge-custom-pill"><i class="fa-solid fa-pen-nib"></i> Khác</span>`);
           }
         } else {
           const strongText = btn.querySelector('strong')?.textContent.trim() || val;
           const icon = btn.querySelector('.opt-icon')?.textContent.trim() || '•';
           selectedLabels.push(`<span class="answer-badge">${icon} ${escapeHtml(strongText)}</span>`);
+          pillarPillBadges.push(`<span class="summary-pillar-badge">${icon} ${escapeHtml(strongText)}</span>`);
         }
       });
     }
@@ -763,14 +777,66 @@ function renderConfirmationSummaryTable() {
       selectedLabels.push(`<span class="answer-badge badge-empty"><em>Chưa chọn</em></span>`);
     }
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><span class="pillar-tag-badge"><i class="fa-solid ${item.icon}"></i> ${item.pillar}</span></td>
-      <td class="survey-question-cell"><strong>${item.title}</strong></td>
-      <td class="survey-answer-cell">${selectedLabels.join(' ')}</td>
-    `;
-    tbody.appendChild(tr);
+    // Determine pillar id
+    let pId = 1;
+    if (['env_light', 'env_temp', 'env_noise'].includes(item.key)) pId = 2;
+    else if (['caffeine_usage', 'alcohol_nicotine', 'dinner_habit', 'bed_phone'].includes(item.key)) pId = 3;
+    else if (['age_group', 'hormone_state'].includes(item.key)) pId = 4;
+    else if (['physical_pain', 'chronic_condition'].includes(item.key)) pId = 5;
+
+    if (pillarPillBadges.length > 0) {
+      answersByPillar[pId].push(...pillarPillBadges);
+    }
+
+    if (tbody) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="pillar-tag-badge"><i class="fa-solid ${item.icon}"></i> ${item.pillar}</span></td>
+        <td class="survey-question-cell"><strong>${item.title}</strong></td>
+        <td class="survey-answer-cell">${selectedLabels.join(' ')}</td>
+      `;
+      tbody.appendChild(tr);
+    }
   });
+
+  // Render Compact 5 Pillar Cards
+  if (compactGrid) {
+    PILLARS_CONFIG.forEach(p => {
+      const badges = answersByPillar[p.id];
+      const badgesHtml = badges.length > 0
+        ? badges.join('')
+        : `<span class="summary-pillar-badge" style="opacity:0.6;"><em>Mặc định ổn định</em></span>`;
+
+      const card = document.createElement('div');
+      card.className = 'summary-pillar-card';
+      card.innerHTML = `
+        <div class="summary-pillar-card-header">
+          <i class="fa-solid ${p.icon}"></i>
+          <span>${p.name}</span>
+        </div>
+        <div class="summary-pillar-badges-wrap">
+          ${badgesHtml}
+        </div>
+      `;
+      compactGrid.appendChild(card);
+    });
+  }
+
+  // Progressive Disclosure: Toggle Detailed Table
+  const toggleBtn = document.getElementById('toggle-summary-details-btn');
+  const tableContainer = document.getElementById('summary-table-collapsible');
+  const icon = document.getElementById('toggle-summary-icon');
+  const btnText = document.getElementById('toggle-summary-btn-text');
+
+  if (toggleBtn && tableContainer && !toggleBtn._hasInit) {
+    toggleBtn._hasInit = true;
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = tableContainer.style.display === 'none';
+      tableContainer.style.display = isHidden ? 'block' : 'none';
+      if (icon) icon.classList.toggle('is-active', isHidden);
+      if (btnText) btnText.textContent = isHidden ? 'Thu gọn chi tiết câu hỏi' : 'Xem chi tiết 13 câu trả lời';
+    });
+  }
 }
 
 function escapeHtml(str) {
@@ -1894,6 +1960,32 @@ function renderDashboard(data) {
   document.getElementById('latency-val').textContent = `~${data.latency || 25} phút`;
   document.getElementById('deep-sleep-val').textContent = `${data.deepSleepPct}% (${data.deepSleepPct >= 18 ? 'Đạt chuẩn' : 'Hơi thấp'})`;
   document.getElementById('rem-sleep-val').textContent = `${data.remSleepPct}% (Phục hồi cảm xúc)`;
+
+  // Toggle Sub-metrics
+  const toggleSmBtn = document.getElementById('toggle-submetrics-btn');
+  const smCollapsible = document.getElementById('submetrics-collapsible');
+  const smIcon = document.getElementById('toggle-sm-icon');
+  if (toggleSmBtn && smCollapsible && !toggleSmBtn._hasInit) {
+    toggleSmBtn._hasInit = true;
+    toggleSmBtn.addEventListener('click', () => {
+      const isHidden = smCollapsible.style.display === 'none';
+      smCollapsible.style.display = isHidden ? 'grid' : 'none';
+      if (smIcon) smIcon.classList.toggle('is-active', isHidden);
+    });
+  }
+
+  // Toggle Brain Details Note
+  const toggleBrainBtn = document.getElementById('toggle-brain-details-btn');
+  const brainCollapsible = document.getElementById('brain-details-collapsible');
+  const brainIcon = document.getElementById('toggle-brain-icon');
+  if (toggleBrainBtn && brainCollapsible && !toggleBrainBtn._hasInit) {
+    toggleBrainBtn._hasInit = true;
+    toggleBrainBtn.addEventListener('click', () => {
+      const isHidden = brainCollapsible.style.display === 'none';
+      brainCollapsible.style.display = isHidden ? 'block' : 'none';
+      if (brainIcon) brainIcon.classList.toggle('is-active', isHidden);
+    });
+  }
 
   // 5 Pillars Breakdown Bars
   const p = data.pillars;

@@ -6662,3 +6662,157 @@ body.chat-is-resizing {
   margin-bottom: 0.2rem;
 }
 
+
+
+/* ==============================================================================
+   PROGRESSIVE DISCLOSURE & COMPACT TEXT OPTIMIZATIONS (STEP 6 & RESULTS)
+   ============================================================================== */
+
+/* Step 6 Compact 5-Pillars Grid */
+.summary-pillars-compact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 1.25rem 0 0.85rem 0;
+}
+
+.summary-pillar-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.summary-pillar-card:hover {
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(99, 102, 241, 0.35);
+  transform: translateY(-2px);
+}
+
+.summary-pillar-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #94A3B8;
+}
+
+.summary-pillar-card-header i {
+  color: #818CF8;
+}
+
+.summary-pillar-badges-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.summary-pillar-badge {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #F8FAFC;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.summary-pillar-badge.badge-custom-pill {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #FBBF24;
+}
+
+/* Progressive Disclosure Toggle Buttons */
+.summary-toggle-wrap,
+.sub-metrics-toggle-wrap,
+.brain-toggle-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0.75rem 0;
+}
+
+.btn-toggle-summary-details,
+.btn-toggle-submetrics,
+.btn-toggle-brain-details {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94A3B8;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-summary-details:hover,
+.btn-toggle-submetrics:hover,
+.btn-toggle-brain-details:hover {
+  background: rgba(51, 65, 85, 0.85);
+  color: #F8FAFC;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.toggle-icon,
+.toggle-sm-icon,
+.toggle-brain-icon {
+  font-size: 0.7rem;
+  transition: transform 0.25s ease;
+}
+
+.toggle-icon.is-active,
+.toggle-sm-icon.is-active,
+.toggle-brain-icon.is-active {
+  transform: rotate(180deg);
+}
+
+/* Compact Confirm Bar */
+.confirm-bar-compact {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-bar-compact .confirm-check-control {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: #E2E8F0;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Brain details note collapsible */
+.brain-details-note {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  color: #94A3B8;
+  line-height: 1.45;
+}
+
+.brain-details-note p {
+  margin: 4px 0;
+}

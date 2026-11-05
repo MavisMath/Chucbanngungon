@@ -885,13 +885,27 @@
           <!-- STEP 6: Bảng Tổng Hợp & Xác Nhận Chắc Chắn Thông Tin -->
           <div class="wizard-step-pane" id="wizard-step-6">
             <div class="step-header">
-              <span class="step-badge"><i class="fa-solid fa-clipboard-check"></i> Bước 6: Rà Soát & Xác Nhận Dữ Liệu Khảo Sát</span>
-              <h3 class="step-headline">Bảng tổng hợp toàn bộ thông tin bạn đã lựa chọn</h3>
-              <p class="step-subtext">Vui lòng rà soát kỹ các câu trả lời bạn đã chọn hoặc tự điền dưới đây trước khi AI tiến hành phân tích y khoa chuyên sâu.</p>
+              <span class="step-badge"><i class="fa-solid fa-clipboard-check"></i> Bước 6: Rà Soát Dữ Liệu</span>
+              <h3 class="step-headline">Tóm tắt các thông tin bạn đã chọn</h3>
+              <p class="step-subtext">Xem nhanh 5 trụ cột y khoa trước khi AI tiến hành tính toán phác đồ tối ưu.</p>
             </div>
 
-            <!-- Bảng tổng hợp các thông tin đã chọn -->
-            <div class="summary-table-container">
+            <!-- Tóm tắt 5 Trụ Cột dạng Card Compact (Siêu gọn) -->
+            <div class="summary-pillars-compact-grid" id="summary-pillars-compact-grid">
+              <!-- Được sinh tự động bằng JavaScript -->
+            </div>
+
+            <!-- Nút bấm Progressive Disclosure: Xem chi tiết 13 câu trả lời -->
+            <div class="summary-toggle-wrap">
+              <button type="button" class="btn-toggle-summary-details" id="toggle-summary-details-btn">
+                <i class="fa-solid fa-list-check"></i>
+                <span id="toggle-summary-btn-text">Xem chi tiết 13 câu trả lời</span>
+                <i class="fa-solid fa-chevron-down toggle-icon" id="toggle-summary-icon"></i>
+              </button>
+            </div>
+
+            <!-- Bảng tổng hợp chi tiết (Mặc định ẩn) -->
+            <div class="summary-table-container" id="summary-table-collapsible" style="display: none;">
               <table class="summary-table" id="summary-confirmation-table">
                 <thead>
                   <tr>
@@ -906,22 +920,16 @@
               </table>
             </div>
 
-            <!-- Khối câu hỏi xác nhận chắc chắn -->
-            <div class="confirmation-action-card">
-              <div class="confirm-card-icon">
-                <i class="fa-solid fa-shield-heart"></i>
-              </div>
-              <div class="confirm-card-details">
-                <h4 class="confirm-card-title">Bạn có chắc chắn với toàn bộ thông tin bạn vừa đưa ra ở trên không?</h4>
-                <p class="confirm-card-desc">Dữ liệu này sẽ được dùng để phân tích chuẩn xác trục HPA (Cortisol), cơ chế tiết Melatonin nội sinh và phác đồ vi-hành động tối ưu nhất cho bạn.</p>
-                <label class="confirm-check-control" for="user-info-confirm-checkbox">
-                  <input type="checkbox" id="user-info-confirm-checkbox" checked>
-                  <span class="confirm-indicator"><i class="fa-solid fa-check"></i></span>
-                  <span class="confirm-text">
-                    <strong>Tôi xác nhận và chắc chắn</strong> các thông tin trên là hoàn toàn chính xác theo thực tế của tôi.
-                  </span>
-                </label>
-              </div>
+            <!-- Khối xác nhận tinh gọn 1 dòng -->
+            <div class="confirm-bar-compact">
+              <label class="confirm-check-control" for="user-info-confirm-checkbox">
+                <input type="checkbox" id="user-info-confirm-checkbox" checked>
+                <span class="confirm-indicator"><i class="fa-solid fa-check"></i></span>
+                <span class="confirm-text">
+                  <i class="fa-solid fa-shield-halved" style="color: var(--emerald-safe); margin-right: 4px;"></i>
+                  Tôi xác nhận các thông tin trên là chính xác theo thực tế của tôi
+                </span>
+              </label>
             </div>
           </div>
 
@@ -1140,23 +1148,32 @@
               <div class="score-text-details">
                 <div class="status-badge-wrap">
                   <span class="status-badge" id="sleep-status-badge">Bình thường</span>
-                  <span class="risk-badge" id="sleep-risk-badge">Cần can thiệp chiều nay</span>
+                  <span class="risk-badge" id="sleep-risk-badge" style="display: none;">Cần can thiệp chiều nay</span>
                 </div>
-                <h3 class="score-title" id="score-verdict-title">Dự Báo Chất Lượng Giấc Ngủ Đêm Nay</h3>
+                <h3 class="score-title" id="score-verdict-title">Dự Báo Chất Lượng Giấc Ngủ</h3>
                 <p class="score-explanation" id="score-verdict-desc">
                   Phân tích dựa trên tổng hợp 5 trụ cột y tế.
                 </p>
-                <div class="score-sub-metrics">
+
+                <!-- Progressive Disclosure: Toggle chỉ số sinh học -->
+                <div class="sub-metrics-toggle-wrap">
+                  <button type="button" class="btn-toggle-submetrics" id="toggle-submetrics-btn">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Chi tiết chỉ số giấc ngủ</span>
+                    <i class="fa-solid fa-chevron-down toggle-sm-icon" id="toggle-sm-icon"></i>
+                  </button>
+                </div>
+                <div class="score-sub-metrics" id="submetrics-collapsible" style="display: none;">
                   <div class="sub-metric">
-                    <span class="sm-label"><i class="fa-regular fa-clock"></i> Thời gian chìm vào giấc ngủ:</span>
-                    <strong class="sm-value" id="latency-val">~28 phút</strong>
+                    <span class="sm-label"><i class="fa-regular fa-clock"></i> Thời gian vào giấc:</span>
+                    <strong class="sm-value" id="latency-val">~25 phút</strong>
                   </div>
                   <div class="sub-metric">
-                    <span class="sm-label"><i class="fa-solid fa-bed"></i> Giấc ngủ sâu (Deep NREM):</span>
-                    <strong class="sm-value" id="deep-sleep-val">14% (Kém)</strong>
+                    <span class="sm-label"><i class="fa-solid fa-bed"></i> Giấc ngủ sâu (NREM):</span>
+                    <strong class="sm-value" id="deep-sleep-val">14%</strong>
                   </div>
                   <div class="sub-metric">
-                    <span class="sm-label"><i class="fa-solid fa-moon"></i> Giấc ngủ REM (Phục hồi trí não):</span>
+                    <span class="sm-label"><i class="fa-solid fa-moon"></i> Giấc ngủ REM:</span>
                     <strong class="sm-value" id="rem-sleep-val">18%</strong>
                   </div>
                 </div>
@@ -1166,13 +1183,13 @@
 
           <!-- 5 Pillars Radar / Breakdown Card -->
           <div class="card glass-card biometric-card">
-            <h4 class="card-inner-title"><i class="fa-solid fa-chart-simple"></i> Điểm Rủi Ro 5 Trụ Cột Y Khoa</h4>
+            <h4 class="card-inner-title"><i class="fa-solid fa-chart-simple"></i> Điểm Rủi Ro 5 Trụ Cột</h4>
             
             <div class="biometric-bars-group">
               <!-- Pillar 1 -->
               <div class="bio-bar-item">
                 <div class="bio-bar-header">
-                  <span>1. Tâm lý & Stress (Cortisol)</span>
+                  <span>1. Tâm lý & Căng thẳng</span>
                   <strong id="bar-p1-text">Vừa phải</strong>
                 </div>
                 <div class="bar-track">
@@ -1183,7 +1200,7 @@
               <!-- Pillar 2 -->
               <div class="bio-bar-item">
                 <div class="bio-bar-header">
-                  <span>2. Môi trường (Ánh sáng/Nhiệt độ)</span>
+                  <span>2. Môi trường phòng ngủ</span>
                   <strong id="bar-p2-text">Tốt</strong>
                 </div>
                 <div class="bar-track">
@@ -1194,7 +1211,7 @@
               <!-- Pillar 3 -->
               <div class="bio-bar-item">
                 <div class="bio-bar-header">
-                  <span>3. Lối sống (Caffeine / Rượu / Điện thoại)</span>
+                  <span>3. Thói quen & Lối sống</span>
                   <strong id="bar-p3-text">Nguy cơ cao</strong>
                 </div>
                 <div class="bar-track">
@@ -1205,7 +1222,7 @@
               <!-- Pillar 4 -->
               <div class="bio-bar-item">
                 <div class="bio-bar-header">
-                  <span>4. Sinh lý & Nội tiết (Tuổi/Hormone)</span>
+                  <span>4. Sinh lý & Nội tiết</span>
                   <strong id="bar-p4-text">Bình thường</strong>
                 </div>
                 <div class="bar-track">
@@ -1216,7 +1233,7 @@
               <!-- Pillar 5 -->
               <div class="bio-bar-item">
                 <div class="bio-bar-header">
-                  <span>5. Bệnh lý & Đau nhức (GERD / Xương khớp)</span>
+                  <span>5. Bệnh lý & Thể chất</span>
                   <strong id="bar-p5-text">Ổn định</strong>
                 </div>
                 <div class="bar-track">
@@ -1232,21 +1249,32 @@
               <span class="brain-icon"><i class="fa-solid fa-brain"></i></span>
               <div>
                 <h4 class="card-inner-title">Dự Báo Não Bộ Sáng Mai</h4>
-                <p class="card-inner-subtitle">So sánh nếu KHÔNG can thiệp vs. SAU KHI làm theo lịch AI</p>
+                <p class="card-inner-subtitle">So sánh khi có vs. không can thiệp</p>
               </div>
             </div>
 
             <div class="brain-compare-grid">
               <div class="compare-box bad">
-                <div class="compare-tag"><i class="fa-solid fa-triangle-exclamation"></i> Nếu không can thiệp</div>
+                <div class="compare-tag"><i class="fa-solid fa-triangle-exclamation"></i> Không can thiệp</div>
                 <div class="brain-metric-num" id="no-action-focus">45%</div>
-                <p class="compare-text" id="no-action-text">Não bộ bị sương mù (Brain Fog), khó tập trung vào buổi sáng, phản xạ chậm, dễ bực bội.</p>
+                <p class="compare-text" id="no-action-text">Sương mù não • Mất tập trung • Phản xạ chậm</p>
               </div>
               <div class="compare-box good">
-                <div class="compare-tag"><i class="fa-solid fa-circle-check"></i> Sau khi theo lịch AI</div>
+                <div class="compare-tag"><i class="fa-solid fa-circle-check"></i> Theo lịch AI</div>
                 <div class="brain-metric-num" id="action-focus">94%</div>
-                <p class="compare-text" id="action-text">Tỉnh táo sau 15p thức dậy, trí nhớ làm việc sắc bén, tinh thần thoải mái, hiệu suất làm việc đỉnh cao.</p>
+                <p class="compare-text" id="action-text">Tỉnh táo sau 15p • Trí nhớ sắc bén • Hiệu suất đỉnh</p>
               </div>
+            </div>
+
+            <div class="brain-toggle-wrap">
+              <button type="button" class="btn-toggle-brain-details" id="toggle-brain-details-btn">
+                <span>Giải thích cơ chế y khoa</span>
+                <i class="fa-solid fa-chevron-down toggle-brain-icon" id="toggle-brain-icon"></i>
+              </button>
+            </div>
+            <div class="brain-details-note" id="brain-details-collapsible" style="display: none;">
+              <p>• <strong>Không can thiệp</strong>: Áp lực Adenosine và Cortisol lệch pha khiến não bộ uể oải, suy giảm trí nhớ tạm thời.</p>
+              <p>• <strong>Theo lịch AI</strong>: Các vi-hành động giúp hạ thân nhiệt trung tâm và giải phóng Melatonin đúng nhịp NREM sâu.</p>
             </div>
           </div>
 
@@ -1260,11 +1288,10 @@
             </div>
             <div class="ai-header-meta">
               <div class="ai-badge-row">
-                <span class="ai-tag-sparkle"><i class="fa-solid fa-brain"></i> AI Phân Tích Chuyên Sâu</span>
-                <span class="ai-tag-context" id="ai-analysis-model-tag">Động Cơ Kép (Dual-Engine AI)</span>
+                <span class="ai-tag-sparkle"><i class="fa-solid fa-brain"></i> Phân Tích Chuyên Sâu</span>
+                <span class="ai-tag-context" id="ai-analysis-model-tag">Google Gemini AI</span>
               </div>
-              <h3 class="ai-custom-title">Bóc Tách & Thấu Hiểu Riêng Cho Bạn (Từ Các Ý Kiến Tự Điền)</h3>
-              <p class="ai-custom-subtitle">AI đã đọc hiểu từng câu chữ bạn chia sẻ ở mục "Khác" và đối chiếu cùng nhịp sinh học hiện tại của bạn.</p>
+              <h3 class="ai-custom-title">✨ Phân Tích Ý Kiến Riêng Của Bạn</h3>
             </div>
           </div>
           <div class="ai-insights-grid" id="ai-insights-grid">
