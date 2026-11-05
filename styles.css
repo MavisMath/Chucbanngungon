@@ -5950,18 +5950,28 @@ body.chat-is-resizing {
   animation: fadeInDown 0.25s ease;
 }
 
-.auth-feedback-banner.feedback-error {
-  display: flex;
-  background: rgba(244, 63, 94, 0.16);
-  border: 1px solid rgba(244, 63, 94, 0.35);
-  color: #FDA4AF;
+.auth-feedback-banner.feedback-error,
+.auth-feedback-banner.error {
+  display: flex !important;
+  background: rgba(239, 68, 68, 0.18) !important;
+  border: 1.5px solid rgba(239, 68, 68, 0.45) !important;
+  color: #FDA4AF !important;
 }
 
-.auth-feedback-banner.feedback-success {
-  display: flex;
-  background: rgba(16, 185, 129, 0.16);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #6EE7B7;
+.auth-feedback-banner.feedback-warning,
+.auth-feedback-banner.warning {
+  display: flex !important;
+  background: rgba(245, 158, 11, 0.18) !important;
+  border: 1.5px solid rgba(245, 158, 11, 0.45) !important;
+  color: #FCD34D !important;
+}
+
+.auth-feedback-banner.feedback-success,
+.auth-feedback-banner.success {
+  display: flex !important;
+  background: rgba(16, 185, 129, 0.18) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.45) !important;
+  color: #6EE7B7 !important;
 }
 
 @keyframes fadeInDown {

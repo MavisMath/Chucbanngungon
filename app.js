@@ -3658,8 +3658,9 @@ function initUserAuthModal() {
     });
   }
 
-  // 1-Click Google Sign-In (Official & Polished)
+  // 1-Click Google Sign-In (Multi-Tier Robust Implementation)
   const btnGoogle = document.getElementById('btn-social-google');
+  const btnGoogleReg = document.getElementById('btn-social-google-reg');
   const GOOGLE_CLIENT_ID = '806720661410-fg45fqhpgqtv9166p4rthkr6rrp37mjg.apps.googleusercontent.com';
 
   // Helper to parse JWT ID Token from Google
@@ -3694,10 +3695,104 @@ function initUserAuthModal() {
     }
   };
 
+  // Check pending access token from session storage (Redirect flow fallback)
+  const checkPendingGoogleToken = async () => {
+    try {
+      const pendingToken = window.sessionStorage.getItem('mavis_google_pending_token');
+      if (pendingToken) {
+        window.sessionStorage.removeItem('mavis_google_pending_token');
+        showAppToast('Đang kết nối Google...', 'Đang xác thực thông tin tài khoản...', 'info');
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${pendingToken}` }
+        });
+        if (res.ok) {
+          const profile = await res.json();
+          await handleGoogleSuccess(profile);
+        }
+      }
+    } catch (err) {
+      console.warn('[Pending Google Token Error]', err);
+    }
+  };
+  checkPendingGoogleToken();
+
+  // Render official Google Sign-In Buttons if library is loaded
+  function renderOfficialGoogleButtons() {
+    try {
+      if (window.google && google.accounts && google.accounts.id) {
+        const cLogin = document.getElementById('g_id_signin_container');
+        if (cLogin && !cLogin.hasChildNodes()) {
+          google.accounts.id.renderButton(cLogin, {
+            theme: 'outline',
+            size: 'large',
+            type: 'standard',
+            shape: 'rectangular',
+            text: 'continue_with',
+            logo_alignment: 'left',
+            width: cLogin.offsetWidth || 340
+          });
+        }
+        const cReg = document.getElementById('g_id_signin_container_reg');
+        if (cReg && !cReg.hasChildNodes()) {
+          google.accounts.id.renderButton(cReg, {
+            theme: 'outline',
+            size: 'large',
+            type: 'standard',
+            shape: 'rectangular',
+            text: 'signup_with',
+            logo_alignment: 'left',
+            width: cReg.offsetWidth || 340
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[Render Official Google Buttons Warning]', e);
+    }
+  }
+
   let googleTokenClient = null;
 
-  const loginWithRealGoogle = () => {
+  const loginWithRealGoogle = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     hideAuthFeedback();
+
+    if (window.SoundFX && window.SoundFX.tap) {
+      try { window.SoundFX.tap(); } catch(err) {}
+    }
+
+    const resetButtons = () => {
+      if (btnGoogle) {
+        btnGoogle.disabled = false;
+        btnGoogle.innerHTML = `
+          <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span class="btn-google-text" style="letter-spacing: -0.01em; color: #1E293B;">Tiếp tục với tài khoản Google</span>
+          <span class="google-badge-quick" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: auto; border: 1px solid rgba(16, 185, 129, 0.25);">1 chạm</span>
+        `;
+      }
+    };
+
+    if (btnGoogle) {
+      btnGoogle.disabled = true;
+      btnGoogle.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang kết nối tới Google...</span>';
+    }
+
+    // Direct OAuth Popup fallback URL
+    const openDirectGooglePopup = () => {
+      const redirectUri = window.location.origin;
+      const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=openid%20profile%20email&prompt=select_account`;
+      const win = window.open(oauthUrl, 'GoogleSignInPopup', 'width=520,height=630,menubar=no,status=no,toolbar=no');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = oauthUrl;
+      }
+      setTimeout(resetButtons, 3000);
+    };
+
+    // Tier 1: Try Google Identity Services OAuth2 Token Client
     if (window.google && google.accounts && google.accounts.oauth2) {
       try {
         if (!googleTokenClient) {
@@ -3705,11 +3800,14 @@ function initUserAuthModal() {
             client_id: GOOGLE_CLIENT_ID,
             scope: 'openid email profile',
             callback: async (tokenResponse) => {
+              resetButtons();
               if (tokenResponse.error) {
                 console.error('[Google OAuth Error]', tokenResponse);
                 let msg = 'Đăng nhập Google bị hủy hoặc gặp lỗi: ' + (tokenResponse.error_description || tokenResponse.error);
                 if (tokenResponse.error === 'access_denied') {
-                  msg = 'Tài khoản Google này chưa được cấp quyền (Ứng dụng đang ở chế độ Thử nghiệm trong Google Console).';
+                  msg = 'Tài khoản Google này chưa nằm trong danh sách Người Dùng Thử Nghiệm trong Google Cloud Console.';
+                } else if (tokenResponse.error === 'origin_mismatch') {
+                  msg = `Miền hiện tại (${window.location.origin}) chưa được thêm vào "Nguồn gốc JavaScript được ủy quyền" trong Google Console.`;
                 }
                 showAuthFeedback(msg, 'error');
                 return;
@@ -3730,16 +3828,34 @@ function initUserAuthModal() {
           });
         }
         googleTokenClient.requestAccessToken({ prompt: 'select_account' });
+        setTimeout(resetButtons, 4000);
+        return;
       } catch (err) {
-        console.error('[TokenClient Init Error]', err);
-        showAuthFeedback(`Không thể khởi tạo đăng nhập Google: ${err.message}`, 'error');
+        console.warn('[TokenClient Init Warning, falling back to direct popup]', err);
       }
-    } else {
-      showAuthFeedback('Thư viện Google Identity Services chưa tải xong hoặc bị chặn bởi trình duyệt. Vui lòng tắt chặn quảng cáo/cookie bên thứ ba và tải lại trang.', 'warning');
     }
+
+    // Tier 2: Try Google One-Tap Prompt
+    if (window.google && google.accounts && google.accounts.id) {
+      try {
+        google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            console.log('[Google One-Tap Skipped, launching direct popup]');
+            openDirectGooglePopup();
+          }
+        });
+        setTimeout(resetButtons, 4000);
+        return;
+      } catch (e) {
+        console.warn('[Google One-Tap prompt warning]', e);
+      }
+    }
+
+    // Tier 3: Direct Official Popup Fallback
+    openDirectGooglePopup();
   };
 
-  // Google One-Tap background initialization
+  // Google One-Tap & Official Button Initialization
   try {
     if (window.google && google.accounts && google.accounts.id) {
       google.accounts.id.initialize({
@@ -3759,12 +3875,18 @@ function initUserAuthModal() {
           }
         }
       });
+      renderOfficialGoogleButtons();
+    } else {
+      // Retry rendering when library finishes loading
+      window.addEventListener('load', () => {
+        setTimeout(renderOfficialGoogleButtons, 500);
+      });
     }
   } catch (e) {
     console.warn('[Google One-Tap Init Notice]', e);
   }
 
-  const btnGoogleReg = document.getElementById('btn-social-google-reg');
+  window.runGoogleLogin = loginWithRealGoogle;
   window.loginWithRealGoogle = loginWithRealGoogle;
   if (btnGoogle) btnGoogle.addEventListener('click', loginWithRealGoogle);
   if (btnGoogleReg) btnGoogleReg.addEventListener('click', loginWithRealGoogle);
