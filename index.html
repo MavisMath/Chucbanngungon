@@ -1388,115 +1388,137 @@
 
       </section>
 
-      <!-- Integrated Audio Player Modal / Drawer (Built with Web Audio API) -->
-      <section id="sound-player-drawer" class="card glass-card sound-player-drawer" style="display: none;">
-        <div class="player-header">
-          <div class="player-title-wrap">
-            <div class="sound-wave-icon"><i class="fa-solid fa-radio"></i></div>
+        <!-- SLEEP SOUNDSCAPE CALLOUT BANNER (Compact & Elegant 1-Row CTA) -->
+        <div class="soundscape-callout-banner">
+          <div class="soundscape-callout-info">
+            <div class="soundscape-callout-icon">
+              <i class="fa-solid fa-headphones"></i>
+            </div>
             <div>
-              <h3 class="player-title">Sleep Soundscape & Sóng Não Delta (Web Audio API)</h3>
-              <p class="player-subtitle">Tạo âm thanh thư giãn thời gian thực trực tiếp trên trình duyệt, không cần tải nhạc ngoài</p>
+              <h4 class="callout-title">Sóng Não Delta 4Hz & Không Gian Âm Thanh Ru Ngủ</h4>
+              <p class="callout-desc">Tạo tần số sóng não Delta an dịu thần kinh, tiếng mưa rào & sóng biển khử tiếng ồn thời gian thực.</p>
             </div>
           </div>
-          <button id="close-player-btn" class="btn-icon" title="Đóng bảng âm thanh"><i class="fa-solid fa-xmark"></i></button>
+          <button type="button" class="btn-callout-soundscape" id="btn-callout-soundscape">
+            <i class="fa-solid fa-play"></i> Mở Bảng Âm Thanh
+          </button>
         </div>
 
-        <div class="mobile-sound-tip-banner">
-          <div class="tip-banner-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
-          <div class="tip-banner-text">
-            <strong>Mẹo trên điện thoại:</strong> Nếu không nghe thấy tiếng, hãy <strong>tắt gạt rung / chế độ Im lặng</strong> (đặc biệt trên iPhone) và tăng âm lượng. Khuyến khích <strong>đeo tai nghe</strong> để cảm nhận tần số sóng não Delta 4Hz ru ngủ tốt nhất.
+      
+  <!-- ========================================================
+       GLOBAL SOUNDSCAPE MODAL OVERLAY (Web Audio API)
+       Opens only when clicking headphone icon or soundscape CTA
+       ======================================================== -->
+  <div id="sound-player-drawer" class="modal-overlay soundscape-modal-overlay" style="display: none;">
+    <div class="modal-content soundscape-modal-card glass-card">
+      <div class="player-header">
+        <div class="player-title-wrap">
+          <div class="sound-wave-icon"><i class="fa-solid fa-headphones"></i></div>
+          <div>
+            <h3 class="player-title">Sleep Soundscape & Sóng Não Delta</h3>
+            <p class="player-subtitle">Âm thanh thư giãn thời gian thực trực tiếp trên trình duyệt (Web Audio API)</p>
           </div>
         </div>
+        <button id="close-player-btn" class="btn-icon" title="Đóng bảng âm thanh"><i class="fa-solid fa-xmark"></i></button>
+      </div>
 
-        <div class="sound-channels-grid">
-          <!-- Channel 1: Binaural Delta Beats -->
-          <div class="channel-card">
-            <div class="channel-info">
-              <div class="channel-name">
-                <i class="fa-solid fa-wave-square"></i>
-                <div>
-                  <strong>Sóng Não Delta (Binaural Beats 4Hz)</strong>
-                  <small>Đồng bộ tần số vỏ não, ru ngủ nhanh</small>
-                </div>
+      <div class="mobile-sound-tip-banner">
+        <div class="tip-banner-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+        <div class="tip-banner-text">
+          <strong>Mẹo:</strong> Tắt chế độ im lặng/gạt rung trên điện thoại để nghe âm thanh. Khuyến khích <strong>đeo tai nghe</strong> để cảm nhận tần số sóng não Delta 4Hz ru ngủ tốt nhất.
+        </div>
+      </div>
+
+      <div class="sound-channels-grid">
+        <!-- Channel 1: Binaural Delta Beats -->
+        <div class="channel-card">
+          <div class="channel-info">
+            <div class="channel-name">
+              <i class="fa-solid fa-wave-square"></i>
+              <div>
+                <strong>Sóng Não Delta (4Hz Binaural)</strong>
+                <small>Đồng bộ tần số vỏ não, ru ngủ nhanh</small>
               </div>
-              <button class="channel-toggle-btn" data-channel="binaural"><i class="fa-solid fa-play"></i> Bật</button>
             </div>
-            <div class="channel-volume-wrap">
-              <i class="fa-solid fa-volume-low"></i>
-              <input type="range" class="channel-slider" data-channel="binaural" min="0" max="100" value="70">
-              <i class="fa-solid fa-volume-high"></i>
-            </div>
+            <button class="channel-toggle-btn" data-channel="binaural"><i class="fa-solid fa-play"></i> Bật</button>
           </div>
-
-          <!-- Channel 2: Rain Sound (Pink Noise) -->
-          <div class="channel-card">
-            <div class="channel-info">
-              <div class="channel-name">
-                <i class="fa-solid fa-cloud-rain"></i>
-                <div>
-                  <strong>Tiếng Mưa Rào Êm Dịu (Pink Noise)</strong>
-                  <small>Che phủ tiếng ồn xe cộ, dịu tai</small>
-                </div>
-              </div>
-              <button class="channel-toggle-btn" data-channel="rain"><i class="fa-solid fa-play"></i> Bật</button>
-            </div>
-            <div class="channel-volume-wrap">
-              <i class="fa-solid fa-volume-low"></i>
-              <input type="range" class="channel-slider" data-channel="rain" min="0" max="100" value="60">
-              <i class="fa-solid fa-volume-high"></i>
-            </div>
-          </div>
-
-          <!-- Channel 3: Ocean Waves -->
-          <div class="channel-card">
-            <div class="channel-info">
-              <div class="channel-name">
-                <i class="fa-solid fa-water"></i>
-                <div>
-                  <strong>Sóng Biển Ban Đêm (Deep Ocean)</strong>
-                  <small>Nhịp thở của đại dương, hạ nhịp tim</small>
-                </div>
-              </div>
-              <button class="channel-toggle-btn" data-channel="ocean"><i class="fa-solid fa-play"></i> Bật</button>
-            </div>
-            <div class="channel-volume-wrap">
-              <i class="fa-solid fa-volume-low"></i>
-              <input type="range" class="channel-slider" data-channel="ocean" min="0" max="100" value="50">
-              <i class="fa-solid fa-volume-high"></i>
-            </div>
-          </div>
-
-          <!-- Channel 4: Tibetan Singing Bowl -->
-          <div class="channel-card">
-            <div class="channel-info">
-              <div class="channel-name">
-                <i class="fa-solid fa-bell"></i>
-                <div>
-                  <strong>Chuông Xoay Thiền (Singing Bowl)</strong>
-                  <small>Tần số 432Hz an định tinh thần</small>
-                </div>
-              </div>
-              <button class="channel-toggle-btn" data-channel="bowl"><i class="fa-solid fa-play"></i> Rung chuông</button>
-            </div>
-            <div class="channel-volume-wrap">
-              <i class="fa-solid fa-volume-low"></i>
-              <input type="range" class="channel-slider" data-channel="bowl" min="0" max="100" value="65">
-              <i class="fa-solid fa-volume-high"></i>
-            </div>
+          <div class="channel-volume-wrap">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" class="channel-slider" data-channel="binaural" min="0" max="100" value="70">
+            <i class="fa-solid fa-volume-high"></i>
           </div>
         </div>
 
-        <div class="player-bottom-bar">
-          <div class="timer-control">
-            <span><i class="fa-regular fa-clock"></i> Tự động tắt sau:</span>
-            <button class="timer-chip" data-timer="15">15 Phút</button>
-            <button class="timer-chip active" data-timer="30">30 Phút</button>
-            <button class="timer-chip" data-timer="60">60 Phút</button>
-            <button class="timer-chip" data-timer="0">Vô tận</button>
+        <!-- Channel 2: Rain Sound (Pink Noise) -->
+        <div class="channel-card">
+          <div class="channel-info">
+            <div class="channel-name">
+              <i class="fa-solid fa-cloud-rain"></i>
+              <div>
+                <strong>Tiếng Mưa Rào Êm Dịu (Pink Noise)</strong>
+                <small>Che phủ tiếng ồn xe cộ, dịu tai</small>
+              </div>
+            </div>
+            <button class="channel-toggle-btn" data-channel="rain"><i class="fa-solid fa-play"></i> Bật</button>
           </div>
-          <button id="master-mute-btn" class="btn-secondary"><i class="fa-solid fa-volume-xmark"></i> Dừng Tất Cả</button>
+          <div class="channel-volume-wrap">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" class="channel-slider" data-channel="rain" min="0" max="100" value="60">
+            <i class="fa-solid fa-volume-high"></i>
+          </div>
         </div>
-      </section>
+
+        <!-- Channel 3: Ocean Waves -->
+        <div class="channel-card">
+          <div class="channel-info">
+            <div class="channel-name">
+              <i class="fa-solid fa-water"></i>
+              <div>
+                <strong>Sóng Biển Ban Đêm (Deep Ocean)</strong>
+                <small>Nhịp thở đại dương, hạ nhịp tim</small>
+              </div>
+            </div>
+            <button class="channel-toggle-btn" data-channel="ocean"><i class="fa-solid fa-play"></i> Bật</button>
+          </div>
+          <div class="channel-volume-wrap">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" class="channel-slider" data-channel="ocean" min="0" max="100" value="50">
+            <i class="fa-solid fa-volume-high"></i>
+          </div>
+        </div>
+
+        <!-- Channel 4: Tibetan Singing Bowl -->
+        <div class="channel-card">
+          <div class="channel-info">
+            <div class="channel-name">
+              <i class="fa-solid fa-bell"></i>
+              <div>
+                <strong>Chuông Xoay Thiền (Singing Bowl)</strong>
+                <small>Tần số 432Hz an định tinh thần</small>
+              </div>
+            </div>
+            <button class="channel-toggle-btn" data-channel="bowl"><i class="fa-solid fa-play"></i> Rung chuông</button>
+          </div>
+          <div class="channel-volume-wrap">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" class="channel-slider" data-channel="bowl" min="0" max="100" value="65">
+            <i class="fa-solid fa-volume-high"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-bottom-bar">
+        <div class="timer-control">
+          <span><i class="fa-regular fa-clock"></i> Tự động tắt sau:</span>
+          <button class="timer-chip" data-timer="15">15 Phút</button>
+          <button class="timer-chip active" data-timer="30">30 Phút</button>
+          <button class="timer-chip" data-timer="60">60 Phút</button>
+          <button class="timer-chip" data-timer="0">Vô tận</button>
+        </div>
+        <button id="master-mute-btn" class="btn-secondary"><i class="fa-solid fa-volume-xmark"></i> Dừng Tất Cả</button>
+      </div>
+    </div>
+  </div>
 
       <!-- History Modal / Log Viewer -->
       <div id="history-modal" class="modal-overlay" style="display: none;">

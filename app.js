@@ -85,6 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
   try { renderTrackerPanel(); } catch (e) { console.error('[SleepSync Init Error] Tracker Panel:', e); }
   try { initCalendarScanner(); } catch (e) { console.error('[SleepSync Init Error] Calendar Scanner:', e); }
   try { initAudioControls(); } catch (e) { console.error('[SleepSync Init Error] Audio Controls:', e); }
+  try { initSoundFX(); } catch (e) { console.error('[SleepSync Init Error] SoundFX:', e); }
+  try { initMavisShopeeAlerts(); } catch (e) { console.error('[SleepSync Init Error] Shopee Alerts:', e); }
   try { initHistoryModule(); } catch (e) { console.error('[SleepSync Init Error] History Module:', e); }
   try { initUserProfileModule(); } catch (e) { console.error('[SleepSync Init Error] User Profile:', e); }
 });
@@ -693,6 +695,7 @@ function initWizard() {
 }
 
 function goToWizardStep(step) {
+  try { SoundFX.next(); } catch (e) {}
   AppState.wizardStep = step;
 
   // Update step panes
@@ -1848,52 +1851,88 @@ function generateNutritionAdvice(ans, targetBedtime = '23:00') {
   };
 
   const dinnerItems = [
-    "<strong>Món chính (5 phút):</strong> 2 quả trứng gà luộc lòng đào (giàu Melatonin & Tryptophan tự nhiên) hoặc ức gà áp chảo + 1 chén nhỏ cơm gạo lứt.",
-    "<strong>Rau xanh (3 phút):</strong> Canh rau bina (rau chân vịt) hoặc canh rau ngót luộc (chứa hàm lượng Magie cao giúp giãn cơ bắp).",
-    "<strong>Tráng miệng vàng:</strong> 1-2 quả Kiwi hoặc 1 quả chuối chín (chứa serotonin và kali ngăn ngừa chuột rút ban đêm).",
-    "<strong>Trà an thần nhẹ:</strong> 1 tách nhỏ trà hoa cúc hoặc trà tim sen ấm lúc 20:00."
+    "<strong>Món chính (5 phút):</strong> 2 quả trứng gà luộc lòng đào (giàu Melatonin & Tryptophan) hoặc ức gà áp chảo + cơm gạo lứt.",
+    "<strong>Rau xanh (3 phút):</strong> Canh rau bina hoặc rau ngót luộc (hàm lượng Magie cao giúp giãn cơ bắp).",
+    "<strong>Tráng miệng vàng:</strong> 1-2 quả Kiwi hoặc 1 quả chuối chín (serotonin & kali chống chuột rút ban đêm).",
+    "<strong>Trà an thần nhẹ:</strong> 1 tách nhỏ trà hoa cúc hoặc tim sen ấm lúc 20:00."
   ];
 
   const healthItems = [];
 
-  // 1. Điện thoại trên giường / Nghiện màn hình TikTok/FB
+  // 1. Điện thoại trên giường
   if (hasAns('bed_phone', 'lướt_tiktok_fb') || hasAns('env_light', 'screen_heavy')) {
-    healthItems.push(`<p><strong>📱 Cắt Đứt Vòng Lặp Dopamine & Cai Nghiện Điện Thoại Giường Ngủ:</strong> Kích hoạt chế độ Grayscale (màn hình đen trắng) từ 21:00 để triệt tiêu sức hút thị giác của video ngắn TikTok/Facebook. Cắm sạc điện thoại ở bàn làm việc cách giường ít nhất 2 mét trước ${targetBedtime} để phá vỡ phản xạ với tay lướt màn hình ban đêm. Dùng đồng hồ báo thức rời thay vì để điện thoại ngay đầu giường.</p>`);
+    healthItems.push(`
+      <div class="health-hack-item">
+        <span class="health-hack-badge"><i class="fa-solid fa-mobile-screen"></i> Nghiện điện thoại</span>
+        <p>Bật màn hình trắng đen (Grayscale) • Cắm sạc xa giường >2m trước ${targetBedtime} • Dùng đồng hồ báo thức riêng</p>
+      </div>
+    `);
   }
 
-  // 2. Căng thẳng / Suy nghĩ miên man / Trạng thái cảm xúc
+  // 2. Căng thẳng / Stress
   if (hasAns('stress_level', 'medium') || hasAns('stress_level', 'high') || hasAns('mood_state', 'anxious') || hasAns('mood_state', 'brain_fog')) {
-    healthItems.push(`<p style="margin-top:0.4rem;"><strong>🧠 Xả Trầm Não Bộ (Brain Dump) & Giảm Cortisol:</strong> Dành 3 phút trước khi ngủ viết toàn bộ suy nghĩ, nỗi lo và danh sách việc cần làm ngày mai ra 1 cuốn sổ tay (kỹ thuật Brain Dump) để dọn sạch bộ nhớ đệm của vỏ não trước trán. Kết hợp bài tập thở 4-7-8 (hít 4s - giữ 7s - thở 8s) để kích hoạt hệ thần kinh đối giao cảm.</p>`);
+    healthItems.push(`
+      <div class="health-hack-item">
+        <span class="health-hack-badge"><i class="fa-solid fa-brain"></i> Giảm Cortisol</span>
+        <p>Viết sổ 3 phút (Brain Dump) xả trầm não bộ • Hít thở nhịp 4-7-8 kích hoạt đối giao cảm</p>
+      </div>
+    `);
   }
 
-  // 3. Trào ngược dạ dày (GERD) - CHỈ hiển thị nếu người dùng THỰC SỰ chọn hoặc ăn tối quá muộn
+  // 3. Trào ngược dạ dày (GERD)
   if (hasAns('chronic_condition', 'gerd') || hasAns('dinner_habit', 'heavy_late')) {
-    healthItems.push(`<p style="margin-top:0.4rem;"><strong>🫀 Khắc Phục Trào Ngược Axit Dạ Dày (GERD):</strong> Ăn tối trước giờ ngủ ít nhất 3 tiếng. Khi ngủ, nằm nghiêng sang bên TRÁI (tư thế này giữ van tâm vị cơ thắt thực quản nằm phía trên mức dịch vị axit, chống trào ngược tự nhiên). Kê đầu giường hoặc gối nâng cao thêm 10-15cm.</p>`);
+    healthItems.push(`
+      <div class="health-hack-item">
+        <span class="health-hack-badge"><i class="fa-solid fa-heart-pulse"></i> Trào ngược (GERD)</span>
+        <p>Ăn tối cách giờ ngủ ít nhất 3 tiếng • Nằm nghiêng bên TRÁI • Kê cao đầu 10-15cm</p>
+      </div>
+    `);
   }
 
-  // 4. Đau mỏi cổ vai gáy - CHỈ hiển thị nếu người dùng THỰC SỰ bị
+  // 4. Cổ vai gáy
   if (hasAns('physical_pain', 'neck_back_pain')) {
-    healthItems.push(`<p style="margin-top:0.4rem;"><strong>🦴 Khắc Phục Đau Mỏi Cổ Vai Gáy:</strong> Dùng gối cao vừa phải (7-10cm) nâng đỡ đường cong sinh lý cột sống cổ C1-C7. Tránh tuyệt đối tư thế nằm sấp. Đặt 1 chiếc gối mỏng dưới khớp gối khi nằm ngửa để giải tỏa áp lực đĩa đệm cột sống thắt lưng.</p>`);
+    healthItems.push(`
+      <div class="health-hack-item">
+        <span class="health-hack-badge"><i class="fa-solid fa-bone"></i> Cổ vai gáy</span>
+        <p>Gối cao 7-10cm nâng đỡ đốt sống C1-C7 • Tránh nằm sấp • Kê gối mỏng dưới gối chân</p>
+      </div>
+    `);
   }
 
-  // 5. Đau đầu căng thẳng
+  // 5. Đau đầu
   if (hasAns('physical_pain', 'headache')) {
-    healthItems.push(`<p style="margin-top:0.4rem;"><strong>💆 Giảm Đau Đầu Căng Thẳng:</strong> Chườm ấm vùng mắt và trán 5 phút trước giờ ngủ, kết hợp day ấn nhẹ huyệt Thái Dương và huyệt Phong Trì sau gáy để giải tỏa co thắt mạch máu não.</p>`);
+    healthItems.push(`
+      <div class="health-hack-item">
+        <span class="health-hack-badge"><i class="fa-solid fa-head-side-virus"></i> Đau đầu</span>
+        <p>Chườm ấm trán 5 phút • Day ấn huyệt Thái Dương & Phong Trì sau gáy</p>
+      </div>
+    `);
   }
 
-  // 6. Nhiệt độ phòng nóng hoặc Bốc hỏa mãn kinh
+  // 6. Nhiệt độ phòng / Bốc hỏa
   if (hasAns('env_temp', 'hot') || hasAns('hormone_state', 'menopause_hotflash')) {
-    healthItems.push(`<p style="margin-top:0.4rem;"><strong>❄️ Khắc Phục Nhiệt Độ Nóng & Bốc Hỏa:</strong> Cài đặt điều hòa ở mức lý tưởng 24-26°C hoặc dùng quạt nhẹ thoảng chân. Tắm nước ấm trước giờ ngủ 45 phút để kích hoạt cơ chế giãn mạch ngoại vi, giúp cơ thể hạ nhiệt độ trung tâm 1°C khi vào giường.</p>`);
+    healthItems.push(`
+      <div class="health-hack-item">
+        <span class="health-hack-badge"><i class="fa-solid fa-temperature-arrow-down"></i> Nhiệt độ phòng</span>
+        <p>Cài điều hòa 24-26°C • Tắm nước ấm trước ngủ 45p giúp hạ nhiệt độ trung tâm</p>
+      </div>
+    `);
   }
 
   // 7. Tiểu đêm
   if (hasAns('chronic_condition', 'nocturia') || hasAns('dinner_habit', 'drink_lots_water')) {
-    healthItems.push(`<p style="margin-top:0.4rem;"><strong>🚽 Khắc Phục Thức Giấc Tiểu Đêm:</strong> Cắt giảm toàn bộ lượng nước uống sau 20:00. Áp dụng kỹ thuật 'đi tiểu kép' (Double Voiding): 1 lần lúc chuẩn bị ngủ và 1 lần nữa sát lúc bước lên giường.</p>`);
+    healthItems.push(`
+      <div class="health-hack-item">
+        <span class="health-hack-badge"><i class="fa-solid fa-restroom"></i> Tiểu đêm</span>
+        <p>Ngưng uống nước sau 20:00 • Đi tiểu kép (Double Voiding): 1 lần trước ngủ & 1 lần sát lúc lên giường</p>
+      </div>
+    `);
   }
 
   let targetedHealth = healthItems.join('');
   if (!targetedHealth) {
-    targetedHealth = `<p>✨ <strong>Thể Trạng & Thói Quen Rất Tốt:</strong> Bạn không gặp vấn đề bệnh lý hay căng thẳng lớn. Chỉ cần duy trì phòng ngủ thoáng mát (24-26°C), giữ nhịp sinh học đều đặn và cất điện thoại trước ${targetBedtime} là bạn sẽ duy trì được giấc ngủ sâu NREM tối ưu nhất.</p>`;
+    targetedHealth = `<div class="health-hack-item"><span class="health-hack-badge"><i class="fa-solid fa-circle-check"></i> Trạng thái tốt</span><p>Thể trạng rất ổn định. Duy trì phòng mát 24-26°C và cất điện thoại trước ${targetBedtime}.</p></div>`;
+  } là bạn sẽ duy trì được giấc ngủ sâu NREM tối ưu nhất.</p>`;
   }
 
   // Tailored desk exercises
@@ -1919,6 +1958,7 @@ function generateNutritionAdvice(ans, targetBedtime = '23:00') {
 // 8. RENDER RESULTS DASHBOARD
 // ==========================================
 function renderDashboard(data) {
+  try { SoundFX.success(); } catch (e) {}
   // Score Gauge
   const scoreVal = document.getElementById('predicted-score-val');
   const scoreCircle = document.getElementById('score-circle-path');
@@ -2324,28 +2364,286 @@ function initMobileAudioUnlock() {
   document.addEventListener('click', unlock, { capture: true, once: true });
 }
 
+
+// ==========================================
+// DUOLINGO-STYLE INTERACTIVE SOUND DESIGN (Web Audio API)
+// Synthesized in real-time, 0 latency, 100% offline
+// ==========================================
+const SoundFX = {
+  enabled: true,
+
+  // Bubble / Pop click sound (Duolingo style)
+  tap() {
+    if (!this.enabled) return;
+    try {
+      const ctx = AppState.audio?.ctx;
+      if (!ctx || ctx.state === 'suspended') return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      const now = ctx.currentTime;
+      osc.frequency.setValueAtTime(640, now);
+      osc.frequency.exponentialRampToValueAtTime(240, now + 0.045);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } catch (e) {}
+  },
+
+  // Uplifting step transition
+  next() {
+    if (!this.enabled) return;
+    try {
+      const ctx = AppState.audio?.ctx;
+      if (!ctx || ctx.state === 'suspended') return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      const now = ctx.currentTime;
+      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.exponentialRampToValueAtTime(660, now + 0.07);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } catch (e) {}
+  },
+
+  // Subtle toggle click
+  toggle() {
+    if (!this.enabled) return;
+    try {
+      const ctx = AppState.audio?.ctx;
+      if (!ctx || ctx.state === 'suspended') return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      const now = ctx.currentTime;
+      osc.frequency.setValueAtTime(460, now);
+      osc.frequency.exponentialRampToValueAtTime(320, now + 0.035);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.04);
+    } catch (e) {}
+  },
+
+  // Joyful Fanfare / Level-up chime (Major Arpeggio: C5 - E5 - G5 - C6)
+  success() {
+    if (!this.enabled) return;
+    try {
+      const ctx = AppState.audio?.ctx;
+      if (!ctx || ctx.state === 'suspended') return;
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      const now = ctx.currentTime;
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        const start = now + idx * 0.09;
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.2, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.36);
+      });
+    } catch (e) {}
+  },
+
+  // Shopee ting-tong chime (F5 -> A5)
+  shopeeAlert() {
+    if (!this.enabled) return;
+    try {
+      const ctx = AppState.audio?.ctx;
+      if (!ctx || ctx.state === 'suspended') return;
+      const now = ctx.currentTime;
+      // Ting
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(698.46, now);
+      gain1.gain.setValueAtTime(0.2, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.23);
+
+      // Tong
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      const start2 = now + 0.13;
+      osc2.frequency.setValueAtTime(880.00, start2);
+      gain2.gain.setValueAtTime(0.22, start2);
+      gain2.gain.exponentialRampToValueAtTime(0.001, start2 + 0.45);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(start2);
+      osc2.stop(start2 + 0.46);
+    } catch (e) {}
+  }
+};
+
+function initSoundFX() {
+  document.addEventListener('click', (e) => {
+    // Wake up audio context on interaction
+    if (AppState.audio?.ctx && AppState.audio.ctx.state === 'suspended') {
+      AppState.audio.ctx.resume().catch(() => {});
+    }
+    const target = e.target.closest(
+      '.opt-btn, .timer-chip, .channel-toggle-btn, .btn-primary, .btn-secondary, .nav-btn, .btn-tab, .step-pill, .btn-toggle-summary-details, .btn-toggle-submetrics, .btn-toggle-brain-details, .btn-callout-soundscape'
+    );
+    if (target) {
+      SoundFX.tap();
+    }
+  }, { passive: true });
+}
+
+// ==========================================
+// MAVIS SHOPEE-STYLE FUN NOTIFICATIONS
+// ==========================================
+const MAVIS_SHOPEE_QUOTES = [
+  {
+    tag: '📦 ĐƠN HÀNG GIẤC NGỦ',
+    title: 'Giao hàng hỏa tốc 0đ!',
+    desc: 'Đơn hàng "8 Tiếng Ngủ Say Không Giật Mình" đang chờ trước cửa phòng. Buông điện thoại xuống để nhận hàng nào bạn ơi! 💤',
+    btn: 'Dạ Mavis, ngủ liền!'
+  },
+  {
+    tag: '⚡ FLASH SALE 0Đ',
+    title: 'Xả kho 100% căng thẳng!',
+    desc: 'Deal hời duy nhất đêm nay: Nhắm mắt trong 5 phút, tặng kèm 1 giấc mơ gặp crush hoặc idol siêu ngọt ngào! ✨🌙',
+    btn: 'Săn deal đi ngủ'
+  },
+  {
+    tag: '🐼 CẢNH BÁO CÚ ĐÊM',
+    title: 'Phát hiện sinh vật đáng yêu!',
+    desc: 'Cú đêm ơi, Melatonin trong não đang gào thét đòi bạn đi ngủ kìa! Đừng để mắt thâm như gấu trúc Panda nha~ 🐼😴',
+    btn: 'Chui vào chăn ngay'
+  },
+  {
+    tag: '🔔 NHẮC NHỞ NHAN SẮC',
+    title: 'Bí kíp da căng bóng mướt!',
+    desc: 'Uống một ngụm nước ấm nhỏ rồi tắt đèn thôi! Ngủ sâu trước 23h là thần dược chống lão hóa đỉnh nhất trần đời đó! 🌸',
+    btn: 'Yêu Mavis ghê'
+  },
+  {
+    tag: '🔋 BÁO ĐỘNG PIN YẾU 1%',
+    title: 'Cơ thể cần cắm sạc!',
+    desc: 'Não bộ và cơ bắp đang cạn năng lượng. Cắm sạc bằng một giấc ngủ sâu NREM ngay, mai còn có sức "gánh vác tương lai" chứ! 🔌🛋️',
+    btn: 'Sạc pin ngay'
+  },
+  {
+    tag: '🧘 VOUCHER GIỜ VÀNG',
+    title: 'Mã giảm 100% âu lo!',
+    desc: 'Thả lỏng 2 vai, hít sâu 4 nhịp và thở ra từ từ. Áp dụng ngay cho bạn để sáng mai thức dậy tỉnh táo sau 15 phút! 🕊️',
+    btn: 'Áp dụng voucher'
+  }
+];
+
+let lastShopeeQuoteIdx = -1;
+let shopeeAlertCount = 0;
+
+function showShopeeFunAlert() {
+  if (shopeeAlertCount >= 3) return;
+  shopeeAlertCount++;
+
+  const container = document.getElementById('app-toast-container');
+  if (!container) return;
+
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * MAVIS_SHOPEE_QUOTES.length);
+  } while (idx === lastShopeeQuoteIdx && MAVIS_SHOPEE_QUOTES.length > 1);
+  lastShopeeQuoteIdx = idx;
+
+  const q = MAVIS_SHOPEE_QUOTES[idx];
+  SoundFX.shopeeAlert();
+
+  const toast = document.createElement('div');
+  toast.className = 'app-toast toast-shopee-fun toast-show';
+  toast.innerHTML = `
+    <div class="toast-content">
+      <div class="shopee-badge-tag">${q.tag}</div>
+      <div class="toast-title" style="color: #FF8A65; font-size: 0.92rem;">${q.title}</div>
+      <div class="toast-message" style="color: #E2E8F0; margin-top: 4px; font-size: 0.82rem; line-height: 1.4;">${q.desc}</div>
+      <div class="shopee-action-btn-row">
+        <button type="button" class="btn-shopee-action">${q.btn}</button>
+      </div>
+    </div>
+    <button type="button" class="toast-close" aria-label="Đóng thông báo">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  `;
+
+  const dismiss = () => {
+    toast.classList.remove('toast-show');
+    toast.classList.add('hide');
+    setTimeout(() => {
+      if (toast.parentElement) toast.parentElement.removeChild(toast);
+    }, 280);
+  };
+
+  const actionBtn = toast.querySelector('.btn-shopee-action');
+  if (actionBtn) {
+    actionBtn.addEventListener('click', () => {
+      SoundFX.tap();
+      dismiss();
+      showAppToast('Mavis xúc động quá ❤️', 'Ngoan lắm! Chúc bạn đêm nay có một giấc mơ thật đẹp và bình yên nhé! 🌙✨', 'success', 3000);
+    });
+  }
+
+  const closeBtn = toast.querySelector('.toast-close');
+  if (closeBtn) closeBtn.addEventListener('click', dismiss);
+
+  container.appendChild(toast);
+  setTimeout(dismiss, 7000);
+}
+
+function initMavisShopeeAlerts() {
+  setTimeout(() => {
+    showShopeeFunAlert();
+  }, 22000);
+
+  setInterval(() => {
+    showShopeeFunAlert();
+  }, 210000);
+}
+
 function initAudioControls() {
   // Mobile audio gesture pre-warm
   initMobileAudioUnlock();
 
-  // Header Quick Button
+  // Header Quick Button (Headphones) & In-Page Callout Button
   const soundBtn = document.getElementById('soundscape-quick-btn');
   const soundDrawer = document.getElementById('sound-player-drawer');
-  if (soundBtn && soundDrawer) {
-    soundBtn.addEventListener('click', async () => {
-      if (!requireAuthGuard('nghe âm thanh sóng não Delta & thư giãn thiên nhiên')) {
-        return;
-      }
-      soundDrawer.style.display = soundDrawer.style.display === 'none' ? 'block' : 'none';
-      if (soundDrawer.style.display === 'block') {
-        soundDrawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        try {
-          await getAudioContext();
-          ensureIosAudioUnlocked();
-        } catch (e) {}
-      }
-    });
-  }
+  const calloutBtn = document.getElementById('btn-callout-soundscape');
+
+  const openSoundModal = async () => {
+    if (!requireAuthGuard('nghe âm thanh sóng não Delta & thư giãn thiên nhiên')) {
+      return;
+    }
+    if (soundDrawer) {
+      soundDrawer.style.display = 'flex';
+      try {
+        await getAudioContext();
+        ensureIosAudioUnlocked();
+      } catch (e) {}
+    }
+  };
+
+  if (soundBtn) soundBtn.addEventListener('click', openSoundModal);
+  if (calloutBtn) calloutBtn.addEventListener('click', openSoundModal);
 
   const closeBtn = document.getElementById('close-player-btn');
   if (closeBtn && soundDrawer) {
@@ -2354,30 +2652,15 @@ function initAudioControls() {
     });
   }
 
-  // Master Mute
-  const muteBtn = document.getElementById('master-mute-btn');
-  if (muteBtn) {
-    muteBtn.addEventListener('click', stopAllSounds);
-  }
-
-  // Toggles
-  document.querySelectorAll('.channel-toggle-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const channel = btn.dataset.channel;
-      toggleChannel(channel, btn);
-    });
-  });
-
-  // Sliders
-  document.querySelectorAll('.channel-slider').forEach(slider => {
-    slider.addEventListener('input', (e) => {
-      const channel = slider.dataset.channel;
-      const val = parseFloat(e.target.value) / 100;
-      AppState.audio.channels[channel].volume = val;
-      if (AppState.audio.channels[channel].gainNode && AppState.audio.ctx) {
-        AppState.audio.channels[channel].gainNode.gain.setValueAtTime(val, AppState.audio.ctx.currentTime);
+  // Click backdrop outside modal to close
+  if (soundDrawer) {
+    soundDrawer.addEventListener('click', (e) => {
+      if (e.target === soundDrawer) {
+        soundDrawer.style.display = 'none';
       }
     });
+  }
+});
   });
 
   // Timer chips
