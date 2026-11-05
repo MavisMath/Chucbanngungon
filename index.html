@@ -298,10 +298,19 @@
             <span>Kiểm Tra Lịch Trình Công Việc</span>
           </button>
         </div>
-        <div class="quick-demo-wrapper">
-          <button id="demo-fill-btn" class="btn-outline-glow" title="Tự động điền dữ liệu mẫu thực tế của một nhân viên bận rộn để xem ngay kết quả">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>Thử Nhanh Trường Hợp Mẫu (Demo)</span>
+
+      </div>
+
+      <!-- AUTH GATE BANNER (Visible only when Guest is not logged in) -->
+      <div id="auth-gate-banner" class="auth-gate-banner" style="display: none;">
+        <div class="gate-banner-content">
+          <div class="gate-icon"><i class="fa-solid fa-lock"></i></div>
+          <div class="gate-text">
+            <strong>Yêu cầu đăng nhập để trải nghiệm</strong>
+            <span>Vui lòng đăng nhập hoặc đăng ký tài khoản Mavis để bắt đầu làm bài khám phá 5 trụ cột y khoa & lưu kết quả của bạn.</span>
+          </div>
+          <button type="button" class="btn-gate-auth" onclick="window.openUserAuthModal && window.openUserAuthModal('login')">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng Nhập / Đăng Ký
           </button>
         </div>
       </div>
@@ -2016,7 +2025,8 @@
   </div>
 
   <!-- ========================================================
-       MODAL: ĐĂNG NHẬP & ĐĂNG KÝ NGƯỜI DÙNG (USER AUTHENTICATION)
+       USER AUTHENTICATION MODAL (GOOGLE 1-CLICK & MAVIS ID)
+       Ultra-clean, modern, highly polished & secure
        ======================================================== -->
   <div id="user-auth-modal" class="modal-overlay" style="display: none;">
     <div class="modal-content glass-card modal-auth-dialog">
@@ -2028,15 +2038,15 @@
           </div>
           <div>
             <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.01em;">Mavis ID</h3>
-            <span style="font-size: 0.78rem; color: #94A3B8;">Đăng nhập một chạm • Đồng bộ nhịp sinh học</span>
+            <span style="font-size: 0.78rem; color: #94A3B8;">Đăng nhập một chạm • Đồng bộ nhịp sinh học y khoa</span>
           </div>
         </div>
-        <button type="button" id="close-auth-modal-btn" class="drawer-close-btn auth-modal-close-btn" title="Thoát & Quay lại trang gần nhất" onclick="window.closeUserAuthModal && window.closeUserAuthModal()">
+        <button type="button" id="close-auth-modal-btn" class="drawer-close-btn auth-modal-close-btn" title="Đóng" onclick="window.closeUserAuthModal && window.closeUserAuthModal()">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <!-- In-Dialog Inline Feedback Banner (No Alert Needed) -->
+      <!-- In-Dialog Inline Feedback Banner -->
       <div id="auth-inline-feedback" class="auth-feedback-banner">
         <i class="fa-solid fa-circle-exclamation feedback-icon"></i>
         <span id="auth-inline-feedback-text">Thông báo hệ thống</span>
@@ -2052,30 +2062,30 @@
         </button>
       </div>
 
-      <!-- 1-Click Google Sign-In (Official Brand Premium Button) -->
-      <div class="google-auth-wrapper" style="width: 100%; margin-top: 1.15rem; margin-bottom: 0.75rem;">
-        <button type="button" class="btn-google-primary-auth" id="btn-social-google" title="Đăng nhập bảo mật 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.92rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.1); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
-          <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
-            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
-            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
-            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-          </svg>
-          <span class="btn-google-text" style="letter-spacing: -0.01em; color: #1E293B;">Đăng nhập bằng tài khoản Google</span>
-          <span class="google-badge-quick" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 6px; margin-left: auto; border: 1px solid rgba(16, 185, 129, 0.25);">1 chạm</span>
-        </button>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; font-size: 0.74rem; color: #94A3B8;">
-          <i class="fa-solid fa-shield-halved" style="color: #10B981;"></i>
-          <span>Xác thực an toàn qua Google OAuth 2.0</span>
-        </div>
-      </div>
-
-      <div class="social-divider-wrap">
-        <span>Hoặc đăng nhập bằng số điện thoại</span>
-      </div>
-
       <!-- PANE 1: ĐĂNG NHẬP (LOGIN) -->
       <div id="pane-auth-login" class="auth-pane">
+        <!-- 1-Click Google Sign-In -->
+        <div class="google-auth-wrapper" style="width: 100%; margin-top: 0.5rem; margin-bottom: 0.85rem;">
+          <button type="button" class="btn-google-primary-auth" id="btn-social-google" title="Đăng nhập bảo mật 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+            </svg>
+            <span class="btn-google-text" style="letter-spacing: -0.01em; color: #1E293B;">Tiếp tục với tài khoản Google</span>
+            <span class="google-badge-quick" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: auto; border: 1px solid rgba(16, 185, 129, 0.25);">1 chạm</span>
+          </button>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; font-size: 0.74rem; color: #94A3B8;">
+            <i class="fa-solid fa-shield-halved" style="color: #10B981;"></i>
+            <span>Bảo mật qua Google OAuth 2.0 • Không lưu mật khẩu</span>
+          </div>
+        </div>
+
+        <div class="social-divider-wrap" style="margin: 1.1rem 0;">
+          <span>Hoặc đăng nhập bằng tài khoản Mavis</span>
+        </div>
+
         <form id="form-user-login">
           <div class="form-group">
             <label class="form-label" for="login-phone-input"><i class="fa-solid fa-user-circle"></i> Username hoặc Số Điện Thoại (*)</label>
@@ -2085,7 +2095,7 @@
           <div class="form-group">
             <label class="form-label" for="login-pwd-input"><i class="fa-solid fa-lock"></i> Mật Khẩu (*)</label>
             <div class="pwd-input-wrap">
-              <input type="password" id="login-pwd-input" class="form-input" required placeholder="Nhập mật khẩu của bạn" autocomplete="current-password">
+              <input type="password" id="login-pwd-input" class="form-input" required placeholder="Nhập mật khẩu" autocomplete="current-password">
               <button type="button" class="pwd-toggle-btn" id="toggle-login-pwd-btn"><i class="fa-regular fa-eye"></i></button>
             </div>
           </div>
@@ -2095,58 +2105,53 @@
               <input type="checkbox" id="login-remember-me" checked>
               <span>Ghi nhớ đăng nhập</span>
             </label>
-            <span style="color: #64748B;"><i class="fa-solid fa-shield-halved"></i> Bảo mật SQL</span>
+            <span style="color: #64748B;"><i class="fa-solid fa-shield-halved"></i> Bảo mật SQLite</span>
           </div>
 
           <button type="submit" class="auth-submit-btn" id="btn-submit-login">
             <i class="fa-solid fa-arrow-right-to-bracket"></i>
             <span>Đăng Nhập Vào Hệ Thống</span>
           </button>
-
-          <button type="button" class="btn-auth-cancel" onclick="window.closeUserAuthModal && window.closeUserAuthModal()" title="Thoát và tiếp tục xem trang web">
-            <i class="fa-solid fa-arrow-left"></i>
-            <span>Dùng thử chế độ Khách (Không cần đăng nhập)</span>
-          </button>
         </form>
 
-        <div class="auth-switch-link">
-          Chưa có tài khoản cá nhân? <a href="#" id="switch-to-register-link">Đăng ký thành viên mới &rarr;</a>
+        <div class="auth-switch-link" style="margin-top: 1.1rem;">
+          Chưa có tài khoản? <a href="#" id="switch-to-register-link" style="color: #38BDF8; font-weight: 700;">Đăng ký thành viên mới &rarr;</a>
         </div>
       </div>
 
-      <!-- PANE 2: ĐĂNG KÝ (REGISTER - DUOLINGO STYLE) -->
+      <!-- PANE 2: ĐĂNG KÝ (REGISTER) -->
       <div id="pane-auth-register" class="auth-pane" style="display: none;">
+        <!-- 1-Click Google Sign-In for register as well -->
+        <div class="google-auth-wrapper" style="width: 100%; margin-top: 0.5rem; margin-bottom: 0.85rem;">
+          <button type="button" class="btn-google-primary-auth" id="btn-social-google-reg" title="Đăng ký nhanh 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+            <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+            </svg>
+            <span class="btn-google-text" style="letter-spacing: -0.01em; color: #1E293B;">Đăng ký nhanh bằng Google</span>
+            <span class="google-badge-quick" style="background: rgba(16, 185, 129, 0.12); color: #059669; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-left: auto; border: 1px solid rgba(16, 185, 129, 0.25);">1 chạm</span>
+          </button>
+        </div>
+
+        <div class="social-divider-wrap" style="margin: 1.1rem 0;">
+          <span>Hoặc tự tạo tài khoản mới</span>
+        </div>
+
         <form id="form-user-register">
           <!-- Avatar Selection Grid -->
           <div class="avatar-picker-label">
-            <span><i class="fa-solid fa-masks-theater"></i> Chọn Avatar của bạn:</span>
+            <span><i class="fa-solid fa-masks-theater"></i> Chọn Avatar đại diện:</span>
             <span style="font-size: 0.72rem; color: #38BDF8;">Chạm để chọn</span>
           </div>
           <div class="avatar-picker-grid" id="reg-avatar-picker-grid">
-            <div class="avatar-pick-item selected" data-avatar="programmer_laptop" title="Kỹ Sư IT">
-              👨‍💻
-              <span class="pick-check-badge"><i class="fa-solid fa-check"></i></span>
-            </div>
-            <div class="avatar-pick-item" data-avatar="woman_professional" title="Nữ Công Sở">
-              👩‍💼
-              <span class="pick-check-badge"><i class="fa-solid fa-check"></i></span>
-            </div>
-            <div class="avatar-pick-item" data-avatar="doctor_health" title="Bác Sĩ Y Tế">
-              👨‍⚕️
-              <span class="pick-check-badge"><i class="fa-solid fa-check"></i></span>
-            </div>
-            <div class="avatar-pick-item" data-avatar="sleep_owl" title="Cú Đêm Mavis">
-              🦉
-              <span class="pick-check-badge"><i class="fa-solid fa-check"></i></span>
-            </div>
-            <div class="avatar-pick-item" data-avatar="zen_meditator" title="Thiền Định & Yoga">
-              🧘
-              <span class="pick-check-badge"><i class="fa-solid fa-check"></i></span>
-            </div>
-            <div class="avatar-pick-item" data-avatar="nature_moon" title="Mặt Trăng Ban Đêm">
-              🌙
-              <span class="pick-check-badge"><i class="fa-solid fa-check"></i></span>
-            </div>
+            <div class="avatar-pick-item selected" data-avatar="programmer_laptop" title="Kỹ Sư IT">👨‍💻<span class="pick-check-badge"><i class="fa-solid fa-check"></i></span></div>
+            <div class="avatar-pick-item" data-avatar="woman_professional" title="Nữ Công Sở">👩‍💼<span class="pick-check-badge"><i class="fa-solid fa-check"></i></span></div>
+            <div class="avatar-pick-item" data-avatar="doctor_health" title="Bác Sĩ Y Tế">👨‍⚕️<span class="pick-check-badge"><i class="fa-solid fa-check"></i></span></div>
+            <div class="avatar-pick-item" data-avatar="sleep_owl" title="Cú Đêm Mavis">🦉<span class="pick-check-badge"><i class="fa-solid fa-check"></i></span></div>
+            <div class="avatar-pick-item" data-avatar="zen_meditator" title="Thiền Định & Yoga">🧘<span class="pick-check-badge"><i class="fa-solid fa-check"></i></span></div>
+            <div class="avatar-pick-item" data-avatar="nature_moon" title="Mặt Trăng Ban Đêm">🌙<span class="pick-check-badge"><i class="fa-solid fa-check"></i></span></div>
           </div>
           <input type="hidden" id="reg-avatar-input" value="programmer_laptop">
 
@@ -2157,7 +2162,7 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="reg-phone-input"><i class="fa-solid fa-phone"></i> SĐT hoặc Username (*)</label>
-              <input type="text" id="reg-phone-input" class="form-input" required placeholder="0988 999 111 hoặc tên">
+              <input type="text" id="reg-phone-input" class="form-input" required placeholder="Ví dụ: hoanglm hoặc 0988...">
             </div>
           </div>
 
@@ -2165,29 +2170,15 @@
             <div class="form-group">
               <label class="form-label" for="reg-pwd-input"><i class="fa-solid fa-lock"></i> Mật Khẩu (*)</label>
               <div class="pwd-input-wrap">
-                <input type="password" id="reg-pwd-input" class="form-input" required minlength="4" placeholder="••••••••" autocomplete="new-password">
+                <input type="password" id="reg-pwd-input" class="form-input" required placeholder="Tối thiểu 6 ký tự" autocomplete="new-password">
                 <button type="button" class="pwd-toggle-btn" id="toggle-reg-pwd-btn"><i class="fa-regular fa-eye"></i></button>
               </div>
-              <div class="password-strength-wrap">
+              <div class="pwd-strength-container" style="margin-top: 5px;">
                 <div class="strength-bar-track">
                   <div class="strength-bar-fill" id="reg-strength-bar"></div>
                 </div>
-                <div class="strength-meta-row">
-                  <span>Độ mạnh mật khẩu:</span>
-                  <span id="reg-strength-text" style="font-weight: 700;">Nhập mật khẩu</span>
-                </div>
+                <span class="strength-text" id="reg-strength-text">Độ an toàn</span>
               </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="reg-role-input"><i class="fa-solid fa-briefcase"></i> Nghề Nghiệp</label>
-              <input type="text" id="reg-role-input" class="form-input" placeholder="Ví dụ: Kỹ sư / Bác sĩ / Tự do">
-            </div>
-          </div>
-
-          <div class="form-grid-2col">
-            <div class="form-group">
-              <label class="form-label" for="reg-age-input"><i class="fa-solid fa-cake-candles"></i> Tuổi & Giới tính</label>
-              <input type="text" id="reg-age-input" class="form-input" placeholder="Ví dụ: 30 tuổi (Nam)">
             </div>
             <div class="form-group">
               <label class="form-label" for="reg-bedtime-input"><i class="fa-regular fa-clock"></i> Giờ Ngủ Mục Tiêu</label>
@@ -2195,19 +2186,14 @@
             </div>
           </div>
 
-          <button type="submit" class="auth-submit-btn auth-submit-register-prominent" id="btn-submit-register">
+          <button type="submit" class="auth-submit-btn auth-submit-register-prominent" id="btn-submit-register" style="margin-top: 1.15rem;">
             <i class="fa-solid fa-circle-check"></i>
-            <span>Xác Nhận Tạo Tài Khoản</span>
-          </button>
-
-          <button type="button" class="btn-auth-cancel" onclick="window.closeUserAuthModal && window.closeUserAuthModal()" title="Thoát và dùng thử trường hợp mẫu Demo">
-            <i class="fa-solid fa-arrow-left"></i>
-            <span>Dùng thử chế độ Khách (Thử nhanh trường hợp mẫu Demo)</span>
+            <span>Tạo Tài Khoản Mavis Ngay</span>
           </button>
         </form>
 
-        <div class="auth-switch-link">
-          Đã có tài khoản Mavis? <a href="#" id="switch-to-login-link">&larr; Đăng nhập ngay</a>
+        <div class="auth-switch-link" style="margin-top: 1.1rem;">
+          Đã có tài khoản Mavis? <a href="#" id="switch-to-login-link" style="color: #38BDF8; font-weight: 700;">&larr; Đăng nhập ngay</a>
         </div>
       </div>
     </div>

@@ -77,6 +77,15 @@ const AppState = {
 // 2. INITIALIZATION & AUTH GUARD SYSTEM
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+  // Enforce initial login gate: if user is not authenticated, prompt login modal smoothly
+  setTimeout(() => {
+    try {
+      if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
+        openUserAuthModal('login');
+      }
+    } catch (e) {}
+  }, 450);
+
   try { initRealtimeClock(); } catch (e) { console.error('[SleepSync Init Error] Realtime Clock:', e); }
   try { initWelcomeSplash(); } catch (e) { console.error('[SleepSync Init Error] Welcome Splash:', e); }
   try { initTabSwitchers(); } catch (e) { console.error('[SleepSync Init Error] Tabs:', e); }
@@ -336,7 +345,7 @@ function requireAuthGuard(actionName = 'tiếp tục') {
     return true;
   }
   showAuthRequiredToast(actionName);
-  openUserAuthModal('register');
+  openUserAuthModal('login');
   return false;
 }
 
@@ -506,25 +515,13 @@ function initTabSwitchers() {
     switchTab(tabCal, secCal, 'calendar');
   });
 
-  // Quick Demo Fill Button (Specially allowed for Guests!)
-  document.getElementById('demo-fill-btn').addEventListener('click', () => {
-    AppState.isDemoScenario = true;
-    applyRealisticDemoScenario();
-    const confirmCheckbox = document.getElementById('user-info-confirm-checkbox');
-    if (confirmCheckbox) {
-      confirmCheckbox.checked = true;
-      const submitBtn = document.getElementById('wizard-submit-btn');
-      if (submitBtn) {
-        submitBtn.style.opacity = '1';
-        submitBtn.style.pointerEvents = 'auto';
-      }
-    }
-    showAppToast(
-      'Trường hợp Mẫu (Demo)',
-      'Đã nạp tình huống mẫu thực tế! Bấm "Xem Kết Quả Phân Tích & Lộ Trình" bên dưới để xem báo cáo chẩn đoán 5 trụ cột của Mavis.',
-      'info'
-    );
-  });
+  // Quick Demo Fill Button (Guarded if present)
+  const demoFillBtn = document.getElementById('demo-fill-btn');
+  if (demoFillBtn) {
+    demoFillBtn.addEventListener('click', () => {
+      applyRealisticDemoScenario();
+    });
+  }
 }
 
 // ==========================================
@@ -3531,6 +3528,8 @@ function renderActiveUserProfile() {
       condContainer.innerHTML = '<span class="health-badge badge-amber"><i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập để lưu hồ sơ</span>';
     }
     if (dbUsername) dbUsername.textContent = 'Khách';
+    const gateBanner = document.getElementById('auth-gate-banner');
+    if (gateBanner) gateBanner.style.display = 'block';
 
     updateTimeDisplay();
     return;
@@ -3585,6 +3584,9 @@ function renderActiveUserProfile() {
 
   // 6. DB Active Username
   if (dbUsername) dbUsername.textContent = user.fullName;
+
+  const gateBanner = document.getElementById('auth-gate-banner');
+  if (gateBanner) gateBanner.style.display = 'none';
 
   // Update Bedtime Countdown in Header dynamically
   updateTimeDisplay();
@@ -3756,7 +3758,9 @@ function initUserAuthModal() {
     console.warn('[Google One-Tap Init Notice]', e);
   }
 
+  const btnGoogleReg = document.getElementById('btn-social-google-reg');
   if (btnGoogle) btnGoogle.addEventListener('click', loginWithRealGoogle);
+  if (btnGoogleReg) btnGoogleReg.addEventListener('click', loginWithRealGoogle);
 
   // Quick 1-Click Demo Login Chips
   document.querySelectorAll('.demo-user-chip').forEach(chip => {

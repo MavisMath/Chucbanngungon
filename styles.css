@@ -7088,3 +7088,96 @@ body.chat-is-resizing {
   color: #1E293B !important;
   font-weight: 700 !important;
 }
+
+
+/* ==============================================================================
+   AUTH GATE BANNER (LOCKED STATE FOR GUESTS)
+   ============================================================================== */
+
+.auth-gate-banner {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 14px;
+  padding: 1rem 1.4rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.12);
+  animation: slideDownGate 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDownGate {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gate-banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.gate-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38BDF8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.gate-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.gate-text strong {
+  font-size: 0.95rem;
+  color: #F8FAFC;
+  font-weight: 700;
+}
+
+.gate-text span {
+  font-size: 0.82rem;
+  color: #94A3B8;
+  line-height: 1.4;
+}
+
+.btn-gate-auth {
+  background: linear-gradient(135deg, #0284C7, #6366F1);
+  color: #FFFFFF;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+}
+
+.btn-gate-auth:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(2, 132, 199, 0.6);
+}
+
+@media (max-width: 640px) {
+  .gate-banner-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .btn-gate-auth {
+    width: 100%;
+    justify-content: center;
+  }
+}
