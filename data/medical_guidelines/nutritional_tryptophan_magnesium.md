@@ -16,3 +16,4 @@
   2. **Chất đối kháng thụ thể NMDA (NMDA Receptor Antagonist)**: Ngăn chặn ion Calci ồ ạt đi vào tế bào thần kinh thông qua kênh thụ thể Glutamate NMDA, bảo vệ tế bào thần kinh khỏi hiện tượng độc tế bào do kích thích quá mức (Excitotoxicity).
   3. **Giãn cơ vân và cơ trơn**: Cạnh tranh với Calci tại cầu nối sợi cơ Actin-Myosin, giúp giải phóng tình trạng căng cứng, co rút cơ bắp vùng cổ vai gáy và lưng.
 - **Nguồn thực phẩm tự nhiên**: Rau bina (chân vịt), hạnh nhân, hạt bí ngô, quả bơ, chuối chín, chocolate đen (>70%).
+

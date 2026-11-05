@@ -16,3 +16,4 @@
      - Giữ nguyên giờ thức dậy vào mỗi buổi sáng (kể cả cuối tuần, ngày nghỉ) để neo chặt nhịp sinh học SCN.
   3. **Hạn Chế Ngủ Trưa Quá Mức (Nap Restriction)**:
      - Ngủ trưa chỉ tối đa 15-20 phút (Power Nap) trước 14:00. Ngủ trưa quá 30 phút hoặc sau 15:00 sẽ xả bớt lượng Adenosine tích lũy, làm triệt tiêu áp lực buồn ngủ ban đêm.
+

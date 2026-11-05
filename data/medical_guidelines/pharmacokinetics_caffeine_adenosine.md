@@ -17,3 +17,4 @@
   - Làm suy giảm mạnh tỷ lệ phần trăm giai đoạn ngủ sâu sóng chậm (Slow-Wave Sleep N3) tới 20-30%, khiến người dùng dù ngủ đủ giờ nhưng thức dậy vẫn thấy uể oải, mệt mỏi.
 - **Khuyến nghị lâm sàng**:
   - **Mốc cắt cữ Caffeine (Caffeine Curfew)**: Dừng hoàn toàn việc nạp cà phê, trà xanh đậm, nước tăng lực, nước ngọt có ga và sô-cô-la ít nhất **8 đến 9 tiếng trước giờ ngủ mục tiêu**.
+

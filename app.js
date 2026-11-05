@@ -183,8 +183,11 @@ function showConfirmDialog({ title, message, confirmText = 'Xác nhận', cancel
   });
 }
 
-// Global Avatar SVG Generator for all 6 avatars
+// Global Avatar SVG Generator for all 6 avatars (Supports Google Picture URL)
 function getAvatarSvg(avatarType) {
+  if (avatarType && (avatarType.startsWith('http://') || avatarType.startsWith('https://'))) {
+    return `<img src="${avatarType}" alt="Avatar" class="avatar-svg-illu" style="border-radius: 50%; object-fit: cover; width: 100%; height: 100%; display: block;" referrerpolicy="no-referrer" />`;
+  }
   switch (avatarType) {
     case 'woman_professional':
       return `
@@ -3296,7 +3299,56 @@ function initUserAuthModal() {
     }
   };
 
-  if (btnGoogle) btnGoogle.addEventListener('click', () => handleSocialAuth('google', 'Google'));
+  const GOOGLE_CLIENT_ID = '806720661410-fg45fqhpgqtv9166p4rthkr6rrp37mjg.apps.googleusercontent.com';
+
+  const loginWithRealGoogle = () => {
+    hideAuthFeedback();
+    if (window.google && google.accounts && google.accounts.oauth2) {
+      try {
+        const tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: 'openid email profile',
+          callback: async (tokenResponse) => {
+            if (tokenResponse.error) {
+              console.error('[Google OAuth Error]', tokenResponse);
+              showAuthFeedback('Đăng nhập Google bị hủy hoặc gặp lỗi: ' + (tokenResponse.error_description || tokenResponse.error), 'error');
+              return;
+            }
+            try {
+              showAppToast('Đang kết nối Google...', 'Đang đồng bộ hồ sơ Google của bạn...', 'info');
+              const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+              });
+              if (!res.ok) throw new Error('Không thể tải thông tin hồ sơ từ Google.');
+              const googleProfile = await res.json();
+              const authRes = await SleepSyncDB.loginWithGoogleProfile(googleProfile);
+              if (authRes.success) {
+                closeUserAuthModal();
+                closeProfileDrawer();
+                renderActiveUserProfile();
+                renderServiceUsageLogs();
+                showAppToast('Đăng nhập thành công', `Chào mừng ${authRes.user.fullName} qua tài khoản Google!`, 'success');
+              } else {
+                showAuthFeedback(authRes.message || 'Đăng nhập Google thất bại.', 'error');
+              }
+            } catch (err) {
+              console.error('[Google UserInfo Error]', err);
+              showAuthFeedback(`Lỗi kết nối Google: ${err.message}`, 'error');
+            }
+          }
+        });
+        tokenClient.requestAccessToken({ prompt: 'select_account' });
+      } catch (err) {
+        console.error('[TokenClient Init Error]', err);
+        handleSocialAuth('google', 'Google');
+      }
+    } else {
+      console.warn('Google Identity Services chưa sẵn sàng, sử dụng chế độ dự phòng.');
+      handleSocialAuth('google', 'Google');
+    }
+  };
+
+  if (btnGoogle) btnGoogle.addEventListener('click', loginWithRealGoogle);
   if (btnFacebook) btnFacebook.addEventListener('click', () => handleSocialAuth('facebook', 'Facebook'));
   if (btnApple) btnApple.addEventListener('click', () => handleSocialAuth('apple', 'Apple'));
 

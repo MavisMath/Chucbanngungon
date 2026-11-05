@@ -15,3 +15,4 @@
   3. Thở ra từ từ nhẹ nhàng qua miệng trong 8 giây.
   4. Lặp lại 4 chu kỳ liên tục.
 - **Cơ chế y học**: Pha thở ra kéo dài gấp đôi pha hít vào kích thích thụ thể áp lực xoang động mạch cảnh (Baroreceptors), truyền tín hiệu kích hoạt dây thần kinh phế vị (Thần kinh sọ số X). Quá trình này phóng thích chất dẫn truyền thần kinh Acetylcholine, làm chậm nhịp tim, giảm huyết áp, hạ nồng độ hormone căng thẳng Cortisol và đưa hệ thần kinh từ trạng thái chiến đấu (Sympathetic Fight-or-Flight) sang trạng thái nghỉ ngơi phục hồi (Parasympathetic Rest-and-Digest).
+

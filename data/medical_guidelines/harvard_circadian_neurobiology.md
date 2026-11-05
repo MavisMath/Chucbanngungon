@@ -13,3 +13,4 @@
 - Để khởi phát giấc ngủ tự nhiên, thân nhiệt trung tâm (Core Body Temperature) bắt buộc phải hạ xuống khoảng **1°C**.
 - **Cơ chế giãn mạch ngoại vi**: Tắm nước ấm (40-42°C) trước giờ ngủ 60-90 phút kích thích tuần hoàn máu dồn ra lòng bàn tay và lòng bàn chân (Vasodilation), giúp cơ thể bức xạ nhiệt nhanh chóng sau khi ra khỏi phòng tắm, kích hoạt phản xạ buồn ngủ tự nhiên.
 - Nhiệt độ phòng ngủ lý tưởng được khuyến cáo y khoa là **18°C đến 22°C** (tương đương 24°C - 26°C nếu dùng điều hòa kết hợp chăn mỏng tại vùng khí hậu nhiệt đới).
+

@@ -741,6 +741,69 @@ const SleepSyncDB = (function() {
     return { success: true, user, message: `Chào mừng ${user.fullName} đã kết nối thành công qua ${provider.toUpperCase()}!` };
   }
 
+  // Connect & Login with Real Google Profile
+  async function loginWithGoogleProfile(profile) {
+    if (!profile) return { success: false, message: 'Hồ sơ Google không hợp lệ.' };
+
+    const googleSub = profile.sub || String(Date.now());
+    const socialId = `user_google_${googleSub}`;
+    const fullName = profile.name || profile.given_name || 'Thành Viên Google';
+    const email = profile.email || `${googleSub}@gmail.com`;
+    const avatar = profile.picture || 'sleep_owl';
+
+    let user = inMemoryData.users.find(u => u.id === socialId || u.phone === email);
+    if (!user) {
+      user = {
+        id: socialId,
+        fullName: fullName,
+        verified: true,
+        role: 'Thành viên Google Sync',
+        bio: 'Tài khoản kết nối qua Google Account chính thức • Đồng bộ nhịp sinh học tự động 🌙',
+        age: '28 tuổi',
+        gender: 'Khác',
+        occupation: 'Thành viên Google Sync',
+        phone: email,
+        password: '',
+        targetBedtime: '23:00',
+        wakeTime: '06:30',
+        fitnessLevel: 'Khá',
+        healthConditions: ['Đồng bộ thói quen sinh học'],
+        avatarType: avatar,
+        socialProvider: 'google',
+        streakDays: 3,
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString()
+      };
+      inMemoryData.users.push(user);
+    } else {
+      user.fullName = fullName;
+      user.avatarType = avatar;
+      user.socialProvider = 'google';
+      user.lastLoginAt = new Date().toISOString();
+    }
+
+    setCurrentUser(user.id);
+
+    // Persist real user into backend SQLite database
+    try {
+      await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user)
+      });
+    } catch (e) {
+      console.warn('[SQLite User Sync Warning]', e);
+    }
+
+    logServiceUsage(
+      'AUTH_LOGIN',
+      'Đăng nhập Google Account',
+      `Người dùng ${user.fullName} (${email}) đã đăng nhập thành công qua Google OAuth 2.0.`
+    );
+    syncWithCloudServer();
+    return { success: true, user, message: `Chào mừng ${user.fullName} đã kết nối Google thành công!` };
+  }
+
   return {
     init,
     getCurrentUser,
@@ -759,7 +822,8 @@ const SleepSyncDB = (function() {
     loginWithCloudAccount,
     registerWithCloudAccount,
     logoutCurrentUser,
-    loginWithSocialAccount
+    loginWithSocialAccount,
+    loginWithGoogleProfile
   };
 })();
 
