@@ -389,12 +389,25 @@ class SleepSyncAPIHandler(SimpleHTTPRequestHandler):
 
         query = body.get("message", "").strip()
         user = body.get("user") or {}
+        client_time = body.get("clientTime")
+        client_hour = body.get("clientHour")
+        client_phase = body.get("clientPhase")
+        client_date = body.get("clientDate")
+        time_zone = body.get("timeZone")
 
         if not query:
             self.send_json({"success": False, "message": "Vui lòng nhập nội dung câu hỏi"}, 400)
             return
 
-        ai_res = ai_analyzer.chat_with_mavis(query, user)
+        ai_res = ai_analyzer.chat_with_mavis(
+            query=query,
+            user=user,
+            client_time=client_time,
+            client_hour=client_hour,
+            client_phase=client_phase,
+            client_date=client_date,
+            time_zone=time_zone
+        )
         if ai_res and ai_res.get("success"):
             reply = ai_res.get("reply")
             # Log chat into SQL database

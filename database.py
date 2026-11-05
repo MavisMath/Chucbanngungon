@@ -8,7 +8,7 @@ Zero mock data: starts 100% clean for real user registrations.
 import os
 import json
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from contextlib import contextmanager
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -523,7 +523,7 @@ def get_stats():
             "totalAiChats": total_ai_chats,
             "totalGuardrailBlocks": total_guardrails,
             "totalLogs": total_logs,
-            "lastSync": datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
+            "lastSync": datetime.now(timezone(timedelta(hours=7))).strftime("%H:%M:%S %d/%m/%Y"),
             "serverStatus": "Online (Cơ sở dữ liệu SQL Hoạt động)",
             "databaseEngine": "SQLite 3 Relational SQL Database",
             "databaseFile": DB_FILE

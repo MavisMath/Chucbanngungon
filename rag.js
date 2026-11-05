@@ -157,6 +157,36 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
       : 'Sức khỏe ổn định';
     const userStreak = (isAuth && activeUser) ? (activeUser.streakDays || 1) : 0;
 
+    // Precise Real-time Client Clock & Circadian Phase
+    const now = new Date();
+    const clientHour = now.getHours();
+    const clientMinutes = String(now.getMinutes()).padStart(2, '0');
+    const clientTime = `${String(clientHour).padStart(2, '0')}:${clientMinutes}`;
+    const clientDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Ho_Chi_Minh';
+
+    let clientPhase = 'Ban ngày';
+    const statusEl = document.getElementById('circadian-status');
+    if (statusEl && statusEl.textContent && statusEl.textContent.trim()) {
+      clientPhase = statusEl.textContent.trim().replace(/^•\s*/, '');
+    } else {
+      if (clientHour >= 5 && clientHour < 9) {
+        clientPhase = 'Buổi sáng sớm - Đón bình minh & Thức giấc';
+      } else if (clientHour >= 9 && clientHour < 11) {
+        clientPhase = 'Buổi sáng - Năng lượng ban mai & Cortisol đỉnh';
+      } else if (clientHour >= 11 && clientHour < 14) {
+        clientPhase = 'Buổi trưa - Nạp năng lượng & Chốt cữ Caffeine';
+      } else if (clientHour >= 14 && clientHour < 18) {
+        clientPhase = 'Buổi chiều - Giảm mỏi mệt & Chuẩn bị kết thúc việc';
+      } else if (clientHour >= 18 && clientHour < 21) {
+        clientPhase = 'Hoàng hôn & Tối - Bữa tối nhẹ & Hạ nhiệt nhịp sống';
+      } else if (clientHour >= 21 && clientHour < 23) {
+        clientPhase = 'Tiền giờ ngủ - Digital Sunset & Thư giãn';
+      } else {
+        clientPhase = 'Đêm muộn - Giờ vàng phục hồi sâu Melatonin';
+      }
+    }
+
     // Step 3: Call Backend Server AI Chat Endpoint (/api/ai/chat)
     try {
       const controller = new AbortController();
@@ -169,7 +199,12 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
         body: JSON.stringify({
           message: userQuery,
           user: activeUser,
-          device: /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Mobile Web' : 'Desktop Web'
+          device: /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Mobile Web' : 'Desktop Web',
+          clientTime: clientTime,
+          clientHour: clientHour,
+          clientDate: clientDate,
+          clientPhase: clientPhase,
+          timeZone: timeZone
         })
       });
 
@@ -195,9 +230,18 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
     // Step 4: Direct Client-Side Gemini API Call (if server is offline)
     if (GEMINI_CONFIG.apiKey) {
       try {
-        const systemPrompt = `Bạn là Mavis - Trợ lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ của Mavis chúc bạn ngủ ngon.
-Người dùng: ${userName} (${userRole}), Giờ ngủ đích: ${userBedtime}, Tình trạng: ${userConditions}.
-Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức khỏe, giấc ngủ, đau mỏi, dinh dưỡng, tâm lý bằng giọng văn dịu dàng, chu đáo, khoa học và dễ hiểu bằng tiếng Việt:`;
+        const systemPrompt = `Bạn là Mavis - Trợ lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ Thông Minh của Mavis chúc bạn ngủ ngon.
+THÔNG TIN NGƯỜI DÙNG:
+- Tên: ${userName} (${userRole})
+- Giờ ngủ mục tiêu: ${userBedtime}
+- Tình trạng lưu ý: ${userConditions}
+- THỜI GIAN THỰC TẾ HIỆN TẠI CỦA NGƯỜI DÙNG: ${clientTime} (${clientHour}h, Ngày ${clientDate})
+- Nhịp sinh học hiện tại: ${clientPhase}
+- Múi giờ: ${timeZone}
+
+QUY TẮC TRẢ LỜI:
+- BẮT BUỘC nhận diện chính xác thời gian thực tế hiện tại là ${clientTime} (${clientPhase}, ngày ${clientDate}). Nếu người dùng hỏi bây giờ là mấy giờ hoặc về thời gian, hãy trả lời chính xác giờ này kèm lời khuyên phù hợp với thời điểm trong ngày!
+- Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức khỏe, giấc ngủ, đau mỏi, dinh dưỡng, tâm lý bằng giọng văn dịu dàng, chu đáo, khoa học và dễ hiểu bằng tiếng Việt:`;
 
         const fullPrompt = `${systemPrompt}\n\nNgười dùng hỏi: "${userQuery}"\nMavis hãy trả lời thật chi tiết, nhiệt tình và đưa ra các giải pháp thiết thực:`;
 
@@ -231,11 +275,11 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
 
     // Step 5: Fallback to Local Verified RAG Synthesis
     const matchedChunks = retrieveRelevantChunks(userQuery);
-    return generateLocalRAGResponse(userQuery, matchedChunks);
+    return generateLocalRAGResponse(userQuery, matchedChunks, { clientTime, clientHour, clientDate, clientPhase });
   }
 
-  // Local RAG fallback generator - Personalized with active user profile
-  function generateLocalRAGResponse(userQuery, matchedChunks) {
+  // Local RAG fallback generator - Personalized with active user profile & real-time context
+  function generateLocalRAGResponse(userQuery, matchedChunks, clientMeta = {}) {
     const qLower = (userQuery || '').toLowerCase();
     let activeUser = null;
     let isAuth = false;
@@ -258,9 +302,23 @@ Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức k
       intro = `Chào bạn! Mavis chúc bạn ngủ ngon! Dưới đây là giải pháp nhịp sinh học tối ưu:\n\n`;
     }
 
+    // Realtime date & clock fallback if clientMeta not provided
+    const nowLocal = new Date();
+    const lH = nowLocal.getHours();
+    const lM = String(nowLocal.getMinutes()).padStart(2, '0');
+    const localTime = clientMeta.clientTime || `${String(lH).padStart(2, '0')}:${lM}`;
+    const localDate = clientMeta.clientDate || `${String(nowLocal.getDate()).padStart(2, '0')}/${String(nowLocal.getMonth() + 1).padStart(2, '0')}/${nowLocal.getFullYear()}`;
+    const localPhase = clientMeta.clientPhase || (lH >= 5 && lH < 12 ? 'Buổi sáng' : (lH < 18 ? 'Buổi chiều' : 'Buổi tối'));
+
     let response = '';
 
     // Direct answer based on question topic
+    if (qLower.includes('mấy giờ') || qLower.includes('thời gian') || qLower.includes('mấy h') || (qLower.includes('bây giờ') && (qLower.includes('giờ') || qLower.includes('thế nào') || qLower.includes('gì')))) {
+      return intro +
+        `• **Thời gian thực hiện tại**: Bây giờ là **${localTime}** (${localPhase}, ngày ${localDate}).\n` +
+        `• **Mốc ngủ mục tiêu của bạn**: **${userBedtime}**.\n` +
+        `• Mavis luôn đồng bộ theo nhịp thời gian thực này để nhắc nhở và đồng hành cùng bạn chăm sóc giấc ngủ nhé! ❤️`;
+    } else
     if (qLower.includes('ăn') || qLower.includes('uống') || qLower.includes('thực phẩm') || qLower.includes('món') || qLower.includes('dinh dưỡng')) {
       const dinnerHour = parseInt(userBedtime.split(':')[0], 10) || 23;
       const dinnerCutoff = `${(dinnerHour - 3 + 24) % 24}:00`;

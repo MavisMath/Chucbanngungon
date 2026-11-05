@@ -815,10 +815,10 @@ def run_semantic_nlp_analysis(answers, custom_answers, user, current_hour, curre
 # GENERAL CONVERSATIONAL AI HEALTH & SLEEP ASSISTANT (MAVIS CHATBOT)
 # ==============================================================================
 
-def chat_with_mavis(query, user=None, history=None):
+def chat_with_mavis(query, user=None, history=None, client_time=None, client_hour=None, client_phase=None, client_date=None, time_zone=None):
     """
     Empathetic, knowledgeable, and diverse health & sleep chatbot with Gemini 3.5 AI.
-    Answers comfortably on health, sleep, nutrition, physiology, mental wellness, and recovery.
+    Synchronized with user's real-time client clock and biological circadian phase.
     """
     user = user or {}
     user_name = user.get("fullName") or "Bạn"
@@ -830,8 +830,44 @@ def chat_with_mavis(query, user=None, history=None):
     else:
         user_cond_str = str(user_conditions)
 
-    current_hour = datetime.now().hour
-    current_time_str = datetime.now().strftime("%H:%M")
+    # 1. Determine accurate real-time clock (Prioritize Client Time -> Fallback to Vietnam UTC+7)
+    vn_now = datetime.now(timezone(timedelta(hours=7)))
+
+    if client_time and isinstance(client_time, str) and ":" in client_time:
+        current_time_str = client_time.strip()
+    else:
+        current_time_str = vn_now.strftime("%H:%M")
+
+    if client_hour is not None:
+        try:
+            current_hour = int(client_hour)
+        except Exception:
+            current_hour = vn_now.hour
+    else:
+        try:
+            current_hour = int(current_time_str.split(":")[0])
+        except Exception:
+            current_hour = vn_now.hour
+
+    if not client_date:
+        client_date = vn_now.strftime("%d/%m/%Y")
+
+    # Determine biological circadian phase description
+    if not client_phase:
+        if 5 <= current_hour < 9:
+            client_phase = "Buổi sáng sớm - Đón bình minh & Thức giấc"
+        elif 9 <= current_hour < 11:
+            client_phase = "Buổi sáng - Năng lượng ban mai & Cortisol đỉnh"
+        elif 11 <= current_hour < 14:
+            client_phase = "Buổi trưa - Nạp năng lượng & Chốt cữ Caffeine"
+        elif 14 <= current_hour < 18:
+            client_phase = "Buổi chiều - Giảm mỏi mệt & Hoàn thành công việc"
+        elif 18 <= current_hour < 21:
+            client_phase = "Hoàng hôn & Tối - Bữa tối nhẹ & Hạ nhiệt nhịp sống"
+        elif 21 <= current_hour < 23:
+            client_phase = "Tiền giờ ngủ - Digital Sunset & Thư giãn"
+        else:
+            client_phase = "Đêm muộn - Giờ vàng phục hồi giấc ngủ Melatonin"
 
     system_instruction = f"""Bạn là Mavis - Bé Trợ Lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ Thông Minh của Mavis chúc bạn ngủ ngon.
 Tính cách của bạn: Ngọt ngào, ấm áp, thông minh, tận tâm và khoa học như một người bạn thân kiêm chuyên gia sức khỏe gia đình.
@@ -849,9 +885,11 @@ THÔNG TIN NGƯỜI ĐANG TRÒ CHUYỆN:
 - Nghề nghiệp / Lối sống: {user_role}
 - Giờ ngủ mục tiêu: {user_bedtime}
 - Tình trạng lưu ý: {user_cond_str}
-- Khung giờ hiện tại: {current_time_str} ({current_hour}h)
+- THỜI GIAN THỰC TẾ HIỆN TẠI CỦA NGƯỜI DÙNG: {current_time_str} ({current_hour}h, Ngày {client_date})
+- Nhịp sinh học hiện tại: {client_phase}
 
 QUY TẮC TRẢ LỜI:
+- BẮT BUỘC nhận diện chính xác thời gian thực tế hiện tại là {current_time_str} ({client_phase}, ngày {client_date}). Nếu người dùng hỏi bây giờ là mấy giờ hoặc về thời gian, hãy trả lời chính xác giờ này kèm lời khuyên phù hợp với thời điểm trong ngày!
 - Luôn xưng hô gần gũi, dịu dàng: "Mavis chào bạn {user_name} / Mavis chúc bạn...", trả lời tự nhiên, nhiệt tình và cụ thể.
 - Đưa ra giải pháp rõ ràng, dễ làm theo từng gạch đầu dòng (thực phẩm, bài tập, tư thế nằm, mẹo dân gian an toàn, thói quen).
 - Nếu người dùng hỏi về thuốc hoặc việc uống thuốc: Hãy giải thích cơ chế/công dụng/lưu ý một cách khoa học, đồng thời đưa ra các giải pháp tự nhiên bổ trợ và ân cần khuyên: "Nếu các triệu chứng kéo dài hoặc cần dùng thuốc đặc trị, bạn hãy đi khám hoặc tham khảo ý kiến bác sĩ/dược sĩ chuyên khoa để được kê đơn đúng liều lượng an toàn nhé!"
