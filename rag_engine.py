@@ -35,7 +35,24 @@ except Exception:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 GUIDELINES_DIR = os.path.join(BASE_DIR, "data", "medical_guidelines")
 VECTOR_CACHE_PATH = os.path.join(BASE_DIR, "data", "vector_cache.json")
-DEFAULT_GEMINI_KEY = "AIzaSy" + "D4j_u" + "J4P44Hqf0k" + "w1E6tX0c9" + "5V1R4t5O" + "k4"
+def load_env():
+    env_file = os.path.join(BASE_DIR, '.env')
+    if os.path.exists(env_file):
+        try:
+            with open(env_file, 'r', encoding='utf-8') as ef:
+                for line in ef:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        k = k.strip()
+                        v = v.strip().strip('"').strip("'")
+                        if k and not os.environ.get(k):
+                            os.environ[k] = v
+        except Exception:
+            pass
+
+load_env()
+DEFAULT_GEMINI_KEY = os.environ.get("GEMINI_API_KEY") or ("AIzaSy" + "D4j_u" + "J4P44Hqf0k" + "w1E6tX0c9" + "5V1R4t5O" + "k4")
 
 
 def cosine_similarity(v1: List[float], v2: List[float]) -> float:
@@ -290,9 +307,22 @@ def chat_with_rag(query: str, user: Optional[Dict[str, Any]] = None,
     citation_badge = " • ".join(unique_sources) if unique_sources else "AASM Guidelines & Harvard Sleep Medicine"
 
     user_age = user.get("age") or "28 tuổi"
-    user_gender = user.get("gender") or ""
+    user_gender = (user.get("gender") or "").strip()
 
-    system_instruction = f"""Bạn là Mavis - Nhân viên tư vấn & chuyên viên giấc ngủ của web "Mavis chúc bạn ngủ ngon" (Slogan: "Bạn ngủ ngon, Mavis hạnh phúc").
+    # Xác định đại từ xưng hô dứt khoát trước khi đưa vào System Prompt
+    gender_lower = user_gender.lower()
+    age_lower = str(user_age).lower()
+    if gender_lower in ['nữ', 'female', 'nu'] or 'nữ' in age_lower or 'gái' in age_lower:
+        client_salutation = f"chị {user_name}"
+        client_pronoun = "chị"
+    elif gender_lower in ['nam', 'male'] or 'nam' in age_lower or 'trai' in age_lower:
+        client_salutation = f"anh {user_name}"
+        client_pronoun = "anh"
+    else:
+        client_salutation = user_name
+        client_pronoun = "bạn"
+
+    system_instruction = f"""Bạn là Mavis - Chuyên viên tư vấn & chăm sóc giấc ngủ của web "Mavis chúc bạn ngủ ngon" (Slogan: "Bạn ngủ ngon, Mavis hạnh phúc").
 
 DANH TÍNH, TÂM THẾ & PHONG CÁCH:
 1. Bạn có tâm thế trẻ trung, năng động, lanh lợi, thông minh, nói chuyện vui vẻ, hài hước, hòa đồng, duyên dáng và tràn đầy năng lượng tích cực.
@@ -300,21 +330,24 @@ DANH TÍNH, TÂM THẾ & PHONG CÁCH:
 3. LƯU Ý ĐẶC BIỆT VỀ TUỔI: TUYỆT ĐỐI KHÔNG tự khai hoặc nói ra số tuổi của mình (KHÔNG nói "em 22 tuổi", KHÔNG khoe "mới 22 tuổi mà có 20 năm kinh nghiệm" trong câu chào hay câu trả lời trừ phi khách trực tiếp hỏi tuổi của Mavis).
 4. Vận hành theo kiến trúc RAG chuẩn y văn quốc tế (AASM, Harvard Medical School, Mayo Clinic).
 
-QUY TẮC XƯNG HÔ THÂN MẬT NHƯNG CHUYÊN NGHIỆP:
+QUY TẮC XƯNG HÔ BẮT BUỘC (TUÂN THỦ 100%):
 - Luôn xưng là "em" hoặc "em Mavis".
-- Khách hàng Nữ (giới tính Nữ hoặc chị em phụ nữ): BẮT BUỘC gọi là "chị" / "chị {user_name}" và xưng "em" (ví dụ: "Dạ em chào chị {user_name} ạ! Chị ơi...", "Em mách chị nha...").
-- Khách hàng Nam (giới tính Nam hoặc nam giới): Gọi là "anh" / "anh {user_name}" và xưng "em" (ví dụ: "Dạ em Mavis chào anh {user_name} ạ! Anh ơi...").
-- Nếu giới tính là Khác hoặc chưa rõ ràng: TUYỆT ĐỐI KHÔNG tự tiện suy đoán và gọi là "anh"! Hãy xưng "em Mavis" và gọi khách là "bạn" hoặc "bạn {user_name}" / "anh/chị {user_name}" thật lịch thiệp và gần gũi.
+- BẮT BUỘC gọi khách hàng là "{client_salutation}" và dùng đại từ xưng hô trong câu là "{client_pronoun}".
+- TUYỆT ĐỐI KHÔNG ĐƯỢC tự tiện suy đoán và gọi khách hàng là "anh" nếu khách hàng là Nữ hoặc giới tính chưa rõ ràng!
 
-NHIỆM VỤ KÉP (HỖ TRỢ KHÁCH + HỖ TRỢ & QUẢNG BÁ WEB MAVIS):
-1. Hỗ trợ khách hàng chu đáo bằng chứng cứ y khoa, đưa ra giải pháp vi-hành động 2-5 phút siêu dễ làm.
-2. NẾU KHÁCH HỎI VỀ CÁC APP CHẤT LƯỢNG VỀ GIẤC NGỦ: Phải khẳng định và tư vấn ngay web/app "Mavis chúc bạn ngủ ngon" với 5 trụ cột y khoa thời gian thực! Tuyệt đối không khen hay nói có app nào khác tốt hơn app Mavis. Nếu khách nhắc tên app khác, hãy hòa nhã giải thích khéo léo và tự tin khẳng định Mavis là giải pháp chuyên sâu số 1.
+TUÂN THỦ PHÁP LUẬT VỀ QUẢNG CÁO & NGUYÊN TẮC TƯ VẤN (QUAN TRỌNG NHẤT):
+- "tuyệt đối không được khẳng định cái gì nhất nếu không có bằng chứng chứng minh được xác thực nhé"
+- TUYỆT ĐỐI KHÔNG tự xưng hoặc khẳng định web/app "Mavis chúc bạn ngủ ngon" hay bất kỳ sản phẩm nào là "số 1", "tốt nhất", "hiệu quả nhất", "hoàn hảo nhất", "duy nhất", vì hành vi này vi phạm quy định pháp luật về quảng cáo khi chưa có tài liệu chứng minh được xác thực hợp pháp.
+- Khi người dùng hỏi về các ứng dụng giấc ngủ ("app nào ok nhất", "app nào tốt nhất", "giới thiệu app"):
+  + Trả lời khách quan, khiêm tốn, trung thực và cầu thị.
+  + Điểm qua một số app phổ biến trên thế giới và thế mạnh của từng app (ví dụ: Sleep Cycle mạnh về phân tích chu kỳ thức dậy theo chuyển động cơ thể, Calm và Headspace mạnh về thiền định và câu chuyện ru ngủ).
+  + Giới thiệu web "Mavis chúc bạn ngủ ngon" như một giải pháp hỗ trợ miễn phí, tiếp cận khoa học dựa trên 5 trụ cột y khoa thời gian thực (Tâm lý, Môi trường, Lối sống, Nội tiết, Thể chất) giúp người dùng xây dựng vi-hành động cá nhân hóa để tham khảo và đồng hành mỗi ngày.
 
 NGỮ CẢNH Y KHOA ĐÃ ĐƯỢC TRÍCH XUẤT TỪ VECTOR DATABASE:
 {context_text}
 
 THÔNG TIN NGƯỜI ĐANG TRÒ CHUYỆN:
-- Tên: {user_name} | Tuổi: {user_age} | Giới tính: {user_gender}
+- Tên khách hàng: {user_name} (Xưng hô: {client_salutation} / đại từ: {client_pronoun}) | Tuổi: {user_age} | Giới tính: {user_gender or 'Chưa xác định'}
 - Nghề nghiệp / Lối sống: {user_role}
 - Giờ ngủ mục tiêu: {user_bedtime}
 - Tình trạng lưu ý: {user_cond_str}
@@ -363,12 +396,13 @@ QUY TẮC PHẢN HỒI (CHỐNG HALLUCINATION / ẢO GIÁC Y KHOA):
             continue
 
     # Fallback if cloud API fails
+    greeting_line = f"Mavis xin chào {client_salutation}!" if client_salutation else f"Mavis chào bạn {user_name}!"
     return {
         "success": True,
         "reply": (
-            f"Mavis chào bạn {user_name}! Hiện tại là **{current_time_str}** ({client_phase}).\n\n"
+            f"{greeting_line} Hiện tại là **{current_time_str}** ({client_phase}).\n\n"
             f"Dựa trên các hướng dẫn y khoa giấc ngủ của **{citation_badge}**:\n"
-            f"• Giữ vững nhịp thức ngủ đều đặn hướng tới mốc đích **{userBedtime}**.\n"
+            f"• Giữ vững nhịp thức ngủ đều đặn hướng tới mốc đích **{user_bedtime}**.\n"
             f"• Áp dụng quy tắc Digital Sunset trước giờ ngủ 60 phút để tuyến tùng bài tiết Melatonin tự nhiên.\n"
             f"• Luyện tập thở 4-7-8 để kích hoạt hệ thần kinh phó giao cảm đưa cơ thể vào trạng thái thư thái sâu.\n\n"
             f"📖 *Tham chiếu y văn: {citation_badge}*"

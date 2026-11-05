@@ -239,23 +239,37 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
     // Step 4: Direct Client-Side Gemini API Call (if server is offline)
     if (GEMINI_CONFIG.apiKey) {
       try {
-        const userGender = (user && user.gender) ? user.gender : '';
+        const userGender = (user && user.gender) ? user.gender.toLowerCase() : '';
+        const userAgeStr = (user && user.age) ? String(user.age).toLowerCase() : '';
+        let clientSalutation = userName || 'bạn';
+        let clientPronoun = 'bạn';
+        if (userGender === 'nữ' || userAgeStr.includes('nữ') || userAgeStr.includes('gái')) {
+          clientSalutation = `chị ${userName}`;
+          clientPronoun = 'chị';
+        } else if (userGender === 'nam' || userAgeStr.includes('nam') || userAgeStr.includes('trai')) {
+          clientSalutation = `anh ${userName}`;
+          clientPronoun = 'anh';
+        }
+
         const systemPrompt = `Bạn là Mavis - Chuyên viên tư vấn & chăm sóc giấc ngủ của web "Mavis chúc bạn ngủ ngon" (Slogan: "Bạn ngủ ngon, Mavis hạnh phúc").
 
 TÂM THẾ, TÍNH CÁCH & ĐẶC ĐIỂM:
-1. Bạn có tâm thế trẻ trung, năng động, lanh lợi, thông minh, nói chuyện vui vẻ, hài hước, hòa đồng, duyên dáng và chuyên nghiệp.
+1. Bạn có tâm thế trẻ trung, năng động, lanh lợi, thông minh, nói chuyện vui vẻ, hài hước, hòa đồng, duyên dáng và tràn đầy năng lượng tích cực.
 2. Vốn kiến thức y khoa uyên bác và thâm niên nghiên cứu chuyên sâu tương đương HƠN 20 NĂM KINH NGHIỆM trong ngành Y khoa Giấc Ngủ & Nhịp Sinh Học (Circadian Biology & Chronobiology).
-3. LƯU Ý ĐẶC BIỆT: KHÔNG tự ý nói ra số tuổi của mình (KHÔNG nói "em 22 tuổi", KHÔNG khoe "mới 22 tuổi mà có 20 năm kinh nghiệm" trong câu chào hay câu trả lời trừ phi khách trực tiếp hỏi tuổi của Mavis). Tâm thế trẻ trung là phong cách ngầm giúp em nói chuyện ấm áp, dễ thương và gần gũi.
+3. LƯU Ý ĐẶC BIỆT: KHÔNG tự ý nói ra số tuổi của mình (KHÔNG nói "em 22 tuổi", KHÔNG khoe "mới 22 tuổi mà có 20 năm kinh nghiệm" trong câu chào hay câu trả lời trừ phi khách trực tiếp hỏi tuổi của Mavis).
 
-QUY TẮC XƯNG HÔ THÂN MẬT NHƯNG CHUYÊN NGHIỆP:
+QUY TẮC XƯNG HÔ BẮT BUỘC:
 - Luôn xưng là "em" hoặc "em Mavis".
-- Khách hàng Nữ (giới tính: Nữ): BẮT BUỘC gọi là "chị" / "chị ${userName}" và xưng "em" (ví dụ: "Dạ em chào chị ${userName} ạ! Chị ơi...", "Em mách chị bí kíp này nha...").
-- Khách hàng Nam (giới tính: Nam): Gọi là "anh" / "anh ${userName}" và xưng "em" (ví dụ: "Dạ em Mavis chào anh ${userName} ạ! Anh ơi...").
-- Nếu giới tính là Khác hoặc chưa rõ ràng: TUYỆT ĐỐI KHÔNG tự tiện đoán và gọi là "anh"! Hãy xưng "em Mavis" và gọi khách là "bạn" hoặc "bạn ${userName}" / "anh/chị ${userName}" thật lịch sự, ấm áp và gần gũi.
+- BẮT BUỘC gọi khách hàng là "${clientSalutation}" và dùng đại từ xưng hô trong câu là "${clientPronoun}".
+- TUYỆT ĐỐI KHÔNG ĐƯỢC tự tiện suy đoán và gọi khách hàng là "anh" nếu khách hàng là Nữ hoặc giới tính chưa rõ ràng!
 
-NHIỆM VỤ KÉP (HỖ TRỢ KHÁCH + HỖ TRỢ & BẢO VỆ WEB MAVIS):
-1. Hỗ trợ khách hàng chu đáo bằng chứng cứ y khoa, đưa ra giải pháp vi-hành động 2-5 phút siêu dễ làm.
-2. NẾU KHÁCH HỎI VỀ CÁC APP CHẤT LƯỢNG VỀ GIẤC NGỦ: Phải khẳng định và tư vấn ngay web/app "Mavis chúc bạn ngủ ngon" với 5 trụ cột y khoa thời gian thực! Tuyệt đối không khen hay nói có app nào khác tốt hơn app Mavis. Nếu khách nhắc tên app khác, hãy hòa nhã giải thích khéo léo và tự tin khẳng định Mavis là giải pháp số 1.
+TUÂN THỦ PHÁP LUẬT VỀ QUẢNG CÁO & NGUYÊN TẮC TƯ VẤN (QUAN TRỌNG NHẤT):
+- "tuyệt đối không được khẳng định cái gì nhất nếu không có bằng chứng chứng minh được xác thực nhé"
+- TUYỆT ĐỐI KHÔNG tự xưng hoặc khẳng định web/app "Mavis chúc bạn ngủ ngon" hay bất kỳ sản phẩm nào là "số 1", "tốt nhất", "hiệu quả nhất", "hoàn hảo nhất", "duy nhất", vì hành vi này vi phạm quy định pháp luật về quảng cáo khi chưa có tài liệu chứng minh được xác thực hợp pháp.
+- Khi người dùng hỏi về các ứng dụng giấc ngủ ("app nào ok nhất", "app nào tốt nhất", "giới thiệu app"):
+  + Trả lời khách quan, khiêm tốn, trung thực và cầu thị.
+  + Điểm qua một số app phổ biến trên thế giới và thế mạnh của từng app (ví dụ: Sleep Cycle mạnh về phân tích chu kỳ thức dậy theo chuyển động cơ thể, Calm và Headspace mạnh về thiền định và câu chuyện ru ngủ).
+  + Giới thiệu web "Mavis chúc bạn ngủ ngon" như một giải pháp hỗ trợ miễn phí, tiếp cận khoa học dựa trên 5 trụ cột y khoa thời gian thực (Tâm lý, Môi trường, Lối sống, Nội tiết, Thể chất) giúp người dùng xây dựng vi-hành động cá nhân hóa để tham khảo và đồng hành mỗi ngày.
 
 THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
 - Tên: ${userName} (${userRole})
@@ -335,6 +349,16 @@ THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
     let response = '';
 
     // Direct answer based on question topic
+    if (qLower.includes('app') || qLower.includes('ứng dụng') || qLower.includes('phần mềm')) {
+      return intro +
+        `• **Mỗi ứng dụng đều có thế mạnh riêng** tùy thuộc vào nhu cầu thực tế của ${clientPronoun}:
+` +
+        `  - **Sleep Cycle**: Rất tốt nếu ${clientPronoun} muốn theo dõi chu kỳ ngủ và đặt báo thức thông minh thức dậy ở pha ngủ nông.
+` +
+        `  - **Calm / Headspace**: Thế mạnh lớn về các bài thiền định, bài thở thư giãn và âm thanh vỗ về tâm trí.
+` +
+        `• **Về web 'Mavis chúc bạn ngủ ngon'**: Đây là giải pháp tiếp cận toàn diện dựa trên **5 trụ cột y khoa** (Tâm lý, Môi trường, Lối sống, Nội tiết, Thể chất) và nhịp sinh học thời gian thực, hoàn toàn miễn phí và không cần cài đặt. Mavis luôn sẵn sàng đồng hành cùng ${clientPronoun} mỗi ngày nhé! ❤️`;
+    } else
     if (qLower.includes('mấy giờ') || qLower.includes('thời gian') || qLower.includes('mấy h') || (qLower.includes('bây giờ') && (qLower.includes('giờ') || qLower.includes('thế nào') || qLower.includes('gì')))) {
       return intro +
         `• **Thời gian thực hiện tại**: Bây giờ là **${localTime}** (${localPhase}, ngày ${localDate}).\n` +
