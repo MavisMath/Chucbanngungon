@@ -136,6 +136,15 @@ const SleepSyncDB = (function() {
     const savedActiveUserId = localStorage.getItem(STORAGE_KEY_ACTIVE_USER);
     if (savedActiveUserId && inMemoryData.users.some(u => u.id === savedActiveUserId)) {
       inMemoryData.activeUserId = savedActiveUserId;
+      const restoredUser = getCurrentUser();
+      if (restoredUser) {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('sleepsync:user-changed', { detail: restoredUser }));
+          if (window.SleepRAG && window.SleepRAG.resetChat) {
+            window.SleepRAG.resetChat();
+          }
+        }, 60);
+      }
     } else {
       // Clean guest state - do NOT default to any sample user
       inMemoryData.activeUserId = null;

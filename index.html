@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/icon-192.png">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=20261105_14">
+  <link rel="stylesheet" href="styles.css?v=20261105_15">
   
   <!-- Immediate Google OAuth Popup Bridge (For seamless 1-click popup login) -->
   <script>
@@ -222,6 +222,9 @@
 
             // 4. Notify entire application & Chatbot
             window.dispatchEvent(new CustomEvent('sleepsync:user-changed', { detail: authRes.user }));
+            if (window.SleepRAG && window.SleepRAG.resetChat) {
+              window.SleepRAG.resetChat();
+            }
 
             // 5. Sound FX & Welcome Toast
             if (window.SoundFX && window.SoundFX.success) {
@@ -2535,10 +2538,10 @@
           <span class="chat-online-badge"></span>
         </div>
         <div class="mavis-header-identity">
-          <h4 class="chatbot-title">Mavis - Trợ Lý Sức Khỏe & Giấc Ngủ <span class="mavis-sparkle-pill">✨ Gemini AI</span></h4>
+          <h4 class="chatbot-title">Mavis Hỗ Trợ</h4>
           <div class="chatbot-user-sync-badge" id="chatbot-user-sync-badge">
-            <span class="sync-dot free"></span>
-            <span>Trực tuyến 24/7 • Chế độ mở</span>
+            <span class="sync-dot online"></span>
+            <span>Đang trực tuyến • Sẵn sàng hỗ trợ</span>
           </div>
         </div>
       </div>
@@ -2548,11 +2551,7 @@
       </div>
     </div>
 
-    <!-- Pinned AI Assistant Banner -->
-    <div class="chatbot-guardrail-banner">
-      <i class="fa-solid fa-wand-magic-sparkles"></i>
-      <span><strong>Trợ lý AI Gemini:</strong> Đồng hành giải đáp thoải mái mọi câu hỏi về sức khỏe, dinh dưỡng & giấc ngủ.</span>
-    </div>
+
 
     <!-- Chat Messages Container -->
     <div class="chatbot-messages" id="chatbot-messages">
@@ -2571,7 +2570,7 @@
 
     <!-- Chat Input Bar -->
     <form id="chatbot-input-form" class="chatbot-input-bar">
-      <input type="text" id="chatbot-text-input" class="chatbot-text-input" placeholder="Hỏi Mavis về sức khỏe, giấc ngủ, dinh dưỡng..." autocomplete="off">
+      <input type="text" id="chatbot-text-input" class="chatbot-text-input" placeholder="Hỏi Mavis về giấc ngủ, giải tỏa căng thẳng..." autocomplete="off">
       <button type="button" id="chatbot-mic-btn" class="chatbot-btn-mic" title="Nói giọng nói"><i class="fa-solid fa-microphone"></i></button>
       <button type="submit" id="chatbot-send-btn" class="chatbot-btn-send" title="Gửi tin nhắn"><i class="fa-solid fa-paper-plane"></i></button>
     </form>
@@ -2614,10 +2613,10 @@
   </div>
 
   <!-- Client Database Engine -->
-  <script src="db.js?v=20261105_14"></script>
+  <script src="db.js?v=20261105_15"></script>
   <!-- RAG Knowledge Base & AI Chatbot Engine -->
-  <script src="rag.js?v=20261105_14"></script>
+  <script src="rag.js?v=20261105_15"></script>
   <!-- Main Javascript Logic -->
-  <script src="app.js?v=20261105_14"></script>
+  <script src="app.js?v=20261105_15"></script>
 </body>
 </html>

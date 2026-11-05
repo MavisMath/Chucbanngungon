@@ -225,7 +225,7 @@ def row_to_diag_dict(row):
 def list_all_users():
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users ORDER BY created_at DESC;")
+        cursor.execute("SELECT * FROM users ORDER BY COALESCE(last_login_at, created_at) DESC, created_at DESC;")
         rows = cursor.fetchall()
         return [row_to_user_dict(r) for r in rows]
 
@@ -517,11 +517,15 @@ def get_stats():
         cursor.execute("SELECT COUNT(*) FROM service_usage WHERE service_type LIKE '%AI_CHAT%';")
         total_ai_chats = cursor.fetchone()[0]
 
+        cursor.execute("SELECT COUNT(*) FROM service_usage WHERE service_type LIKE '%AUTH%';")
+        total_logins = cursor.fetchone()[0]
+
         return {
             "totalUsers": total_users,
             "totalDiagnoses": total_diags,
             "totalAiChats": total_ai_chats,
             "totalGuardrailBlocks": total_guardrails,
+            "totalLogins": total_logins,
             "totalLogs": total_logs,
             "lastSync": datetime.now(timezone(timedelta(hours=7))).strftime("%H:%M:%S %d/%m/%Y"),
             "serverStatus": "Online (Cơ sở dữ liệu SQL Hoạt động)",

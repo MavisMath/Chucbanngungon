@@ -963,6 +963,17 @@
               <div class="kpi-sub">Lần chặn hỏi thuốc & TPCN</div>
             </div>
           </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
+              <i class="fa-solid fa-right-to-bracket"></i>
+            </div>
+            <div class="kpi-info">
+              <h3>Khách Đăng Nhập Gần Nhất</h3>
+              <div class="kpi-number" id="kpi-latest-login" style="font-size: 1.1rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">—</div>
+              <div class="kpi-sub" id="kpi-latest-login-time">Chờ đăng nhập...</div>
+            </div>
+          </div>
         </div>
 
         <!-- System Architecture & Cloud Sync Status -->
@@ -1008,7 +1019,7 @@
                   <th>Nghề Nghiệp</th>
                   <th>Mục Tiêu Giờ Ngủ</th>
                   <th>Tình Trạng Sức Khỏe</th>
-                  <th>Trạng Thái</th>
+                  <th>Đăng Nhập Gần Nhất</th>
                 </tr>
               </thead>
               <tbody id="overview-users-tbody">
@@ -1410,6 +1421,14 @@
           document.getElementById('tab-user-count').textContent = adminDb.users.length;
           renderUsersTable(adminDb.users);
           renderOverviewUsers(adminDb.users);
+
+          if (freshUsers.length > 0) {
+            const newest = freshUsers[0];
+            const loginEl = document.getElementById('kpi-latest-login');
+            const timeEl = document.getElementById('kpi-latest-login-time');
+            if (loginEl) loginEl.textContent = newest.fullName;
+            if (timeEl) timeEl.textContent = newest.lastLoginAt ? `Đăng nhập: ${formatTimeAgo(newest.lastLoginAt)}` : 'Vừa tham gia';
+          }
         }
 
         // 3. Fetch diagnoses
@@ -1476,10 +1495,27 @@
       document.getElementById('kpi-total-guardrails').textContent = stats.totalGuardrailBlocks || 0;
     }
 
+    // Helper: relative time ago
+    function formatTimeAgo(iso) {
+      if (!iso) return 'Mới đây';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
+      if (diffSec < 60) return `${Math.max(1, diffSec)}s trước`;
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin}p trước`;
+      const diffH = Math.floor(diffMin / 60);
+      if (diffH < 24) return `${diffH}h trước`;
+      return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+
     // Render Overview Users
     function renderOverviewUsers(users) {
       const tbody = document.getElementById('overview-users-tbody');
-      tbody.innerHTML = users.slice(0, 5).map(u => `
+      if (!tbody) return;
+      tbody.innerHTML = users.slice(0, 8).map(u => {
+        const lastStr = u.lastLoginAt ? formatTimeAgo(u.lastLoginAt) : (u.createdAt ? formatTimeAgo(u.createdAt) : 'Hoạt động');
+        return `
         <tr>
           <td>
             <div class="user-cell">
@@ -1496,9 +1532,9 @@
           <td>
             ${(u.healthConditions || []).slice(0, 2).map(c => `<span class="badge-tag badge-amber">${c}</span>`).join(' ')}
           </td>
-          <td><span class="badge-tag badge-emerald"><i class="fa-solid fa-check"></i> Hoạt động</span></td>
+          <td><span class="badge-tag badge-emerald"><i class="fa-solid fa-clock-rotate-left"></i> ${lastStr}</span></td>
         </tr>
-      `).join('');
+      `}).join('');
     }
 
     // Render Users Table

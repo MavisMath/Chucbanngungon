@@ -946,10 +946,10 @@ THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
     const user = window.SleepSyncDB ? SleepSyncDB.getCurrentUser() : null;
 
     if (isAuth && user) {
-      badgeEl.innerHTML = `<span class="sync-dot online"></span> Đồng bộ: <strong>${escapeHTML(user.fullName || user.username)}</strong> (${user.targetBedtime || '23:00'})`;
-      badgeEl.title = `Đã đồng bộ hồ sơ: ${user.fullName} (${user.role || 'Người dùng'}) | Chuỗi: ${user.streak || 0} ngày`;
+      badgeEl.innerHTML = `<span class="sync-dot online"></span> Đang trực tuyến • Sẵn sàng hỗ trợ`;
+      badgeEl.title = `Mavis luôn sẵn sàng hỗ trợ 24/7`;
     } else {
-      badgeEl.innerHTML = `<span class="sync-dot free"></span> Trực tuyến 24/7 • Chế độ mở`;
+      badgeEl.innerHTML = `<span class="sync-dot free"></span> Đang trực tuyến • Sẵn sàng hỗ trợ`;
       badgeEl.title = `Mavis luôn sẵn sàng hỗ trợ bất kỳ lúc nào`;
     }
   }
@@ -1075,6 +1075,21 @@ THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
     // Initial Welcome Message & Sync Badge
     updateChatbotUserContext();
     renderWelcomeMessage();
+
+    // Auto-sync when DB finishes restoring user from storage
+    const autoSyncTimer = setInterval(() => {
+      const isAuth = window.SleepSyncDB && SleepSyncDB.isAuthenticated && SleepSyncDB.isAuthenticated();
+      const user = window.SleepSyncDB ? SleepSyncDB.getCurrentUser() : null;
+      if (isAuth && user) {
+        updateChatbotUserContext();
+        const msgContainer = document.getElementById('chatbot-messages');
+        if (msgContainer && (msgContainer.innerHTML.includes('btn-gate-auth') || msgContainer.children.length === 0)) {
+          resetChat();
+        }
+        clearInterval(autoSyncTimer);
+      }
+    }, 200);
+    setTimeout(() => clearInterval(autoSyncTimer), 8000);
   }
 
   function toggleChatbot() {
@@ -1092,9 +1107,15 @@ THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
   }
 
   function openChatbot() {
-    if (window.requireAuthGuard && !window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis')) {
-      return;
+    const isAuth = window.SleepSyncDB && SleepSyncDB.isAuthenticated && SleepSyncDB.isAuthenticated();
+    const user = window.SleepSyncDB ? SleepSyncDB.getCurrentUser() : null;
+
+    if (!isAuth) {
+      if (window.requireAuthGuard && !window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis')) {
+        return;
+      }
     }
+
     const chatWindow = document.getElementById('ai-chatbot-window');
     if (!chatWindow) return;
 
@@ -1108,6 +1129,16 @@ THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
     if (input) setTimeout(() => input.focus(), 150);
 
     updateChatbotUserContext();
+
+    // Auto-refresh greeting if chatbot currently displays the guest login prompt or is empty
+    const msgContainer = document.getElementById('chatbot-messages');
+    if (msgContainer) {
+      const html = msgContainer.innerHTML;
+      if (isAuth && user && (html.includes('btn-gate-auth') || html.includes('Yêu cầu đăng nhập') || msgContainer.children.length === 0)) {
+        resetChat();
+      }
+    }
+
     scrollToBottom();
   }
 
@@ -1147,31 +1178,20 @@ THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
         salutation = `${user.fullName}`;
       }
 
-      appendBotMessage(`Dạ em Mavis xin chào **${salutation}** ạ! 🌙✨ Em chúc ${greeting} có một ngày thật nhiều năng lượng và tối nay ngủ thật ngon nha!
+      appendBotMessage(`Dạ em Mavis xin chào **${salutation}** ạ! 🌙✨
 
-*"Bạn ngủ ngon, Mavis hạnh phúc."*
-
-✨ **Dữ liệu nhịp sinh học của ${greeting} đã được đồng bộ chuẩn xác:**
-• Nghề nghiệp: **${user.role || user.occupation || 'Thành viên Mavis'}**
-• Giờ ngủ mục tiêu: **${user.targetBedtime || '23:00'}** | Thức dậy: **${user.wakeTime || '06:30'}**
-• Chuỗi ngày chăm sóc giấc ngủ: **🔥 ${user.streakDays || user.streak || 1} ngày liên tiếp**
-${user.healthConditions && user.healthConditions.length ? `• Yếu tố cần lưu ý: *${user.healthConditions.join(', ')}*` : ''}
-
-Em luôn ở đây sẵn sàng lắng nghe và đồng hành cùng ${greeting} bất cứ lúc nào. ${greeting} có điều gì băn khoăn về giấc ngủ, giải tỏa căng thẳng hay cải thiện thói quen cứ nhắn cho em nhé! 🌸`);
+${greeting.charAt(0).toUpperCase() + greeting.slice(1)} cần em hỗ trợ gì về giấc ngủ, giải tỏa căng thẳng hay bài tập thở cứ nhắn cho em nha! Em luôn ở đây đồng hành cùng ${greeting} nè. 🌸`);
     } else {
-      appendBotMessage(`🔒 **Xin chào bạn! Em là Mavis - Chuyên viên tư vấn của 'Mavis chúc bạn ngủ ngon'** với chuyên môn sâu về Y khoa giấc ngủ & Nhịp sinh học.
+      appendBotMessage(`Dạ em Mavis chào bạn ạ! 🌙✨
 
-✨ **Yêu cầu đăng nhập để đồng bộ hóa dữ liệu:**
-Chatbot Mavis được thiết kế để lấy dữ liệu đồng bộ hóa theo thời gian thực (5 trụ cột y khoa, lịch trình, thói quen và thể trạng của riêng bạn) nhằm đưa ra các giải pháp chính xác nhất.
+Để em nắm được **tình trạng sức khỏe & nhịp sinh học** của bạn nhằm hỗ trợ chính xác nhất, bạn đăng nhập trước nhé:
 
-👉 **Vui lòng Đăng Nhập hoặc Đăng Ký tài khoản để bắt đầu trò chuyện cùng em Mavis nhé!**
-
-<div style="margin-top: 10px; display: flex; gap: 8px;">
-  <button type="button" class="btn-gate-auth" onclick="window.openUserAuthModal && window.openUserAuthModal('login')" style="padding: 9px 18px; border-radius: 10px; background: linear-gradient(135deg, #0284C7, #6366F1); color: #fff; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);">
-    <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng Nhập Ngay
+<div style="margin-top: 8px; display: flex; gap: 8px;">
+  <button type="button" class="btn-gate-auth" onclick="window.openUserAuthModal && window.openUserAuthModal('login')" style="padding: 8px 16px; border-radius: 999px; background: linear-gradient(135deg, #0284C7, #6366F1); color: #fff; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+    <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng Nhập
   </button>
-  <button type="button" class="btn-gate-auth" onclick="window.openUserAuthModal && window.openUserAuthModal('register')" style="padding: 9px 18px; border-radius: 10px; background: rgba(255, 255, 255, 0.08); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-    <i class="fa-solid fa-user-plus"></i> Đăng Ký Mới
+  <button type="button" class="btn-gate-auth" onclick="window.openUserAuthModal && window.openUserAuthModal('register')" style="padding: 8px 16px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem;">
+    <i class="fa-solid fa-user-plus"></i> Đăng Ký
   </button>
 </div>`);
     }
@@ -1287,6 +1307,9 @@ Chatbot Mavis được thiết kế để lấy dữ liệu đồng bộ hóa th
     toggleChatbot,
     openChatbot,
     closeChatbot,
+    resetChat,
+    renderWelcomeMessage,
+    updateChatbotUserContext,
     resetChat,
     renderWelcomeMessage,
     updateChatbotUserContext,

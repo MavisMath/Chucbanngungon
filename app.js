@@ -3226,10 +3226,14 @@ function initUserProfileModule() {
   // Keyboard shortcut: Escape to close drawer and modals
   if (window.location.hash === '#zen') {
     setTimeout(openZenSleepMode, 300);
-  } else if (window.location.hash === '#chat') {
+  } else if (window.location.hash === '#chat' || window.location.search.includes('openchat=1')) {
     setTimeout(() => {
-      const fab = document.getElementById('floating-profile-fab');
-      if (fab) fab.click();
+      if (window.SleepRAG && window.SleepRAG.openChatbot) {
+        window.SleepRAG.openChatbot();
+      } else {
+        const fab = document.getElementById('floating-profile-fab');
+        if (fab) fab.click();
+      }
     }, 300);
   }
 
@@ -4083,7 +4087,13 @@ function initUserAuthModal() {
           closeProfileDrawer();
           renderActiveUserProfile();
           renderServiceUsageLogs();
+          const gate = document.getElementById('auth-gate-banner');
+          if (gate) gate.style.display = 'none';
           showAppToast('Đăng nhập thành công', `Chào mừng ${res.user.fullName} đã trở lại SleepSync!`, 'success');
+          window.dispatchEvent(new CustomEvent('sleepsync:user-changed', { detail: res.user }));
+          if (window.SleepRAG && window.SleepRAG.resetChat) {
+            window.SleepRAG.resetChat();
+          }
         } else {
           showAuthFeedback(res.message || 'Đăng nhập không thành công. Vui lòng kiểm tra lại số điện thoại và mật khẩu!', 'error');
         }
@@ -4145,7 +4155,13 @@ function initUserAuthModal() {
           closeProfileDrawer();
           renderActiveUserProfile();
           renderServiceUsageLogs();
+          const gate = document.getElementById('auth-gate-banner');
+          if (gate) gate.style.display = 'none';
           showAppToast('Chào mừng bạn!', `Tài khoản ${res.user.fullName} đã được kích hoạt thành công.`, 'success');
+          window.dispatchEvent(new CustomEvent('sleepsync:user-changed', { detail: res.user }));
+          if (window.SleepRAG && window.SleepRAG.resetChat) {
+            window.SleepRAG.resetChat();
+          }
         } else {
           showAuthFeedback(res.message || 'Đăng ký không thành công.', 'error');
         }
