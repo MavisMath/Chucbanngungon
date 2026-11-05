@@ -76,7 +76,7 @@ const AppState = {
 // ==========================================
 // 2. INITIALIZATION & AUTH GUARD SYSTEM
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+function bootstrapSleepSync() {
   // Enforce initial login gate: if user is not authenticated, prompt login modal smoothly
   setTimeout(() => {
     try {
@@ -99,7 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
   try { initMavisShopeeAlerts(); } catch (e) { console.error('[SleepSync Init Error] Shopee Alerts:', e); }
   try { initHistoryModule(); } catch (e) { console.error('[SleepSync Init Error] History Module:', e); }
   try { initUserProfileModule(); } catch (e) { console.error('[SleepSync Init Error] User Profile:', e); }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrapSleepSync);
+} else {
+  bootstrapSleepSync();
+}
 
 // ==========================================
 // TOAST NOTIFICATION SYSTEM (Modern In-App Toast)
@@ -1929,8 +1935,7 @@ function generateNutritionAdvice(ans, targetBedtime = '23:00') {
 
   let targetedHealth = healthItems.join('');
   if (!targetedHealth) {
-    targetedHealth = `<div class="health-hack-item"><span class="health-hack-badge"><i class="fa-solid fa-circle-check"></i> Trạng thái tốt</span><p>Thể trạng rất ổn định. Duy trì phòng mát 24-26°C và cất điện thoại trước ${targetBedtime}.</p></div>`;
-  } là bạn sẽ duy trì được giấc ngủ sâu NREM tối ưu nhất.</p>`;
+    targetedHealth = `<div class="health-hack-item"><span class="health-hack-badge"><i class="fa-solid fa-circle-check"></i> Trạng thái tốt</span><p>Thể trạng rất ổn định. Duy trì phòng mát 24-26°C và cất điện thoại trước ${targetBedtime} là bạn sẽ duy trì được giấc ngủ sâu NREM tối ưu nhất.</p></div>`;
   }
 
   // Tailored desk exercises
@@ -2658,8 +2663,6 @@ function initAudioControls() {
       }
     });
   }
-});
-  });
 
   // Timer chips
   document.querySelectorAll('.timer-chip').forEach(chip => {
