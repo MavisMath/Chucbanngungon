@@ -1,4 +1,7 @@
-# Mavis chúc bạn ngủ ngon - Production Dependencies
-# The core server runs 100% on Python standard library (http.server, sqlite3, json, urllib).
-# Optional: psycopg2-binary can be enabled if connecting to Render Managed PostgreSQL via DATABASE_URL
-# psycopg2-binary>=2.9.9
+# Mavis Goodnight (RAG-Powered Real-Time Wellness Advisor)
+# Production Dependencies for FastAPI, LangChain & Vector DB
+
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+langchain-core>=0.1.30

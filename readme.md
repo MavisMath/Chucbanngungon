@@ -1,6 +1,21 @@
-# 🌙 Mavis chúc bạn ngủ ngon - Hệ Thống Chẩn Đoán Giấc Ngủ 5 Trụ Cột Y Khoa & Quét Lịch Biểu Công Việc
+# 🌙 Mavis Goodnight (RAG-Powered Real-Time Wellness Advisor)
 
-Hệ thống AI ứng dụng nguyên lý **Khoa học thần kinh (Neuroscience)**, **Nhịp sinh học (Circadian Biology)** và các khuyến nghị lâm sàng y tế nhằm thu thập toàn diện các yếu tố ảnh hưởng đến giấc ngủ, đối chiếu với lịch biểu công việc trong ngày để đưa ra các **vi-hành động siêu dễ làm (2 - 5 phút)** theo thời gian thực.
+> **Live Production**: [https://chucbanngungon-2.onrender.com/](https://chucbanngungon-2.onrender.com/)  
+> **Interactive API Docs (Swagger UI)**: [https://chucbanngungon-2.onrender.com/docs](https://chucbanngungon-2.onrender.com/docs)  
+> **Tech Stack**: Python, FastAPI, LangChain, Vector DB, Google Gemini 3.5, SQLite 3, Docker
+
+A real-time wellness application leveraging **RAG architecture** to provide personalized, hallucination-free sleep optimization strategies based on medical guidelines (AASM, Harvard Sleep Medicine, Mayo Clinic).
+
+---
+
+## 🚀 Kiến Trúc Công Nghệ (Tech Stack & Architecture)
+
+- **Backend Framework**: **FastAPI + Uvicorn (ASGI)** - Bất đồng bộ (Async), hiệu năng cao, tự động sinh tài liệu chuẩn OpenAPI tại `/docs` và `/redoc`.
+- **RAG & AI Orchestration**: **LangChain (LCEL)** - Quản lý chuỗi truy xuất tăng cường, Prompt Templates y khoa và lọc chống hallucination.
+- **Vector Database**: **Medical Vector Store** - Indexing 15+ trích đoạn guideline y văn chuẩn mực (AASM, Harvard, Mayo Clinic) bằng mô hình embedding **Google text-embedding-004 (768-dim)** kết hợp Cosine Similarity search.
+- **AI Engine**: **Google Gemini 3.5 Flash** - Tích hợp thời gian thực của người dùng (Real-Time Clock & Circadian Phase) để đưa ra khuyến nghị chuẩn xác theo từng thời điểm trong ngày.
+- **Relational Storage**: **SQLite 3 ACID Relational Database** - Quản lý phiên người dùng, lịch sử chẩn đoán lâm sàng và service usage logs.
+- **Deployment**: **Docker Container** triển khai tự động trên **Render Cloud (Singapore Region)**.
 
 ---
 
