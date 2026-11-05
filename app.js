@@ -81,6 +81,7 @@ function bootstrapSleepSync() {
   setTimeout(() => {
     try {
       if (window.__isProcessingGoogleAuth) return;
+      if (window.location.search.includes('preview=1') || window.location.search.includes('guest=1')) return;
       if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
         openUserAuthModal('login');
       }
@@ -99,6 +100,7 @@ function bootstrapSleepSync() {
   try { initMavisShopeeAlerts(); } catch (e) { console.error('[SleepSync Init Error] Shopee Alerts:', e); }
   try { initHistoryModule(); } catch (e) { console.error('[SleepSync Init Error] History Module:', e); }
   try { initUserProfileModule(); } catch (e) { console.error('[SleepSync Init Error] User Profile:', e); }
+  try { initZenSleepMode(); } catch (e) { console.error('[SleepSync Init Error] Zen Sleep Mode:', e); }
 }
 
 if (document.readyState === 'loading') {
@@ -447,6 +449,21 @@ function updateTimeDisplay() {
     else if (h >= 17 && h < 20) badge.textContent = '🌅 Hoàng hôn & Bữa tối Tryptophan';
     else if (h >= 20 && h < 22) badge.textContent = '🌙 Bắt đầu tiết Melatonin & Giãn cơ';
     else badge.textContent = '💤 Giờ vàng ngủ sâu phục hồi não';
+  }
+
+  // Update Visual Circadian Wave 24H Pin & Badge
+  const wavePin = document.getElementById('wave-current-pin');
+  const waveBadge = document.getElementById('wave-phase-badge');
+  if (wavePin) {
+    const totalMinutes = now.getHours() * 60 + now.getMinutes();
+    const percent = Math.min(100, Math.max(0, (totalMinutes / 1440) * 100));
+    wavePin.style.left = `${percent}%`;
+  }
+  if (waveBadge) {
+    if (h >= 6 && h < 12) waveBadge.textContent = '🌅 Buổi Sáng: Tỉnh Táo & Nạp Nắng (06:00 - 12:00)';
+    else if (h >= 12 && h < 18) waveBadge.textContent = '⚡ Buổi Chiều: Tập Trung & Chốt Cafe (12:00 - 18:00)';
+    else if (h >= 18 && h < 22) waveBadge.textContent = '🌇 Buổi Tối: Hạ Ánh Sáng & Thư Giãn (18:00 - 22:00)';
+    else waveBadge.textContent = '🌙 Đêm Sâu: Phục Hồi Não Bộ & Ngủ Sâu (22:00 - 06:00)';
   }
 
   // Bedtime countdown (Dynamic based on active user target bedtime)
@@ -2251,33 +2268,31 @@ function renderMicroSchedule(tasks) {
   }
 
   sanitizedTasks.forEach((task) => {
-    const itemEl = document.createElement('div');
-    itemEl.className = `timeline-item ${task.completed ? 'completed' : ''}`;
-    itemEl.innerHTML = `
-      <div class="timeline-marker"></div>
-      <div class="timeline-header">
-        <span class="timeline-time-badge"><i class="fa-regular fa-clock"></i> ${task.time}</span>
-        <span class="timeline-tag">${task.tag}</span>
+    const cardEl = document.createElement('div');
+    cardEl.className = `action-card-item ${task.completed ? 'completed' : ''}`;
+    cardEl.innerHTML = `
+      <div class="action-card-left">
+        <span class="card-time-pill"><i class="fa-regular fa-clock"></i> ${task.time}</span>
+        <div class="card-habit-text">${task.title}</div>
       </div>
-      <h4 class="timeline-action-title">${task.title}</h4>
-      <p class="timeline-desc">${task.desc}</p>
-      <div class="timeline-footer">
-        <label class="timeline-checkbox-label">
-          <input type="checkbox" data-task-id="${task.id}" ${task.completed ? 'checked' : ''}>
-          <span>${task.completed ? 'Đã hoàn thành ✓' : 'Đánh dấu khi hoàn thành'}</span>
-        </label>
-      </div>
+      <button type="button" class="btn-card-check" data-task-id="${task.id}" aria-label="Hoàn thành vi-hành động">
+        <i class="fa-solid fa-${task.completed ? 'check-double' : 'check'}"></i>
+        <span>${task.completed ? 'Đã xong' : 'Hoàn thành'}</span>
+      </button>
     `;
 
-    const checkbox = itemEl.querySelector('input[type="checkbox"]');
-    checkbox.addEventListener('change', (e) => {
-      task.completed = e.target.checked;
-      itemEl.classList.toggle('completed', task.completed);
-      checkbox.nextElementSibling.textContent = task.completed ? 'Đã hoàn thành ✓' : 'Đánh dấu khi hoàn thành';
+    const btnCheck = cardEl.querySelector('.btn-card-check');
+    btnCheck.addEventListener('click', () => {
+      task.completed = !task.completed;
+      cardEl.classList.toggle('completed', task.completed);
+      btnCheck.innerHTML = `<i class="fa-solid fa-${task.completed ? 'check-double' : 'check'}"></i> <span>${task.completed ? 'Đã xong' : 'Hoàn thành'}</span>`;
+      if (task.completed && window.SoundFX && window.SoundFX.success) {
+        try { window.SoundFX.success(); } catch (e) {}
+      }
       updateReadinessBar();
     });
 
-    container.appendChild(itemEl);
+    container.appendChild(cardEl);
   });
 
   updateReadinessBar();
@@ -3209,6 +3224,15 @@ function initUserProfileModule() {
   }
 
   // Keyboard shortcut: Escape to close drawer and modals
+  if (window.location.hash === '#zen') {
+    setTimeout(openZenSleepMode, 300);
+  } else if (window.location.hash === '#chat') {
+    setTimeout(() => {
+      const fab = document.getElementById('floating-profile-fab');
+      if (fab) fab.click();
+    }, 300);
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeProfileDrawer();
@@ -4240,3 +4264,97 @@ function formatTimeDisplay(isoString) {
   });
 }
 
+
+// ==========================================
+// 10. ZEN SLEEP MODE (1-TOUCH FULLSCREEN SLEEP)
+// ==========================================
+let _zenSleepClockTimer = null;
+let _zenSleepCountdownTimer = null;
+
+function initZenSleepMode() {
+  const triggerBtn = document.getElementById('btn-zen-sleep-trigger');
+  const exitBtn = document.getElementById('btn-zen-exit');
+  if (triggerBtn) {
+    triggerBtn.addEventListener('click', openZenSleepMode);
+  }
+  if (exitBtn) {
+    exitBtn.addEventListener('click', closeZenSleepMode);
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const overlay = document.getElementById('zen-sleep-overlay');
+      if (overlay && overlay.classList.contains('active')) {
+        closeZenSleepMode();
+      }
+    }
+  });
+}
+
+function openZenSleepMode() {
+  const overlay = document.getElementById('zen-sleep-overlay');
+  if (!overlay) return;
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  const updateClock = () => {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const clk = document.getElementById('zen-clock-display');
+    if (clk) clk.textContent = `${h}:${m}`;
+  };
+  updateClock();
+  if (_zenSleepClockTimer) clearInterval(_zenSleepClockTimer);
+  _zenSleepClockTimer = setInterval(updateClock, 1000);
+
+  try {
+    initAudioContext();
+    const ctx = AppState.audio.ctx;
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    if (AppState.audio.channels.binaural && !AppState.audio.channels.binaural.isPlaying) {
+      startChannel('binaural', ctx);
+    }
+    if (AppState.audio.channels.rain && !AppState.audio.channels.rain.isPlaying) {
+      startChannel('rain', ctx);
+    }
+    updateGlobalSoundIndicator();
+  } catch (err) {
+    console.warn('[Zen Sleep Audio]', err);
+  }
+
+  let remainingSeconds = 30 * 60;
+  const timerStatus = document.getElementById('zen-sleep-timer-text');
+  const updateCountdown = () => {
+    const mins = Math.floor(remainingSeconds / 60);
+    const secs = remainingSeconds % 60;
+    if (timerStatus) {
+      timerStatus.textContent = `Sóng não Delta 4Hz & Tiếng mưa • Tự tắt sau ${mins}:${String(secs).padStart(2, '0')}`;
+    }
+    if (remainingSeconds <= 0) {
+      closeZenSleepMode();
+    } else {
+      remainingSeconds--;
+    }
+  };
+  updateCountdown();
+  if (_zenSleepCountdownTimer) clearInterval(_zenSleepCountdownTimer);
+  _zenSleepCountdownTimer = setInterval(updateCountdown, 1000);
+
+  if (window.showAppToast) {
+    showAppToast('🌙 Chế độ Zen Sleep', 'Không gian tĩnh lặng: Sóng não Delta 4Hz & Tiếng mưa', 'info');
+  }
+}
+
+function closeZenSleepMode() {
+  const overlay = document.getElementById('zen-sleep-overlay');
+  if (overlay) overlay.classList.remove('active');
+  document.body.style.overflow = '';
+  if (_zenSleepClockTimer) clearInterval(_zenSleepClockTimer);
+  if (_zenSleepCountdownTimer) clearInterval(_zenSleepCountdownTimer);
+  stopAllSounds();
+}
+
+window.openZenSleepMode = openZenSleepMode;
+window.closeZenSleepMode = closeZenSleepMode;

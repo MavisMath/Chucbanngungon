@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/icon-192.png">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=20261105_13">
+  <link rel="stylesheet" href="styles.css?v=20261105_14">
   
   <!-- Immediate Google OAuth Popup Bridge (For seamless 1-click popup login) -->
   <script>
@@ -504,13 +504,30 @@
         </div>
         <div class="banner-content">
           <div class="banner-meta-row">
-            <div class="banner-tag"><i class="fa-solid fa-notes-medical"></i> Clinical Sleep Assessment</div>
+            <div class="banner-tag"><i class="fa-solid fa-notes-medical"></i> 5 Trụ Cột Y Khoa</div>
             <div class="banner-slogan-badge"><i class="fa-solid fa-moon"></i> "Bạn ngủ ngon, Mavis hạnh phúc"</div>
+            <button id="btn-zen-sleep-trigger" class="btn-zen-sleep-trigger" type="button" title="Bật không gian ngủ tĩnh lặng ngay lập tức">
+              <i class="fa-solid fa-moon"></i> <span>Chạm để Ngủ (Zen Mode)</span>
+            </button>
           </div>
-          <h2 class="banner-heading">Khám phá 5 trụ cột bí mật quyết định giấc ngủ và phục hồi não bộ</h2>
-          <p class="banner-desc">
-            Không chỉ là một dòng nhật ký đơn thuần. AI thu thập toàn diện các yếu tố: <strong>Tâm lý</strong>, <strong>Môi trường phòng ngủ</strong>, <strong>Thói quen/Chất kích thích</strong>, <strong>Nội tiết/Tuổi tác</strong> và <strong>Bệnh lý thể chất</strong>. Sau đó quét lịch công việc của bạn để đưa ra các vi-hành động siêu dễ làm (chỉ 2-5 phút) theo thời gian thực!
-          </p>
+          <h2 class="banner-heading">Khám Phá Nhịp Sinh Học & Giấc Ngủ Phục Hồi</h2>
+          
+          <!-- Visual Circadian Wave 24H -->
+          <div class="circadian-wave-container">
+            <div class="wave-header">
+              <span class="wave-title"><i class="fa-solid fa-chart-line"></i> Nhịp Sinh Học 24 Giờ</span>
+              <span class="wave-phase-badge" id="wave-phase-badge">🌙 Đêm Sâu (00:00 - 06:00)</span>
+            </div>
+            <div class="wave-track">
+              <div class="wave-current-pin" id="wave-current-pin" style="left: 80%;"></div>
+            </div>
+            <div class="wave-labels-row">
+              <span>🌅 06:00 Sáng</span>
+              <span>⚡ 12:00 Trưa</span>
+              <span>🌇 18:00 Tối</span>
+              <span>🌙 23:00 Đêm</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -519,7 +536,7 @@
         <div class="mode-tab-buttons">
           <button class="mode-btn active" id="tab-btn-quiz">
             <i class="fa-solid fa-list-check"></i>
-            <span>Trắc Nghiệm 5 Trụ Cột Y Khoa</span>
+            <span>Tình Trạng Của Bạn</span>
           </button>
           <button class="mode-btn" id="tab-btn-voice">
             <i class="fa-solid fa-microphone-lines"></i>
@@ -539,7 +556,7 @@
           <div class="gate-icon"><i class="fa-solid fa-lock"></i></div>
           <div class="gate-text">
             <strong>Yêu cầu đăng nhập để trải nghiệm</strong>
-            <span>Vui lòng đăng nhập hoặc đăng ký tài khoản Mavis để bắt đầu làm bài khám phá 5 trụ cột y khoa & lưu kết quả của bạn.</span>
+            <span>Vui lòng đăng nhập hoặc đăng ký tài khoản Mavis để bắt đầu đánh giá tình trạng của bạn & lưu kết quả.</span>
           </div>
           <button type="button" class="btn-gate-auth" onclick="window.openUserAuthModal && window.openUserAuthModal('login')">
             <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng Nhập / Đăng Ký
@@ -596,7 +613,7 @@
 
             <div class="question-block" data-qkey="stress_level">
               <label class="q-label"><i class="fa-solid fa-fire"></i> 1.1 Mức độ stress, áp lực deadline hoặc căng thẳng hôm nay:</label>
-              <div class="options-grid" data-question="stress_level">
+              <div class="options-grid visual-chips-mode" data-question="stress_level">
                 <button type="button" class="opt-btn" data-value="low">
                   <span class="opt-icon">😌</span>
                   <div class="opt-text">
@@ -636,7 +653,7 @@
 
             <div class="question-block" data-qkey="mood_state">
               <label class="q-label"><i class="fa-solid fa-cloud-rain"></i> 1.2 Dấu hiệu cảm xúc tiêu cực hoặc uể oải (Trầm cảm / Mệt mỏi):</label>
-              <div class="options-grid" data-question="mood_state">
+              <div class="options-grid visual-chips-mode" data-question="mood_state">
                 <button type="button" class="opt-btn selected" data-value="good">
                   <span class="opt-icon">✨</span>
                   <div class="opt-text">
@@ -685,7 +702,7 @@
 
             <div class="question-block" data-qkey="env_light">
               <label class="q-label"><i class="fa-solid fa-lightbulb"></i> 2.1 Mức độ phơi nhiễm ánh sáng buổi tối:</label>
-              <div class="options-grid" data-question="env_light">
+              <div class="options-grid visual-chips-mode" data-question="env_light">
                 <button type="button" class="opt-btn selected" data-value="dark">
                   <span class="opt-icon">🌑</span>
                   <div class="opt-text">
@@ -725,7 +742,7 @@
 
             <div class="question-block" data-qkey="env_temp">
               <label class="q-label"><i class="fa-solid fa-temperature-half"></i> 2.2 Nhiệt độ phòng ngủ dự kiến tối nay:</label>
-              <div class="options-grid" data-question="env_temp">
+              <div class="options-grid visual-chips-mode" data-question="env_temp">
                 <button type="button" class="opt-btn selected" data-value="ideal">
                   <span class="opt-icon">❄️</span>
                   <div class="opt-text">
@@ -765,7 +782,7 @@
 
             <div class="question-block" data-qkey="env_noise">
               <label class="q-label"><i class="fa-solid fa-volume-high"></i> 2.3 Tiếng ồn xung quanh khu vực ngủ:</label>
-              <div class="options-grid" data-question="env_noise">
+              <div class="options-grid visual-chips-mode" data-question="env_noise">
                 <button type="button" class="opt-btn selected" data-value="quiet">
                   <span class="opt-icon">🤫</span>
                   <div class="opt-text">
@@ -807,7 +824,7 @@
 
             <div class="question-block" data-qkey="caffeine_usage">
               <label class="q-label"><i class="fa-solid fa-coffee"></i> 3.1 Tiêu thụ Caffeine (Cà phê, trà đặc, nước tăng lực):</label>
-              <div class="options-grid" data-question="caffeine_usage">
+              <div class="options-grid visual-chips-mode" data-question="caffeine_usage">
                 <button type="button" class="opt-btn" data-value="none">
                   <span class="opt-icon">💧</span>
                   <div class="opt-text">
@@ -847,7 +864,7 @@
 
             <div class="question-block" data-qkey="alcohol_nicotine">
               <label class="q-label"><i class="fa-solid fa-wine-glass"></i> 3.2 Rượu bia, Cồn hoặc Thuốc lá (Nicotine):</label>
-              <div class="options-grid" data-question="alcohol_nicotine">
+              <div class="options-grid visual-chips-mode" data-question="alcohol_nicotine">
                 <button type="button" class="opt-btn selected" data-value="none">
                   <span class="opt-icon">🚫</span>
                   <div class="opt-text">
@@ -887,7 +904,7 @@
 
             <div class="question-block" data-qkey="dinner_habit">
               <label class="q-label"><i class="fa-solid fa-utensils"></i> 3.3 Thói quen ăn uống bữa tối & Uống nước:</label>
-              <div class="options-grid" data-question="dinner_habit">
+              <div class="options-grid visual-chips-mode" data-question="dinner_habit">
                 <button type="button" class="opt-btn selected" data-value="light_early">
                   <span class="opt-icon">🥗</span>
                   <div class="opt-text">
@@ -927,7 +944,7 @@
 
             <div class="question-block" data-qkey="bed_phone">
               <label class="q-label"><i class="fa-solid fa-mobile-screen"></i> 3.4 Thói quen dùng điện thoại trên giường:</label>
-              <div class="options-grid" data-question="bed_phone">
+              <div class="options-grid visual-chips-mode" data-question="bed_phone">
                 <button type="button" class="opt-btn" data-value="no_phone">
                   <span class="opt-icon">📵</span>
                   <div class="opt-text">
@@ -969,7 +986,7 @@
 
             <div class="question-block" data-qkey="age_group">
               <label class="q-label"><i class="fa-solid fa-user-clock"></i> 4.1 Nhóm tuổi của bạn:</label>
-              <div class="options-grid" data-question="age_group">
+              <div class="options-grid visual-chips-mode" data-question="age_group">
                 <button type="button" class="opt-btn selected" data-value="young_adult">
                   <span class="opt-icon">🧑</span>
                   <div class="opt-text">
@@ -1002,7 +1019,7 @@
 
             <div class="question-block" data-qkey="hormone_state">
               <label class="q-label"><i class="fa-solid fa-droplet-half-stroke"></i> 4.2 Tình trạng nội tiết (Tiền mãn kinh / Thay đổi hormone):</label>
-              <div class="options-grid" data-question="hormone_state">
+              <div class="options-grid visual-chips-mode" data-question="hormone_state">
                 <button type="button" class="opt-btn selected" data-value="normal">
                   <span class="opt-icon">🟢</span>
                   <div class="opt-text">
@@ -1044,7 +1061,7 @@
 
             <div class="question-block" data-qkey="physical_pain">
               <label class="q-label"><i class="fa-solid fa-bone"></i> 5.1 Đau mỏi cơ xương khớp / Đau đầu:</label>
-              <div class="options-grid" data-question="physical_pain">
+              <div class="options-grid visual-chips-mode" data-question="physical_pain">
                 <button type="button" class="opt-btn selected" data-value="none">
                   <span class="opt-icon">💪</span>
                   <div class="opt-text">
@@ -1084,7 +1101,7 @@
 
             <div class="question-block" data-qkey="chronic_condition">
               <label class="q-label"><i class="fa-solid fa-virus"></i> 5.2 Bệnh lý mạn tính (Trào ngược dạ dày, xoang, tiểu đêm):</label>
-              <div class="options-grid" data-question="chronic_condition">
+              <div class="options-grid visual-chips-mode" data-question="chronic_condition">
                 <button type="button" class="opt-btn selected" data-value="none">
                   <span class="opt-icon">🛡️</span>
                   <div class="opt-text">
@@ -2542,12 +2559,14 @@
       <!-- Dynamic messages injected by rag.js -->
     </div>
 
-    <!-- Quick Prompt Suggestions (Chips) -->
-    <div class="chatbot-quick-chips" id="chatbot-quick-chips">
-      <button type="button" class="quick-chip" data-query="Tại sao tôi hay thức giấc lúc nửa đêm?">🌙 Thức giấc nửa đêm</button>
-      <button type="button" class="quick-chip" data-query="Bài tập 3 phút giãn cơ cổ vai gáy cho dân văn phòng">🦴 Giãn cơ cổ vai gáy</button>
-      <button type="button" class="quick-chip" data-query="Nên ăn gì vào bữa tối để ngủ ngon và tốt cho tiêu hóa?">🥗 Món tối dễ ngủ</button>
-      <button type="button" class="quick-chip" data-query="Mẹo giảm đau đầu mệt mỏi và xả stress nhanh">💆 Giảm mệt mỏi & đau đầu</button>
+    <!-- Quick Prompt Suggestions (Chips Carousel) -->
+    <div class="chatbot-quick-chips chatbot-quick-chips-wrap" id="chatbot-quick-chips">
+      <button type="button" class="quick-chip quick-chip-item" data-query="Tại sao tôi hay thức giấc lúc nửa đêm?">🌙 Thức giấc nửa đêm</button>
+      <button type="button" class="quick-chip quick-chip-item" data-query="Bài tập 3 phút giãn cơ cổ vai gáy cho dân văn phòng">🦴 Giãn cổ vai gáy</button>
+      <button type="button" class="quick-chip quick-chip-item" data-query="Mấy giờ thì nên dừng uống cà phê để không mất ngủ?">☕ Giờ ngừng cà phê</button>
+      <button type="button" class="quick-chip quick-chip-item" data-query="Hướng dẫn bài tập thở 4-7-8 giúp ngủ nhanh">🧘 Thở 4-7-8</button>
+      <button type="button" class="quick-chip quick-chip-item" data-query="Nên ăn gì vào bữa tối để ngủ ngon và tốt cho tiêu hóa?">🥗 Món tối dễ ngủ</button>
+      <button type="button" class="quick-chip quick-chip-item" data-query="Nhiệt độ phòng ngủ bao nhiêu độ là lý tưởng nhất?">❄️ Nhiệt độ phòng ngủ</button>
     </div>
 
     <!-- Chat Input Bar -->
@@ -2579,11 +2598,26 @@
     <span class="fab-online-dot"></span>
   </button>
 
+  <!-- ZEN SLEEP OVERLAY (1-TOUCH ZEN SLEEP MODE) -->
+  <div id="zen-sleep-overlay" class="zen-sleep-overlay">
+    <div class="zen-clock-display" id="zen-clock-display">00:00</div>
+    <div class="zen-ambient-breath">
+      <i class="fa-solid fa-moon" style="font-size: 3.5rem; color: #818CF8; opacity: 0.85;"></i>
+    </div>
+    <div class="zen-sleep-status">
+      <i class="fa-solid fa-cloud-moon"></i>
+      <span id="zen-sleep-timer-text">Sóng não Delta 4Hz & Mưa rào • Tự tắt sau 30:00</span>
+    </div>
+    <button type="button" class="btn-zen-exit" id="btn-zen-exit">
+      <i class="fa-solid fa-xmark"></i> Thoát Chế Độ Ngủ
+    </button>
+  </div>
+
   <!-- Client Database Engine -->
-  <script src="db.js?v=20261105_13"></script>
+  <script src="db.js?v=20261105_14"></script>
   <!-- RAG Knowledge Base & AI Chatbot Engine -->
-  <script src="rag.js?v=20261105_13"></script>
+  <script src="rag.js?v=20261105_14"></script>
   <!-- Main Javascript Logic -->
-  <script src="app.js?v=20261105_13"></script>
+  <script src="app.js?v=20261105_14"></script>
 </body>
 </html>

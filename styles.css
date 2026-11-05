@@ -7204,3 +7204,296 @@ body.chat-is-resizing {
   user-select: none !important;
   -webkit-tap-highlight-color: transparent !important;
 }
+
+
+/* ==========================================================
+   MINIMALIST & ZEN SLEEP UX/UI UPGRADE (LESS TEXT, MORE VISUAL)
+   ========================================================== */
+
+/* 1. Zen Sleep Mode Trigger Button */
+.btn-zen-sleep-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #1E1B4B, #312E81);
+  border: 1px solid rgba(129, 140, 248, 0.45);
+  color: #F8FAFC;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: zen-glow-pulse 3s infinite ease-in-out;
+}
+.btn-zen-sleep-trigger:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
+  border-color: #818CF8;
+}
+.btn-zen-sleep-trigger i {
+  color: #FBBF24;
+  font-size: 1.15rem;
+  animation: moon-spin 6s infinite ease-in-out alternate;
+}
+@keyframes zen-glow-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); border-color: rgba(129, 140, 248, 0.4); }
+  50% { box-shadow: 0 0 30px rgba(129, 140, 248, 0.65); border-color: rgba(251, 191, 36, 0.7); }
+}
+@keyframes moon-spin {
+  0% { transform: rotate(-8deg); }
+  100% { transform: rotate(8deg); }
+}
+
+/* 2. Visual Circadian Wave 24H */
+.circadian-wave-container {
+  margin-top: 1.1rem;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+}
+.wave-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.82rem;
+}
+.wave-title {
+  color: #E2E8F0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.wave-phase-badge {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.wave-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #F59E0B 0%, #10B981 30%, #6366F1 75%, #0EA5E9 100%);
+  margin-bottom: 0.65rem;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+}
+.wave-current-pin {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  background: #FFFFFF;
+  border: 3px solid #6366F1;
+  border-radius: 50%;
+  box-shadow: 0 0 15px #6366F1, 0 0 25px rgba(255, 255, 255, 0.8);
+  transition: left 0.5s ease;
+}
+.wave-labels-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
+
+/* 3. Streamlined Visual Options (Less text, more icon chips) */
+.options-grid.visual-chips-mode .opt-btn {
+  padding: 10px 14px !important;
+  min-height: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: 12px !important;
+}
+.options-grid.visual-chips-mode .opt-btn .opt-icon {
+  font-size: 1.35rem !important;
+  line-height: 1;
+}
+.options-grid.visual-chips-mode .opt-btn .opt-text small {
+  display: none !important; /* Hide long explanations for cleaner look */
+}
+.options-grid.visual-chips-mode .opt-btn .opt-text strong {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+}
+
+/* 4. Gamified Action Cards */
+.gamified-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.action-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 0.85rem 1.15rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.action-card-item:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateX(4px);
+}
+.action-card-item.completed {
+  opacity: 0.55;
+  background: rgba(6, 78, 59, 0.25);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+.action-card-item.completed .card-habit-text {
+  text-decoration: line-through;
+  color: #94A3B8;
+}
+.action-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.card-time-pill {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38BDF8;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.card-habit-text {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #F1F5F9;
+}
+.btn-card-check {
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #E2E8F0;
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.btn-card-check:hover, .action-card-item.completed .btn-card-check {
+  background: linear-gradient(135deg, #059669, #10B981);
+  color: #FFFFFF;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+}
+
+/* 5. Chatbot Quick Suggestion Chips Carousel */
+.chatbot-quick-chips-wrap {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(2, 6, 23, 0.5);
+  scrollbar-width: none;
+}
+.chatbot-quick-chips-wrap::-webkit-scrollbar {
+  display: none;
+}
+.quick-chip-item {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #CBD5E1;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.quick-chip-item:hover {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38BDF8;
+  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px);
+}
+
+/* 6. Fullscreen Zen Sleep Mode Overlay */
+#zen-sleep-overlay {
+  position: fixed;
+  inset: 0;
+  background: #02040A;
+  z-index: 999999;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  user-select: none;
+}
+#zen-sleep-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+.zen-clock-display {
+  font-size: 5rem;
+  font-weight: 800;
+  color: #F8FAFC;
+  letter-spacing: -0.04em;
+  text-shadow: 0 0 35px rgba(99, 102, 241, 0.5);
+  margin-bottom: 0.5rem;
+}
+.zen-ambient-breath {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(2, 6, 23, 0) 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: zen-breath-pulse 5s infinite ease-in-out;
+  margin-bottom: 2rem;
+}
+@keyframes zen-breath-pulse {
+  0%, 100% { transform: scale(0.9); opacity: 0.4; }
+  50% { transform: scale(1.15); opacity: 0.9; }
+}
+.zen-sleep-status {
+  font-size: 1rem;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2.5rem;
+}
+.btn-zen-exit {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94A3B8;
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-zen-exit:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
