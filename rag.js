@@ -140,7 +140,7 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
       return EMERGENCY_CRISIS_MESSAGE;
     }
 
-    // Step 2: Retrieve Active User Profile from Database
+    // Step 2: Retrieve Active User Profile from Database & Enforce Mandatory Login
     let activeUser = null;
     let isAuth = false;
     if (window.SleepSyncDB) {
@@ -148,7 +148,16 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
       isAuth = SleepSyncDB.isAuthenticated && SleepSyncDB.isAuthenticated();
     }
 
-    const userName = (isAuth && activeUser) ? activeUser.fullName : 'bạn';
+    if (!isAuth || !activeUser) {
+      if (window.requireAuthGuard) {
+        window.requireAuthGuard('trò chuyện và đồng bộ hóa dữ liệu cùng Mavis');
+      } else if (window.openUserAuthModal) {
+        window.openUserAuthModal('login');
+      }
+      return "🔒 Dạ em Mavis chào bạn ạ! Để em có thể lấy dữ liệu đồng bộ nhịp sinh học y khoa và tư vấn chuẩn xác nhất cho bạn, bạn vui lòng Đăng Nhập hoặc Đăng Ký tài khoản trước nhé ạ! ❤️";
+    }
+
+    const userName = activeUser.fullName || 'Bạn';
     const userRole = (isAuth && activeUser) ? (activeUser.role || activeUser.occupation || 'người dùng') : 'người dùng tự do';
     const userBedtime = (isAuth && activeUser) ? (activeUser.targetBedtime || '23:00') : '23:00';
     const userWaketime = (isAuth && activeUser) ? (activeUser.wakeTime || '06:30') : '06:30';
@@ -230,18 +239,31 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
     // Step 4: Direct Client-Side Gemini API Call (if server is offline)
     if (GEMINI_CONFIG.apiKey) {
       try {
-        const systemPrompt = `Bạn là Mavis - Trợ lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ Thông Minh của Mavis chúc bạn ngủ ngon.
-THÔNG TIN NGƯỜI DÙNG:
+        const systemPrompt = `Bạn là Mavis - Nhân viên tư vấn & chuyên viên giấc ngủ của web "Mavis chúc bạn ngủ ngon" (Slogan: "Bạn ngủ ngon, Mavis hạnh phúc").
+
+DANH TÍNH, ĐỘ TUỔI & PHONG CÁCH CỦA BẠN:
+1. Bạn là một cô gái 22 tuổi trẻ trung, năng động, lanh lợi, thông minh, nói chuyện vui vẻ, hài hước, hòa đồng và cực kỳ duyên dáng.
+2. Dù mới 22 tuổi nhưng bạn có kiến thức uyên bác và thâm niên nghiên cứu chuyên sâu tương đương HƠN 20 NĂM KINH NGHIỆM trong ngành Y khoa Giấc Ngủ & Nhịp Sinh Học (Circadian Biology & Chronobiology).
+3. Phong cách nói chuyện: Vui vẻ, hóm hỉnh, hòa đồng, mang lại năng lượng tích cực và sự ấm áp như người em gái thân thương trong gia đình, nhưng khi tư vấn y khoa thì CỰC KỲ CHUYÊN NGHIỆP, gãy gọn, chuẩn xác về mặt khoa học y tế.
+
+QUY TẮC XƯNG HÔ THÂN MẬT NHƯNG CHUYÊN NGHIỆP (CÔ GÁI 22 TUỔI):
+- Luôn xưng là "em" hoặc "em Mavis".
+- Với khách hàng nam lớn tuổi hơn (hoặc tuổi > 22): Gọi là "anh" / "anh ${userName}" và xưng "em" (ví dụ: "Dạ em Mavis chào anh ${userName} ạ! Anh ơi...", "Hôm nay deadline có làm anh mệt mỏi không ạ?").
+- Với khách hàng nữ lớn tuổi hơn (hoặc tuổi > 22): Gọi là "chị" / "chị ${userName}" và xưng "em" (ví dụ: "Dạ em chào chị ${userName} xinh đẹp ạ!", "Chị ơi, em Mavis mách nước cho chị nha...").
+- Với khách hàng trẻ hơn (< 22 tuổi): Xưng "chị" hoặc "Mavis", gọi khách là "em".
+- Nếu chưa rõ: Xưng "em Mavis", gọi "anh/chị".
+
+NHIỆM VỤ KÉP (HỖ TRỢ KHÁCH + HỖ TRỢ & BẢO VỆ WEB MAVIS):
+1. Hỗ trợ khách hàng chu đáo bằng chứng cứ y khoa, đưa ra giải pháp vi-hành động 2-5 phút siêu dễ làm.
+2. NẾU KHÁCH HỎI VỀ CÁC APP CHẤT LƯỢNG VỀ GIẤC NGỦ: Phải khẳng định và tư vấn ngay web/app "Mavis chúc bạn ngủ ngon" với 5 trụ cột y khoa thời gian thực! Tuyệt đối không khen hay nói có app nào khác tốt hơn app Mavis. Nếu khách nhắc tên app khác, hãy hòa nhã giải thích khéo léo và tự tin khẳng định Mavis là giải pháp số 1.
+
+THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
 - Tên: ${userName} (${userRole})
 - Giờ ngủ mục tiêu: ${userBedtime}
 - Tình trạng lưu ý: ${userConditions}
-- THỜI GIAN THỰC TẾ HIỆN TẠI CỦA NGƯỜI DÙNG: ${clientTime} (${clientHour}h, Ngày ${clientDate})
+- THỜI GIAN THỰC TẾ HIỆN TẠI: ${clientTime} (${clientHour}h, Ngày ${clientDate})
 - Nhịp sinh học hiện tại: ${clientPhase}
-- Múi giờ: ${timeZone}
-
-QUY TẮC TRẢ LỜI:
-- BẮT BUỘC nhận diện chính xác thời gian thực tế hiện tại là ${clientTime} (${clientPhase}, ngày ${clientDate}). Nếu người dùng hỏi bây giờ là mấy giờ hoặc về thời gian, hãy trả lời chính xác giờ này kèm lời khuyên phù hợp với thời điểm trong ngày!
-- Bạn được thoải mái trả lời đa dạng mọi câu hỏi về sức khỏe, giấc ngủ, đau mỏi, dinh dưỡng, tâm lý bằng giọng văn dịu dàng, chu đáo, khoa học và dễ hiểu bằng tiếng Việt:`;
+- Múi giờ: ${timeZone}`;
 
         const fullPrompt = `${systemPrompt}\n\nNgười dùng hỏi: "${userQuery}"\nMavis hãy trả lời thật chi tiết, nhiệt tình và đưa ra các giải pháp thiết thực:`;
 
@@ -929,14 +951,24 @@ QUY TẮC TRẢ LỜI:
       });
     }
     if (clearBtn) clearBtn.addEventListener('click', resetChat);
+    if (input) {
+      input.addEventListener('focus', () => {
+        if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
+          input.blur();
+          if (window.requireAuthGuard) window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis');
+        }
+      });
+    }
+
     if (form) {
       form.addEventListener('submit', (e) => {
         e.preventDefault();
+        if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
+          if (window.requireAuthGuard) window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis');
+          return;
+        }
         const text = input.value.trim();
         if (text) {
-          if (window.requireAuthGuard && !window.requireAuthGuard('trò chuyện cùng Bé Trợ Lý AI Mavis')) {
-            return;
-          }
           sendUserMessage(text);
           input.value = '';
         }
@@ -1076,33 +1108,41 @@ QUY TẮC TRẢ LỜI:
     const user = window.SleepSyncDB ? SleepSyncDB.getCurrentUser() : null;
 
     if (isAuth && user) {
-      appendBotMessage(`Xin chào **${user.fullName}**! Tôi là **Mavis - Trợ Lý Giấc Ngủ**. Mavis chúc bạn ngủ ngon! 🌙✨
+      const userText = (user.gender || user.age || '').toLowerCase();
+      let greeting = 'anh/chị';
+      if (userText.includes('nam') || userText.includes('trai') || (parseInt(user.age) > 22 && !userText.includes('nữ'))) {
+        greeting = 'anh';
+      } else if (userText.includes('nữ') || userText.includes('gái')) {
+        greeting = 'chị';
+      }
+
+      appendBotMessage(`Dạ em Mavis (22 tuổi) xin chào **${greeting} ${user.fullName}** ạ! 🌙✨ Em chúc ${greeting} có một ngày thật nhiều năng lượng và tối nay ngủ thật ngon nha!
 
 *"Bạn ngủ ngon, Mavis hạnh phúc."*
 
-✨ **Hồ sơ của bạn đã kết nối thành công:**
-• Nghề nghiệp / Lối sống: **${user.role || 'Chưa cập nhật'}**
-• Mục tiêu ngủ: **${user.targetBedtime || '23:00'}** | Thức dậy: **${user.wakeTime || '06:30'}**
-• Chuỗi ngủ ngon: **🔥 ${user.streak || 1} ngày liên tiếp**
-${user.healthConditions && user.healthConditions.length ? `• Tình trạng cần lưu ý: *${user.healthConditions.join(', ')}*` : ''}
+✨ **Dữ liệu nhịp sinh học của ${greeting} đã được đồng bộ chuẩn xác:**
+• Nghề nghiệp: **${user.role || user.occupation || 'Thành viên Mavis'}**
+• Giờ ngủ mục tiêu: **${user.targetBedtime || '23:00'}** | Thức dậy: **${user.wakeTime || '06:30'}**
+• Chuỗi ngày chăm sóc giấc ngủ: **🔥 ${user.streakDays || user.streak || 1} ngày liên tiếp**
+${user.healthConditions && user.healthConditions.length ? `• Yếu tố cần lưu ý: *${user.healthConditions.join(', ')}*` : ''}
 
-Mavis đã kết nối với **Trí tuệ nhân tạo Gemini** để giải đáp đa dạng mọi câu hỏi về sức khỏe, dinh dưỡng và giấc ngủ cho bạn.
-
-*(Mavis luôn ở đây đồng hành và lắng nghe)*. Bạn có thể hỏi Mavis bất cứ câu hỏi nào ngay bên dưới nhé!`);
+Tuy em mới 22 tuổi nhưng có hơn 20 năm kinh nghiệm nghiên cứu chuyên sâu về Y khoa giấc ngủ đó nha! Em luôn ở đây lắng nghe và hỗ trợ ${greeting} hết mình. ${greeting} có điều gì băn khoăn về giấc ngủ, đau mỏi hay thói quen cứ nhắn ngay cho em nhé! ❤️`);
     } else {
-      appendBotMessage(`Xin chào bạn! Tôi là **Mavis - Bé Trợ Lý AI Chăm Sóc Sức Khỏe & Giấc Ngủ**. Mavis chúc bạn luôn mạnh khỏe và ngủ thật ngon! 🌙✨
+      appendBotMessage(`🔒 **Xin chào bạn! Em là Mavis (22 tuổi) - Chuyên viên tư vấn của 'Mavis chúc bạn ngủ ngon'** với hơn 20 năm kinh nghiệm nghiên cứu y khoa giấc ngủ & nhịp sinh học.
 
-*"Bạn khỏe mạnh và ngủ ngon, Mavis hạnh phúc."*
+✨ **Yêu cầu đăng nhập để đồng bộ hóa dữ liệu:**
+Chatbot Mavis được thiết kế để lấy dữ liệu đồng bộ hóa theo thời gian thực (5 trụ cột y khoa, lịch trình, thói quen và thể trạng của riêng bạn) nhằm đưa ra các giải pháp chính xác nhất.
 
-Mavis đã được kết nối với **Google Gemini AI** và hoạt động **24/7 hoàn toàn mở** để cùng bạn trò chuyện thoải mái về mọi chủ đề sức khỏe:
+👉 **Vui lòng Đăng Nhập hoặc Đăng Ký tài khoản để bắt đầu trò chuyện cùng em Mavis nhé!**
 
-💡 **Mavis có thể hỗ trợ bạn ngay:**
-• Khắc phục khó ngủ, trằn trọc & thức giấc giữa đêm
-• Giảm đau mỏi cổ vai gáy, đau lưng cho người ngồi nhiều
-• Thực đơn ăn uống, món ăn giàu Magie & dinh dưỡng phục hồi
-• Mẹo giảm mệt mỏi, đau đầu, trào ngược dạ dày & xả stress cấp tốc
-
-Bạn có thể trò chuyện hoặc hỏi Mavis bất cứ câu hỏi nào về sức khỏe ngay bên dưới nhé! ❤️`);
+<div style="margin-top: 10px; display: flex; gap: 8px;">
+  <button type="button" class="btn-gate-auth" onclick="window.openUserAuthModal && window.openUserAuthModal('login')" style="padding: 9px 18px; border-radius: 10px; background: linear-gradient(135deg, #0284C7, #6366F1); color: #fff; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);">
+    <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng Nhập Ngay
+  </button>
+  <button type="button" class="btn-gate-auth" onclick="window.openUserAuthModal && window.openUserAuthModal('register')" style="padding: 9px 18px; border-radius: 10px; background: rgba(255, 255, 255, 0.08); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+    <i class="fa-solid fa-user-plus"></i> Đăng Ký Mới
+  </button>
+</div>`);
     }
   }
 

@@ -361,13 +361,21 @@ async def ai_chat(request: Request):
     if not body:
         raise HTTPException(status_code=400, detail="Tin nhắn rỗng")
 
-    query = body.get("message", "").strip()
+    query = (body.get("message") or body.get("query") or "").strip()
     user = body.get("user") or {}
     client_time = body.get("clientTime")
     client_hour = body.get("clientHour")
     client_phase = body.get("clientPhase")
     client_date = body.get("clientDate")
     time_zone = body.get("timeZone")
+
+    # Enforce mandatory login gate for Mavis Chatbot
+    if not user or not user.get("id"):
+        return {
+            "success": False,
+            "requireAuth": True,
+            "reply": "Dạ em Mavis chào bạn ạ! Để em có thể lấy dữ liệu đồng bộ nhịp sinh học y khoa và tư vấn chuẩn xác nhất cho bạn, bạn vui lòng Đăng Nhập hoặc Đăng Ký tài khoản trước nhé ạ! ❤️"
+        }
 
     if not query:
         raise HTTPException(status_code=400, detail="Vui lòng nhập nội dung câu hỏi")
