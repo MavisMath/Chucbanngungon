@@ -849,9 +849,7 @@
           <span>Mở Khóa Quản Trị</span>
         </button>
       </form>
-      <p class="pin-hint">
-        <i class="fa-solid fa-circle-info"></i> Mã PIN mặc định của hệ thống: <strong>2026</strong>
-      </p>
+
     </div>
   </div>
 
@@ -1335,7 +1333,7 @@
         pinOverlay.style.display = 'none';
         loadDashboardData();
       } else {
-        alert('Mã PIN không chính xác! Vui lòng thử lại với mã 2026.');
+        alert('Mã PIN không chính xác! Vui lòng kiểm tra lại quyền truy cập Founder.');
         pinInput.value = '';
         pinInput.focus();
       }
