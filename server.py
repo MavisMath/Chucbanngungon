@@ -214,6 +214,73 @@ async def handle_register(request: Request):
     }
 
 
+@app.post("/api/auth/google", summary="Google Account One-Click Authentication and SQLite Sync", tags=["Auth"])
+async def handle_google_auth(request: Request):
+    """
+    Authenticate and synchronize Google Profile directly into backend SQLite database.
+    Supports instant seamless login with Google OAuth 2.0 and Google Identity Services.
+    """
+    body = await request.json()
+    google_sub = str(body.get("sub") or body.get("googleSub") or body.get("id") or int(datetime.now().timestamp()))
+    social_id = f"user_google_{google_sub}" if not str(body.get("id", "")).startswith("user_google_") else body.get("id")
+    full_name = body.get("fullName") or body.get("name") or "Thành Viên Google"
+    email = body.get("email") or f"{google_sub}@gmail.com"
+    avatar = body.get("picture") or body.get("avatarType") or "sleep_owl"
+    device = body.get("device", "Web Google OAuth")
+
+    existing = database.get_user_by_id(social_id) or database.find_user_for_login(email)
+    if existing:
+        update_data = {
+            "fullName": full_name,
+            "avatarType": avatar,
+            "socialProvider": "google",
+            "lastLoginAt": datetime.now(timezone(timedelta(hours=7))).isoformat()
+        }
+        user = database.update_user(existing["id"], update_data) or existing
+    else:
+        new_user_data = {
+            "id": social_id,
+            "fullName": full_name,
+            "phone": email,
+            "password": "",
+            "role": "Thành viên Google Sync",
+            "bio": "Tài khoản kết nối qua Google Account chính thức • Đồng bộ nhịp sinh học tự động 🌙",
+            "age": "28 tuổi",
+            "gender": "Khác",
+            "occupation": "Thành viên Google Sync",
+            "targetBedtime": "23:00",
+            "wakeTime": "06:30",
+            "fitnessLevel": "Khá",
+            "healthConditions": ["Đồng bộ thói quen sinh học"],
+            "avatarType": avatar,
+            "socialProvider": "google",
+            "streakDays": 3,
+            "verified": 1,
+            "createdAt": datetime.now(timezone(timedelta(hours=7))).isoformat(),
+            "lastLoginAt": datetime.now(timezone(timedelta(hours=7))).isoformat()
+        }
+        user = database.create_user(new_user_data)
+
+    database.set_active_user_id(user["id"])
+
+    database.add_service_log({
+        "userId": user["id"],
+        "userName": user["fullName"],
+        "serviceType": "AUTH_LOGIN",
+        "title": "Đăng nhập Google Account",
+        "detail": f"Thành viên {user['fullName']} ({email}) đã kết nối thành công qua Google OAuth 2.0.",
+        "device": device,
+        "icon": "fa-brands fa-google",
+        "badgeColor": "sky"
+    })
+
+    return {
+        "success": True,
+        "user": user,
+        "message": f"Chào mừng {user['fullName']} đã kết nối thành công qua tài khoản Google!"
+    }
+
+
 @app.post("/api/users", summary="Create or Update User Profile", tags=["Users"])
 async def save_user(request: Request):
     body = await request.json()
@@ -363,6 +430,11 @@ async def ai_chat(request: Request):
 
     query = (body.get("message") or body.get("query") or "").strip()
     user = body.get("user") or {}
+    user_id = body.get("userId") or (user.get("id") if isinstance(user, dict) else None)
+    if user_id and (not user or not user.get("id")):
+        found_db_user = database.get_user_by_id(user_id)
+        if found_db_user:
+            user = found_db_user
     client_time = body.get("clientTime")
     client_hour = body.get("clientHour")
     client_phase = body.get("clientPhase")

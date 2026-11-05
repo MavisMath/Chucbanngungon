@@ -786,13 +786,21 @@ const SleepSyncDB = (function() {
 
     // Persist real user into backend SQLite database
     try {
-      await fetch('/api/users', {
+      await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user)
       });
     } catch (e) {
-      console.warn('[SQLite User Sync Warning]', e);
+      try {
+        await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(user)
+        });
+      } catch (err) {
+        console.warn('[SQLite User Sync Warning]', err);
+      }
     }
 
     logServiceUsage(

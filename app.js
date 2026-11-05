@@ -80,11 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Enforce initial login gate: if user is not authenticated, prompt login modal smoothly
   setTimeout(() => {
     try {
+      if (window.__isProcessingGoogleAuth) return;
       if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
         openUserAuthModal('login');
       }
     } catch (e) {}
-  }, 450);
+  }, 500);
 
   try { initRealtimeClock(); } catch (e) { console.error('[SleepSync Init Error] Realtime Clock:', e); }
   try { initWelcomeSplash(); } catch (e) { console.error('[SleepSync Init Error] Welcome Splash:', e); }
@@ -3678,6 +3679,7 @@ function initUserAuthModal() {
   // Handle successful Google profile sync
   const handleGoogleSuccess = async (googleProfile) => {
     try {
+      if (!googleProfile) return;
       showAppToast('Đang kết nối Google...', 'Đang đồng bộ hồ sơ Google của bạn...', 'info');
       const authRes = await SleepSyncDB.loginWithGoogleProfile(googleProfile);
       if (authRes.success) {
@@ -3685,7 +3687,13 @@ function initUserAuthModal() {
         closeProfileDrawer();
         renderActiveUserProfile();
         renderServiceUsageLogs();
+        const gate = document.getElementById('auth-gate-banner');
+        if (gate) gate.style.display = 'none';
         showAppToast('Đăng nhập thành công', `Chào mừng ${authRes.user.fullName} qua tài khoản Google!`, 'success');
+        if (window.SoundFX && window.SoundFX.success) {
+          try { window.SoundFX.success(); } catch(e) {}
+        }
+        window.dispatchEvent(new CustomEvent('sleepsync:user-changed', { detail: authRes.user }));
       } else {
         showAuthFeedback(authRes.message || 'Đăng nhập Google thất bại.', 'error');
       }
@@ -3694,6 +3702,8 @@ function initUserAuthModal() {
       showAuthFeedback(`Lỗi kết nối Google: ${err.message}`, 'error');
     }
   };
+  window.handleGoogleSuccess = handleGoogleSuccess;
+  window.handleGoogleProfileSync = handleGoogleSuccess;
 
   // Check pending access token from session storage (Redirect flow fallback)
   const checkPendingGoogleToken = async () => {
@@ -3721,7 +3731,9 @@ function initUserAuthModal() {
     try {
       if (window.google && google.accounts && google.accounts.id) {
         const cLogin = document.getElementById('g_id_signin_container');
-        if (cLogin && !cLogin.hasChildNodes()) {
+        if (cLogin) {
+          cLogin.innerHTML = '';
+          const w = Math.min(380, Math.max(260, cLogin.offsetWidth || 340));
           google.accounts.id.renderButton(cLogin, {
             theme: 'outline',
             size: 'large',
@@ -3729,11 +3741,13 @@ function initUserAuthModal() {
             shape: 'rectangular',
             text: 'continue_with',
             logo_alignment: 'left',
-            width: cLogin.offsetWidth || 340
+            width: w
           });
         }
         const cReg = document.getElementById('g_id_signin_container_reg');
-        if (cReg && !cReg.hasChildNodes()) {
+        if (cReg) {
+          cReg.innerHTML = '';
+          const w = Math.min(380, Math.max(260, cReg.offsetWidth || 340));
           google.accounts.id.renderButton(cReg, {
             theme: 'outline',
             size: 'large',
@@ -3741,7 +3755,7 @@ function initUserAuthModal() {
             shape: 'rectangular',
             text: 'signup_with',
             logo_alignment: 'left',
-            width: cReg.offsetWidth || 340
+            width: w
           });
         }
       }
@@ -3749,6 +3763,7 @@ function initUserAuthModal() {
       console.warn('[Render Official Google Buttons Warning]', e);
     }
   }
+  window.renderOfficialGoogleButtons = renderOfficialGoogleButtons;
 
   let googleTokenClient = null;
 
@@ -4123,6 +4138,7 @@ function openUserAuthModal(tab = 'login') {
     if (paneRegister) paneRegister.style.display = 'none';
     setTimeout(() => document.getElementById('login-phone-input')?.focus(), 60);
   }
+  setTimeout(renderOfficialGoogleButtons, 60);
 }
 
 function closeUserAuthModal() {
