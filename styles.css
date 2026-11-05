@@ -7181,3 +7181,13 @@ body.chat-is-resizing {
     justify-content: center;
   }
 }
+
+/* Fail-safe Top Priority Z-Index for User Auth Modal & Header Pill */
+#user-auth-modal {
+  z-index: 100050 !important;
+}
+.btn-user-profile-pill {
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}

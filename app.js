@@ -3147,14 +3147,20 @@ function initUserProfileModule() {
   const drawerOverlay = document.getElementById('user-profile-drawer-overlay');
 
   const handleProfilePillClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      if (e.preventDefault) e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
+    }
+    if (window.SoundFX && window.SoundFX.tap) {
+      try { window.SoundFX.tap(); } catch (err) {}
+    }
     if (!window.SleepSyncDB || !SleepSyncDB.isAuthenticated()) {
       openUserAuthModal('login');
       return;
     }
     openProfileDrawer();
   };
+  window.handleProfilePillClick = handleProfilePillClick;
 
   if (navProfileBtn) navProfileBtn.addEventListener('click', handleProfilePillClick);
   if (navMenuBtn) navMenuBtn.addEventListener('click', handleProfilePillClick);
@@ -3759,6 +3765,7 @@ function initUserAuthModal() {
   }
 
   const btnGoogleReg = document.getElementById('btn-social-google-reg');
+  window.loginWithRealGoogle = loginWithRealGoogle;
   if (btnGoogle) btnGoogle.addEventListener('click', loginWithRealGoogle);
   if (btnGoogleReg) btnGoogleReg.addEventListener('click', loginWithRealGoogle);
 
@@ -3970,7 +3977,8 @@ function openUserAuthModal(tab = 'login') {
   const modal = document.getElementById('user-auth-modal');
   if (!modal) return;
   modal.style.display = 'flex';
-  modal.style.zIndex = '10050';
+  modal.style.zIndex = '100050';
+  document.body.style.overflow = 'hidden';
 
   const tabLoginBtn = document.getElementById('tab-auth-login-btn');
   const tabRegisterBtn = document.getElementById('tab-auth-register-btn');

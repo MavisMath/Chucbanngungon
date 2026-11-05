@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/icon-192.png">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=20261105_03">
+  <link rel="stylesheet" href="styles.css?v=20261105_04">
   
   <!-- Google Identity Services (Google Sign-In OAuth 2.0) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -153,12 +153,38 @@
       }
     };
 
+    window.handleProfilePillClick = function(e) {
+      if (e) {
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+      }
+      if (window.SoundFX && window.SoundFX.tap) {
+        try { window.SoundFX.tap(); } catch(err) {}
+      }
+      if (window.SleepSyncDB && window.SleepSyncDB.isAuthenticated && window.SleepSyncDB.isAuthenticated()) {
+        if (window.openProfileDrawer) {
+          window.openProfileDrawer();
+          return;
+        }
+      }
+      if (window.openUserAuthModal) {
+        window.openUserAuthModal('login');
+      } else {
+        var m = document.getElementById('user-auth-modal');
+        if (m) {
+          m.style.display = 'flex';
+          m.style.zIndex = '100050';
+        }
+      }
+    };
+
     window.openUserAuthModal = function(tab) {
       window.hideMavisSplash();
       var modal = document.getElementById('user-auth-modal');
       if (modal) {
         modal.style.display = 'flex';
-        modal.style.zIndex = '10050';
+        modal.style.zIndex = '100050';
+        document.body.style.overflow = 'hidden';
       }
       var tabLoginBtn = document.getElementById('tab-auth-login-btn');
       var tabRegisterBtn = document.getElementById('tab-auth-register-btn');
@@ -246,7 +272,7 @@
         </button>
 
         <!-- User Profile Pill Trigger Button (Duolingo & Facebook Style) -->
-        <button type="button" id="user-profile-menu-btn" class="btn-user-profile-pill" title="Hồ Sơ Cá Nhân Người Dùng" aria-label="Mở Hồ Sơ Cá Nhân Người Dùng">
+        <button type="button" id="user-profile-menu-btn" class="btn-user-profile-pill" onclick="window.handleProfilePillClick ? window.handleProfilePillClick(event) : (window.openUserAuthModal ? window.openUserAuthModal('login') : null)" title="Hồ Sơ Cá Nhân Người Dùng" aria-label="Mở Hồ Sơ Cá Nhân Người Dùng">
           <div class="pill-avatar-wrap" id="nav-pill-avatar">
             <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 1.15rem; color: #38BDF8;">
               <i class="fa-solid fa-user"></i>
@@ -2054,10 +2080,10 @@
 
       <!-- Auth Tabs: Đăng Nhập vs Đăng Ký -->
       <div class="auth-tabs-nav" style="margin-top: 1.1rem;">
-        <button type="button" class="auth-tab-btn active" id="tab-auth-login-btn">
+        <button type="button" class="auth-tab-btn active" id="tab-auth-login-btn" onclick="window.openUserAuthModal && window.openUserAuthModal('login')">
           <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng Nhập
         </button>
-        <button type="button" class="auth-tab-btn" id="tab-auth-register-btn">
+        <button type="button" class="auth-tab-btn" id="tab-auth-register-btn" onclick="window.openUserAuthModal && window.openUserAuthModal('register')">
           <i class="fa-solid fa-user-plus"></i> Đăng Ký Mới
         </button>
       </div>
@@ -2066,7 +2092,7 @@
       <div id="pane-auth-login" class="auth-pane">
         <!-- 1-Click Google Sign-In -->
         <div class="google-auth-wrapper" style="width: 100%; margin-top: 0.5rem; margin-bottom: 0.85rem;">
-          <button type="button" class="btn-google-primary-auth" id="btn-social-google" title="Đăng nhập bảo mật 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+          <button type="button" class="btn-google-primary-auth" id="btn-social-google" onclick="window.loginWithRealGoogle && window.loginWithRealGoogle()" title="Đăng nhập bảo mật 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
             <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
               <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
@@ -2115,7 +2141,7 @@
         </form>
 
         <div class="auth-switch-link" style="margin-top: 1.1rem;">
-          Chưa có tài khoản? <a href="#" id="switch-to-register-link" style="color: #38BDF8; font-weight: 700;">Đăng ký thành viên mới &rarr;</a>
+          Chưa có tài khoản? <a href="#" id="switch-to-register-link" onclick="window.openUserAuthModal && window.openUserAuthModal('register'); return false;" style="color: #38BDF8; font-weight: 700;">Đăng ký thành viên mới &rarr;</a>
         </div>
       </div>
 
@@ -2123,7 +2149,7 @@
       <div id="pane-auth-register" class="auth-pane" style="display: none;">
         <!-- 1-Click Google Sign-In for register as well -->
         <div class="google-auth-wrapper" style="width: 100%; margin-top: 0.5rem; margin-bottom: 0.85rem;">
-          <button type="button" class="btn-google-primary-auth" id="btn-social-google-reg" title="Đăng ký nhanh 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+          <button type="button" class="btn-google-primary-auth" id="btn-social-google-reg" onclick="window.loginWithRealGoogle && window.loginWithRealGoogle()" title="Đăng ký nhanh 1 chạm bằng tài khoản Google" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 18px; border-radius: 12px; background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; font-size: 0.94rem; font-weight: 700; font-family: inherit; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
             <svg class="google-svg-icon" width="22" height="22" viewBox="0 0 24 24" style="flex-shrink: 0;">
               <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
               <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
@@ -2193,7 +2219,7 @@
         </form>
 
         <div class="auth-switch-link" style="margin-top: 1.1rem;">
-          Đã có tài khoản Mavis? <a href="#" id="switch-to-login-link" style="color: #38BDF8; font-weight: 700;">&larr; Đăng nhập ngay</a>
+          Đã có tài khoản Mavis? <a href="#" id="switch-to-login-link" onclick="window.openUserAuthModal && window.openUserAuthModal('login'); return false;" style="color: #38BDF8; font-weight: 700;">&larr; Đăng nhập ngay</a>
         </div>
       </div>
     </div>
@@ -2322,10 +2348,10 @@
   </button>
 
   <!-- Client Database Engine -->
-  <script src="db.js?v=20261105_03"></script>
+  <script src="db.js?v=20261105_04"></script>
   <!-- RAG Knowledge Base & AI Chatbot Engine -->
-  <script src="rag.js?v=20261105_03"></script>
+  <script src="rag.js?v=20261105_04"></script>
   <!-- Main Javascript Logic -->
-  <script src="app.js?v=20261105_03"></script>
+  <script src="app.js?v=20261105_04"></script>
 </body>
 </html>
