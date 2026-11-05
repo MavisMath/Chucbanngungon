@@ -7035,43 +7035,43 @@ body.chat-is-resizing {
 }
 
 /* ==============================================================================
-   POLISHED GOOGLE SIGN-IN PRIMARY BUTTON
+   POLISHED GOOGLE SIGN-IN PRIMARY BUTTON (OFFICIAL BRAND STANDARD)
    ============================================================================== */
 
 .google-auth-wrapper {
   width: 100%;
   margin-top: 1.15rem;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.75rem;
 }
 
 .btn-google-primary-auth {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 0.85rem 1.25rem;
-  border-radius: 12px;
-  font-size: 0.94rem;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(30, 41, 59, 0.9);
-  color: #FFFFFF;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 11px 18px !important;
+  border-radius: 12px !important;
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border: 1px solid #E2E8F0 !important;
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .btn-google-primary-auth:hover {
-  background: rgba(51, 65, 85, 0.98);
-  border-color: rgba(66, 133, 244, 0.55);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(66, 133, 244, 0.28);
+  background: #F8FAFC !important;
+  border-color: #4285F4 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(66, 133, 244, 0.35) !important;
 }
 
 .btn-google-primary-auth:active {
-  transform: translateY(0);
+  transform: translateY(0) !important;
 }
 
 .google-svg-icon {
@@ -7080,9 +7080,11 @@ body.chat-is-resizing {
 }
 
 .btn-google-primary-auth:hover .google-svg-icon {
-  transform: scale(1.1);
+  transform: scale(1.12);
 }
 
 .btn-google-text {
   letter-spacing: -0.01em;
+  color: #1E293B !important;
+  font-weight: 700 !important;
 }
