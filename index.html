@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/icon-192.png">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=20261105_09">
+  <link rel="stylesheet" href="styles.css?v=20261105_10">
   
   <!-- Immediate Google OAuth Popup Bridge (For seamless 1-click popup login) -->
   <script>
@@ -1874,7 +1874,11 @@
 
         <div class="profile-details-grid">
           <div class="detail-card">
-            <div class="detail-label"><i class="fa-solid fa-user"></i> Tuổi tác:</div>
+            <div class="detail-label"><i class="fa-solid fa-venus-mars"></i> Giới tính:</div>
+            <div class="detail-value" id="profile-display-gender">Chưa chọn</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label"><i class="fa-solid fa-cake-candles"></i> Tuổi tác:</div>
             <div class="detail-value" id="profile-display-age">Chưa đăng ký</div>
           </div>
           <div class="detail-card">
@@ -1893,7 +1897,7 @@
             <div class="detail-label"><i class="fa-solid fa-sun"></i> Giờ thức dậy:</div>
             <div class="detail-value" id="profile-display-waketime">06:30</div>
           </div>
-          <div class="detail-card">
+          <div class="detail-card" style="grid-column: span 2;">
             <div class="detail-label"><i class="fa-solid fa-battery-half"></i> Thể lực nền:</div>
             <div class="detail-value" id="profile-display-fitness">Chưa thiết lập</div>
           </div>
@@ -1983,9 +1987,20 @@
 
           <div class="form-grid-2col">
             <div class="form-group">
-              <label class="form-label" for="drawer-edit-age"><i class="fa-solid fa-cake-candles"></i> Tuổi & Giới tính</label>
-              <input type="text" id="drawer-edit-age" class="form-input" placeholder="Ví dụ: 30 tuổi (Nam)">
+              <label class="form-label" for="drawer-edit-gender"><i class="fa-solid fa-venus-mars"></i> Giới Tính (*)</label>
+              <select id="drawer-edit-gender" class="form-input">
+                <option value="Nữ">👩 Nữ (Xưng hô: Chị / Em)</option>
+                <option value="Nam">👨 Nam (Xưng hô: Anh / Em)</option>
+                <option value="Khác">✨ Khác (Xưng hô: Bạn / Mavis)</option>
+              </select>
             </div>
+            <div class="form-group">
+              <label class="form-label" for="drawer-edit-age"><i class="fa-solid fa-cake-candles"></i> Tuổi</label>
+              <input type="text" id="drawer-edit-age" class="form-input" placeholder="Ví dụ: 28 tuổi">
+            </div>
+          </div>
+
+          <div class="form-grid-2col">
             <div class="form-group">
               <label class="form-label" for="drawer-edit-fitness"><i class="fa-solid fa-battery-half"></i> Thể Lực</label>
               <select id="drawer-edit-fitness" class="form-input">
@@ -1995,22 +2010,21 @@
                 <option value="Hay mệt mỏi">Hay mệt mỏi</option>
               </select>
             </div>
-          </div>
-
-          <div class="form-grid-2col">
             <div class="form-group">
               <label class="form-label" for="drawer-edit-bedtime"><i class="fa-regular fa-clock"></i> Giờ Ngủ Đích</label>
               <input type="time" id="drawer-edit-bedtime" class="form-input" value="23:00">
             </div>
+          </div>
+
+          <div class="form-grid-2col">
             <div class="form-group">
               <label class="form-label" for="drawer-edit-waketime"><i class="fa-solid fa-sun"></i> Giờ Thức Dậy</label>
               <input type="time" id="drawer-edit-waketime" class="form-input" value="06:30">
             </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="drawer-edit-bio"><i class="fa-regular fa-comment-dots"></i> Mục Tiêu Giấc Ngủ (Bio)</label>
-            <input type="text" id="drawer-edit-bio" class="form-input" placeholder="Ví dụ: Cải thiện ngủ sâu NREM, bớt thức giấc nửa đêm...">
+            <div class="form-group">
+              <label class="form-label" for="drawer-edit-bio"><i class="fa-regular fa-comment-dots"></i> Mục Tiêu Giấc Ngủ (Bio)</label>
+              <input type="text" id="drawer-edit-bio" class="form-input" placeholder="Ví dụ: Cải thiện ngủ sâu NREM, bớt thức giấc nửa đêm...">
+            </div>
           </div>
 
           <div class="form-group">
@@ -2403,21 +2417,30 @@
 
           <div class="form-grid-2col">
             <div class="form-group">
-              <label class="form-label" for="reg-pwd-input"><i class="fa-solid fa-lock"></i> Mật Khẩu (*)</label>
-              <div class="pwd-input-wrap">
-                <input type="password" id="reg-pwd-input" class="form-input" required placeholder="Tối thiểu 6 ký tự" autocomplete="new-password">
-                <button type="button" class="pwd-toggle-btn" id="toggle-reg-pwd-btn"><i class="fa-regular fa-eye"></i></button>
-              </div>
-              <div class="pwd-strength-container" style="margin-top: 5px;">
-                <div class="strength-bar-track">
-                  <div class="strength-bar-fill" id="reg-strength-bar"></div>
-                </div>
-                <span class="strength-text" id="reg-strength-text">Độ an toàn</span>
-              </div>
+              <label class="form-label" for="reg-gender-input"><i class="fa-solid fa-venus-mars"></i> Giới Tính (*)</label>
+              <select id="reg-gender-input" class="form-input">
+                <option value="Nữ">👩 Nữ (Xưng hô: Chị / Em)</option>
+                <option value="Nam">👨 Nam (Xưng hô: Anh / Em)</option>
+                <option value="Khác">✨ Khác (Xưng hô: Bạn / Mavis)</option>
+              </select>
             </div>
             <div class="form-group">
               <label class="form-label" for="reg-bedtime-input"><i class="fa-regular fa-clock"></i> Giờ Ngủ Mục Tiêu</label>
               <input type="time" id="reg-bedtime-input" class="form-input" value="23:00">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-pwd-input"><i class="fa-solid fa-lock"></i> Mật Khẩu (*)</label>
+            <div class="pwd-input-wrap">
+              <input type="password" id="reg-pwd-input" class="form-input" required placeholder="Tối thiểu 6 ký tự" autocomplete="new-password">
+              <button type="button" class="pwd-toggle-btn" id="toggle-reg-pwd-btn"><i class="fa-regular fa-eye"></i></button>
+            </div>
+            <div class="pwd-strength-container" style="margin-top: 5px;">
+              <div class="strength-bar-track">
+                <div class="strength-bar-fill" id="reg-strength-bar"></div>
+              </div>
+              <span class="strength-text" id="reg-strength-text">Độ an toàn</span>
             </div>
           </div>
 
@@ -2557,10 +2580,10 @@
   </button>
 
   <!-- Client Database Engine -->
-  <script src="db.js?v=20261105_09"></script>
+  <script src="db.js?v=20261105_10"></script>
   <!-- RAG Knowledge Base & AI Chatbot Engine -->
-  <script src="rag.js?v=20261105_09"></script>
+  <script src="rag.js?v=20261105_10"></script>
   <!-- Main Javascript Logic -->
-  <script src="app.js?v=20261105_09"></script>
+  <script src="app.js?v=20261105_10"></script>
 </body>
 </html>

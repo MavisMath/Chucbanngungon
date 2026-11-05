@@ -3282,6 +3282,7 @@ function initUserProfileModule() {
       const fullName = document.getElementById('drawer-edit-fullname')?.value.trim();
       const phone = document.getElementById('drawer-edit-phone')?.value.trim();
       const occupation = document.getElementById('drawer-edit-occupation')?.value.trim();
+      const gender = document.getElementById('drawer-edit-gender')?.value || user.gender || 'Khác';
       const age = document.getElementById('drawer-edit-age')?.value.trim();
       const fitnessLevel = document.getElementById('drawer-edit-fitness')?.value;
       const targetBedtime = document.getElementById('drawer-edit-bedtime')?.value;
@@ -3299,6 +3300,7 @@ function initUserProfileModule() {
 
       const updated = {
         fullName: fullName || user.fullName,
+        gender: gender,
         role: occupation || user.role,
         occupation: occupation || user.occupation,
         phone: phone || user.phone,
@@ -3413,6 +3415,7 @@ function populateDrawerEditForm() {
   const fnInput = document.getElementById('drawer-edit-fullname');
   const phInput = document.getElementById('drawer-edit-phone');
   const occInput = document.getElementById('drawer-edit-occupation');
+  const genderInput = document.getElementById('drawer-edit-gender');
   const ageInput = document.getElementById('drawer-edit-age');
   const fitInput = document.getElementById('drawer-edit-fitness');
   const bedInput = document.getElementById('drawer-edit-bedtime');
@@ -3423,6 +3426,20 @@ function populateDrawerEditForm() {
   if (fnInput) fnInput.value = user.fullName || '';
   if (phInput) phInput.value = user.phone || '';
   if (occInput) occInput.value = user.occupation || user.role || '';
+  if (genderInput) {
+    if (user.gender) {
+      genderInput.value = user.gender;
+    } else {
+      const ageLower = (user.age || '').toLowerCase();
+      if (ageLower.includes('nữ') || ageLower.includes('nu') || ageLower.includes('female')) {
+        genderInput.value = 'Nữ';
+      } else if (ageLower.includes('nam') || ageLower.includes('male')) {
+        genderInput.value = 'Nam';
+      } else {
+        genderInput.value = 'Khác';
+      }
+    }
+  }
   if (ageInput) ageInput.value = user.age || '';
   if (fitInput) fitInput.value = user.fitnessLevel || 'Trung bình';
   if (bedInput) bedInput.value = user.targetBedtime || '23:00';
@@ -3499,7 +3516,8 @@ function renderActiveUserProfile() {
   const statScore = document.getElementById('profile-stat-score');
   const statTarget = document.getElementById('profile-stat-target');
 
-  // 6 Habit Metric Details
+  // 7 Habit Metric Details (Including Gender)
+  const elGender = document.getElementById('profile-display-gender');
   const elAge = document.getElementById('profile-display-age');
   const elOcc = document.getElementById('profile-display-occupation');
   const elPhone = document.getElementById('profile-display-phone');
@@ -3528,6 +3546,7 @@ function renderActiveUserProfile() {
     if (statScore) statScore.textContent = '⭐ --%';
     if (statTarget) statTarget.textContent = '🌙 23:00';
 
+    if (elGender) elGender.textContent = 'Chưa chọn';
     if (elAge) elAge.textContent = 'Chưa đăng ký';
     if (elOcc) elOcc.textContent = 'Chưa đăng ký';
     if (elPhone) elPhone.textContent = 'Chưa đăng ký';
@@ -3574,7 +3593,11 @@ function renderActiveUserProfile() {
   if (statScore) statScore.textContent = `⭐ ${user.healthScore || 88}%`;
   if (statTarget) statTarget.textContent = `🌙 ${user.targetBedtime || '23:00'}`;
 
-  // 4. 6 Metric Cards
+  // 4. 7 Metric Cards (With Gender)
+  if (elGender) {
+    const g = user.gender || 'Khác';
+    elGender.textContent = g === 'Nữ' ? '👩 Nữ' : (g === 'Nam' ? '👨 Nam' : '✨ ' + g);
+  }
   if (elAge) elAge.textContent = user.age || '30 tuổi';
   if (elOcc) elOcc.textContent = user.occupation || user.role || 'Chưa cập nhật';
   if (elPhone) elPhone.textContent = user.phone || 'Chưa cập nhật';
@@ -4054,6 +4077,7 @@ function initUserAuthModal() {
       const fullName = document.getElementById('reg-fullname-input')?.value.trim();
       const phone = document.getElementById('reg-phone-input')?.value.trim();
       const password = document.getElementById('reg-pwd-input')?.value.trim();
+      const gender = document.getElementById('reg-gender-input')?.value || 'Khác';
       const role = document.getElementById('reg-role-input')?.value.trim();
       const age = document.getElementById('reg-age-input')?.value.trim();
       const targetBedtime = document.getElementById('reg-bedtime-input')?.value;
@@ -4074,6 +4098,7 @@ function initUserAuthModal() {
         const res = await SleepSyncDB.registerWithCloudAccount({
           fullName,
           phone,
+          gender,
           password: password || '123456',
           role: role || 'Thành viên Mavis',
           occupation: role || 'Tự do',

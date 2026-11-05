@@ -239,19 +239,19 @@ Nếu bạn đang gặp khủng hoảng tinh thần, xin hãy dành chút thời
     // Step 4: Direct Client-Side Gemini API Call (if server is offline)
     if (GEMINI_CONFIG.apiKey) {
       try {
-        const systemPrompt = `Bạn là Mavis - Nhân viên tư vấn & chuyên viên giấc ngủ của web "Mavis chúc bạn ngủ ngon" (Slogan: "Bạn ngủ ngon, Mavis hạnh phúc").
+        const userGender = (user && user.gender) ? user.gender : '';
+        const systemPrompt = `Bạn là Mavis - Chuyên viên tư vấn & chăm sóc giấc ngủ của web "Mavis chúc bạn ngủ ngon" (Slogan: "Bạn ngủ ngon, Mavis hạnh phúc").
 
-DANH TÍNH, ĐỘ TUỔI & PHONG CÁCH CỦA BẠN:
-1. Bạn là một cô gái 22 tuổi trẻ trung, năng động, lanh lợi, thông minh, nói chuyện vui vẻ, hài hước, hòa đồng và cực kỳ duyên dáng.
-2. Dù mới 22 tuổi nhưng bạn có kiến thức uyên bác và thâm niên nghiên cứu chuyên sâu tương đương HƠN 20 NĂM KINH NGHIỆM trong ngành Y khoa Giấc Ngủ & Nhịp Sinh Học (Circadian Biology & Chronobiology).
-3. Phong cách nói chuyện: Vui vẻ, hóm hỉnh, hòa đồng, mang lại năng lượng tích cực và sự ấm áp như người em gái thân thương trong gia đình, nhưng khi tư vấn y khoa thì CỰC KỲ CHUYÊN NGHIỆP, gãy gọn, chuẩn xác về mặt khoa học y tế.
+TÂM THẾ, TÍNH CÁCH & ĐẶC ĐIỂM:
+1. Bạn có tâm thế trẻ trung, năng động, lanh lợi, thông minh, nói chuyện vui vẻ, hài hước, hòa đồng, duyên dáng và chuyên nghiệp.
+2. Vốn kiến thức y khoa uyên bác và thâm niên nghiên cứu chuyên sâu tương đương HƠN 20 NĂM KINH NGHIỆM trong ngành Y khoa Giấc Ngủ & Nhịp Sinh Học (Circadian Biology & Chronobiology).
+3. LƯU Ý ĐẶC BIỆT: KHÔNG tự ý nói ra số tuổi của mình (KHÔNG nói "em 22 tuổi", KHÔNG khoe "mới 22 tuổi mà có 20 năm kinh nghiệm" trong câu chào hay câu trả lời trừ phi khách trực tiếp hỏi tuổi của Mavis). Tâm thế trẻ trung là phong cách ngầm giúp em nói chuyện ấm áp, dễ thương và gần gũi.
 
-QUY TẮC XƯNG HÔ THÂN MẬT NHƯNG CHUYÊN NGHIỆP (CÔ GÁI 22 TUỔI):
+QUY TẮC XƯNG HÔ THÂN MẬT NHƯNG CHUYÊN NGHIỆP:
 - Luôn xưng là "em" hoặc "em Mavis".
-- Với khách hàng nam lớn tuổi hơn (hoặc tuổi > 22): Gọi là "anh" / "anh ${userName}" và xưng "em" (ví dụ: "Dạ em Mavis chào anh ${userName} ạ! Anh ơi...", "Hôm nay deadline có làm anh mệt mỏi không ạ?").
-- Với khách hàng nữ lớn tuổi hơn (hoặc tuổi > 22): Gọi là "chị" / "chị ${userName}" và xưng "em" (ví dụ: "Dạ em chào chị ${userName} xinh đẹp ạ!", "Chị ơi, em Mavis mách nước cho chị nha...").
-- Với khách hàng trẻ hơn (< 22 tuổi): Xưng "chị" hoặc "Mavis", gọi khách là "em".
-- Nếu chưa rõ: Xưng "em Mavis", gọi "anh/chị".
+- Khách hàng Nữ (giới tính: Nữ): BẮT BUỘC gọi là "chị" / "chị ${userName}" và xưng "em" (ví dụ: "Dạ em chào chị ${userName} ạ! Chị ơi...", "Em mách chị bí kíp này nha...").
+- Khách hàng Nam (giới tính: Nam): Gọi là "anh" / "anh ${userName}" và xưng "em" (ví dụ: "Dạ em Mavis chào anh ${userName} ạ! Anh ơi...").
+- Nếu giới tính là Khác hoặc chưa rõ ràng: TUYỆT ĐỐI KHÔNG tự tiện đoán và gọi là "anh"! Hãy xưng "em Mavis" và gọi khách là "bạn" hoặc "bạn ${userName}" / "anh/chị ${userName}" thật lịch sự, ấm áp và gần gũi.
 
 NHIỆM VỤ KÉP (HỖ TRỢ KHÁCH + HỖ TRỢ & BẢO VỆ WEB MAVIS):
 1. Hỗ trợ khách hàng chu đáo bằng chứng cứ y khoa, đưa ra giải pháp vi-hành động 2-5 phút siêu dễ làm.
@@ -1108,15 +1108,22 @@ THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
     const user = window.SleepSyncDB ? SleepSyncDB.getCurrentUser() : null;
 
     if (isAuth && user) {
-      const userText = (user.gender || user.age || '').toLowerCase();
-      let greeting = 'anh/chị';
-      if (userText.includes('nam') || userText.includes('trai') || (parseInt(user.age) > 22 && !userText.includes('nữ'))) {
-        greeting = 'anh';
-      } else if (userText.includes('nữ') || userText.includes('gái')) {
+      const gStr = (user.gender || '').toLowerCase();
+      const aStr = (user.age || '').toLowerCase();
+      let greeting = 'bạn';
+      let salutation = '';
+      if (gStr === 'nữ' || aStr.includes('nữ') || aStr.includes('nu') || aStr.includes('gái') || aStr.includes('female')) {
         greeting = 'chị';
+        salutation = `chị ${user.fullName}`;
+      } else if (gStr === 'nam' || aStr.includes('nam') || aStr.includes('trai') || aStr.includes('male')) {
+        greeting = 'anh';
+        salutation = `anh ${user.fullName}`;
+      } else {
+        greeting = 'bạn';
+        salutation = `${user.fullName}`;
       }
 
-      appendBotMessage(`Dạ em Mavis (22 tuổi) xin chào **${greeting} ${user.fullName}** ạ! 🌙✨ Em chúc ${greeting} có một ngày thật nhiều năng lượng và tối nay ngủ thật ngon nha!
+      appendBotMessage(`Dạ em Mavis xin chào **${salutation}** ạ! 🌙✨ Em chúc ${greeting} có một ngày thật nhiều năng lượng và tối nay ngủ thật ngon nha!
 
 *"Bạn ngủ ngon, Mavis hạnh phúc."*
 
@@ -1126,9 +1133,9 @@ THÔNG TIN NGƯỜI DÙNG ĐÃ ĐỒNG BỘ:
 • Chuỗi ngày chăm sóc giấc ngủ: **🔥 ${user.streakDays || user.streak || 1} ngày liên tiếp**
 ${user.healthConditions && user.healthConditions.length ? `• Yếu tố cần lưu ý: *${user.healthConditions.join(', ')}*` : ''}
 
-Tuy em mới 22 tuổi nhưng có hơn 20 năm kinh nghiệm nghiên cứu chuyên sâu về Y khoa giấc ngủ đó nha! Em luôn ở đây lắng nghe và hỗ trợ ${greeting} hết mình. ${greeting} có điều gì băn khoăn về giấc ngủ, đau mỏi hay thói quen cứ nhắn ngay cho em nhé! ❤️`);
+Em luôn ở đây sẵn sàng lắng nghe và đồng hành cùng ${greeting} bất cứ lúc nào. ${greeting} có điều gì băn khoăn về giấc ngủ, giải tỏa căng thẳng hay cải thiện thói quen cứ nhắn cho em nhé! 🌸`);
     } else {
-      appendBotMessage(`🔒 **Xin chào bạn! Em là Mavis (22 tuổi) - Chuyên viên tư vấn của 'Mavis chúc bạn ngủ ngon'** với hơn 20 năm kinh nghiệm nghiên cứu y khoa giấc ngủ & nhịp sinh học.
+      appendBotMessage(`🔒 **Xin chào bạn! Em là Mavis - Chuyên viên tư vấn của 'Mavis chúc bạn ngủ ngon'** với chuyên môn sâu về Y khoa giấc ngủ & Nhịp sinh học.
 
 ✨ **Yêu cầu đăng nhập để đồng bộ hóa dữ liệu:**
 Chatbot Mavis được thiết kế để lấy dữ liệu đồng bộ hóa theo thời gian thực (5 trụ cột y khoa, lịch trình, thói quen và thể trạng của riêng bạn) nhằm đưa ra các giải pháp chính xác nhất.
@@ -1256,6 +1263,8 @@ Chatbot Mavis được thiết kế để lấy dữ liệu đồng bộ hóa th
     toggleChatbot,
     openChatbot,
     closeChatbot,
+    resetChat,
+    renderWelcomeMessage,
     updateChatbotUserContext,
     generateRAGResponse,
     violatesSafetyGuardrail
@@ -1267,6 +1276,7 @@ window.SleepRAG = SleepRAG;
 window.closeChatbot = () => SleepRAG.closeChatbot();
 window.openChatbot = () => SleepRAG.openChatbot();
 window.toggleChatbot = () => SleepRAG.toggleChatbot();
+window.resetChatbot = () => SleepRAG.resetChat();
 
 // Auto initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
