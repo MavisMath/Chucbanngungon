@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/icon-192.png">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="styles.css?v=20261105_15">
+  <link rel="stylesheet" href="styles.css?v=20261105_16">
   
   <!-- Immediate Google OAuth Popup Bridge (For seamless 1-click popup login) -->
   <script>
@@ -1690,12 +1690,21 @@
         </div>
       </div>
 
+      <!-- Soundscape Presets Bar (1-Click Sound Combos) -->
+      <div class="soundscape-presets-bar">
+        <span class="preset-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Phối âm gợi ý:</span>
+        <button type="button" class="preset-chip" data-preset="deep-sleep">💤 Ngủ Sâu (Delta + Mưa)</button>
+        <button type="button" class="preset-chip" data-preset="forest-night">🌲 Rừng Đêm (Suối + Gió dế)</button>
+        <button type="button" class="preset-chip" data-preset="cozy-fire">🔥 Lửa Trại (Lửa + Biển)</button>
+        <button type="button" class="preset-chip" data-preset="zen-meditation">🧘 Thiền Định (Theta + Chuông)</button>
+      </div>
+
       <div class="sound-channels-grid">
         <!-- Channel 1: Binaural Delta Beats -->
         <div class="channel-card">
           <div class="channel-info">
             <div class="channel-name">
-              <i class="fa-solid fa-wave-square"></i>
+              <i class="fa-solid fa-wave-square" style="color: #818CF8;"></i>
               <div>
                 <strong>Sóng Não Delta (4Hz Binaural)</strong>
                 <small>Đồng bộ tần số vỏ não, ru ngủ nhanh</small>
@@ -1714,7 +1723,7 @@
         <div class="channel-card">
           <div class="channel-info">
             <div class="channel-name">
-              <i class="fa-solid fa-cloud-rain"></i>
+              <i class="fa-solid fa-cloud-rain" style="color: #38BDF8;"></i>
               <div>
                 <strong>Tiếng Mưa Rào Êm Dịu (Pink Noise)</strong>
                 <small>Che phủ tiếng ồn xe cộ, dịu tai</small>
@@ -1724,7 +1733,7 @@
           </div>
           <div class="channel-volume-wrap">
             <i class="fa-solid fa-volume-low"></i>
-            <input type="range" class="channel-slider" data-channel="rain" min="0" max="100" value="60">
+            <input type="range" class="channel-slider" data-channel="rain" min="0" max="100" value="65">
             <i class="fa-solid fa-volume-high"></i>
           </div>
         </div>
@@ -1733,7 +1742,7 @@
         <div class="channel-card">
           <div class="channel-info">
             <div class="channel-name">
-              <i class="fa-solid fa-water"></i>
+              <i class="fa-solid fa-water" style="color: #2DD4BF;"></i>
               <div>
                 <strong>Sóng Biển Ban Đêm (Deep Ocean)</strong>
                 <small>Nhịp thở đại dương, hạ nhịp tim</small>
@@ -1743,7 +1752,7 @@
           </div>
           <div class="channel-volume-wrap">
             <i class="fa-solid fa-volume-low"></i>
-            <input type="range" class="channel-slider" data-channel="ocean" min="0" max="100" value="50">
+            <input type="range" class="channel-slider" data-channel="ocean" min="0" max="100" value="55">
             <i class="fa-solid fa-volume-high"></i>
           </div>
         </div>
@@ -1752,7 +1761,7 @@
         <div class="channel-card">
           <div class="channel-info">
             <div class="channel-name">
-              <i class="fa-solid fa-bell"></i>
+              <i class="fa-solid fa-bell" style="color: #FBBF24;"></i>
               <div>
                 <strong>Chuông Xoay Thiền (Singing Bowl)</strong>
                 <small>Tần số 432Hz an định tinh thần</small>
@@ -1763,6 +1772,82 @@
           <div class="channel-volume-wrap">
             <i class="fa-solid fa-volume-low"></i>
             <input type="range" class="channel-slider" data-channel="bowl" min="0" max="100" value="65">
+            <i class="fa-solid fa-volume-high"></i>
+          </div>
+        </div>
+
+        <!-- Channel 5: Forest Stream -->
+        <div class="channel-card">
+          <div class="channel-info">
+            <div class="channel-name">
+              <i class="fa-solid fa-water-ladder" style="color: #38BDF8;"></i>
+              <div>
+                <strong>Suối Rừng Róc Rách (Forest Stream)</strong>
+                <small>Dòng nước róc rách, xoa dịu lo âu</small>
+              </div>
+            </div>
+            <button class="channel-toggle-btn" data-channel="stream"><i class="fa-solid fa-play"></i> Bật</button>
+          </div>
+          <div class="channel-volume-wrap">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" class="channel-slider" data-channel="stream" min="0" max="100" value="65">
+            <i class="fa-solid fa-volume-high"></i>
+          </div>
+        </div>
+
+        <!-- Channel 6: Cozy Campfire -->
+        <div class="channel-card">
+          <div class="channel-info">
+            <div class="channel-name">
+              <i class="fa-solid fa-fire-flame-curved" style="color: #FB923C;"></i>
+              <div>
+                <strong>Lửa Trại Bập Bùng (Cozy Campfire)</strong>
+                <small>Tí tách ấm áp, xua tan căng thẳng</small>
+              </div>
+            </div>
+            <button class="channel-toggle-btn" data-channel="fire"><i class="fa-solid fa-play"></i> Bật</button>
+          </div>
+          <div class="channel-volume-wrap">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" class="channel-slider" data-channel="fire" min="0" max="100" value="60">
+            <i class="fa-solid fa-volume-high"></i>
+          </div>
+        </div>
+
+        <!-- Channel 7: Deep Theta Waves 6Hz -->
+        <div class="channel-card">
+          <div class="channel-info">
+            <div class="channel-name">
+              <i class="fa-solid fa-brain" style="color: #A78BFA;"></i>
+              <div>
+                <strong>Sóng Não Theta (6Hz Meditation)</strong>
+                <small>Trạng thái lơ mơ, tiền giấc ngủ sâu</small>
+              </div>
+            </div>
+            <button class="channel-toggle-btn" data-channel="theta"><i class="fa-solid fa-play"></i> Bật</button>
+          </div>
+          <div class="channel-volume-wrap">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" class="channel-slider" data-channel="theta" min="0" max="100" value="70">
+            <i class="fa-solid fa-volume-high"></i>
+          </div>
+        </div>
+
+        <!-- Channel 8: Night Breeze & Crickets -->
+        <div class="channel-card">
+          <div class="channel-info">
+            <div class="channel-name">
+              <i class="fa-solid fa-wind" style="color: #34D399;"></i>
+              <div>
+                <strong>Gió Đêm & Tiếng Dế (Night Breeze)</strong>
+                <small>Không gian tĩnh lặng, ru êm giấc ngủ</small>
+              </div>
+            </div>
+            <button class="channel-toggle-btn" data-channel="wind"><i class="fa-solid fa-play"></i> Bật</button>
+          </div>
+          <div class="channel-volume-wrap">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" class="channel-slider" data-channel="wind" min="0" max="100" value="55">
             <i class="fa-solid fa-volume-high"></i>
           </div>
         </div>
@@ -2613,10 +2698,10 @@
   </div>
 
   <!-- Client Database Engine -->
-  <script src="db.js?v=20261105_15"></script>
+  <script src="db.js?v=20261105_16"></script>
   <!-- RAG Knowledge Base & AI Chatbot Engine -->
-  <script src="rag.js?v=20261105_15"></script>
+  <script src="rag.js?v=20261105_16"></script>
   <!-- Main Javascript Logic -->
-  <script src="app.js?v=20261105_15"></script>
+  <script src="app.js?v=20261105_16"></script>
 </body>
 </html>

@@ -64,9 +64,13 @@ const AppState = {
     ctx: null,
     channels: {
       binaural: { isPlaying: false, gainNode: null, leftOsc: null, rightOsc: null, leftHarmonic: null, rightHarmonic: null, volume: 0.7 },
-      rain: { isPlaying: false, gainNode: null, sourceNode: null, volume: 0.7 },
-      ocean: { isPlaying: false, gainNode: null, sourceNode: null, lfoNode: null, volume: 0.6 },
-      bowl: { isPlaying: false, gainNode: null, intervalId: null, volume: 0.65 }
+      rain: { isPlaying: false, gainNode: null, sourceNode: null, volume: 0.65 },
+      ocean: { isPlaying: false, gainNode: null, sourceNode: null, lfoNode: null, volume: 0.55 },
+      bowl: { isPlaying: false, gainNode: null, intervalId: null, volume: 0.65 },
+      stream: { isPlaying: false, gainNode: null, sourceNode: null, lfoNode: null, volume: 0.65 },
+      fire: { isPlaying: false, gainNode: null, sourceNode: null, crackleTimer: null, volume: 0.6 },
+      theta: { isPlaying: false, gainNode: null, leftOsc: null, rightOsc: null, leftHarmonic: null, rightHarmonic: null, volume: 0.7 },
+      wind: { isPlaying: false, gainNode: null, sourceNode: null, lfoNode: null, cricketTimer: null, volume: 0.55 }
     },
     timerDuration: 30,
     timerTimeout: null
@@ -2654,9 +2658,13 @@ function initAudioControls() {
     if (soundDrawer) {
       soundDrawer.style.display = 'flex';
       try {
-        await getAudioContext();
+        const ctx = await getAudioContext();
+        if (ctx && ctx.state === 'suspended') {
+          await ctx.resume().catch(() => {});
+        }
         ensureIosAudioUnlocked();
       } catch (e) {}
+      syncAudioControlUI();
     }
   };
 
@@ -2679,6 +2687,49 @@ function initAudioControls() {
     });
   }
 
+  // Channel toggle buttons (Play / Pause for each soundscape channel)
+  document.querySelectorAll('.channel-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const channel = btn.dataset.channel;
+      await toggleChannel(channel, btn);
+    });
+  });
+
+  // Channel volume sliders
+  document.querySelectorAll('.channel-slider').forEach(slider => {
+    slider.addEventListener('input', (e) => {
+      const channel = slider.dataset.channel;
+      const val = parseFloat(slider.value) / 100;
+      if (AppState.audio.channels[channel]) {
+        AppState.audio.channels[channel].volume = val;
+        if (AppState.audio.channels[channel].gainNode && AppState.audio.ctx) {
+          AppState.audio.channels[channel].gainNode.gain.setValueAtTime(val, AppState.audio.ctx.currentTime);
+        }
+      }
+    });
+  });
+
+  // Master Mute / Stop All Button
+  const muteBtn = document.getElementById('master-mute-btn');
+  if (muteBtn) {
+    muteBtn.addEventListener('click', () => {
+      stopAllSounds();
+      document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+      if (window.showAppToast) {
+        showAppToast('Âm thanh', 'Đã dừng toàn bộ âm thanh ru ngủ', 'info', 2000);
+      }
+    });
+  }
+
+  // Preset Mixes
+  document.querySelectorAll('.preset-chip').forEach(chip => {
+    chip.addEventListener('click', async () => {
+      const preset = chip.dataset.preset;
+      await applySoundPreset(preset, chip);
+    });
+  });
+
   // Timer chips
   document.querySelectorAll('.timer-chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -2696,6 +2747,63 @@ function initAudioControls() {
   }
 }
 
+function syncAudioControlUI() {
+  document.querySelectorAll('.channel-toggle-btn').forEach(btn => {
+    const ch = btn.dataset.channel;
+    const isPlaying = AppState.audio.channels[ch] && AppState.audio.channels[ch].isPlaying;
+    const card = btn.closest('.channel-card');
+    if (isPlaying) {
+      btn.innerHTML = '<i class="fa-solid fa-pause"></i> Tắt';
+      btn.classList.add('playing');
+      if (card) card.classList.add('active-playing');
+    } else {
+      const defaultText = (ch === 'bowl') ? '<i class="fa-solid fa-play"></i> Rung chuông' : '<i class="fa-solid fa-play"></i> Bật';
+      btn.innerHTML = defaultText;
+      btn.classList.remove('playing');
+      if (card) card.classList.remove('active-playing');
+    }
+  });
+
+  document.querySelectorAll('.channel-slider').forEach(slider => {
+    const ch = slider.dataset.channel;
+    if (AppState.audio.channels[ch]) {
+      slider.value = Math.round(AppState.audio.channels[ch].volume * 100);
+    }
+  });
+}
+
+async function applySoundPreset(preset, chip) {
+  if (!requireAuthGuard('phối âm thanh ru ngủ theo combo')) return;
+  const ctx = await getAudioContext();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') {
+    try { await ctx.resume(); } catch (e) {}
+  }
+  ensureIosAudioUnlocked();
+
+  stopAllSounds();
+
+  document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+  if (chip) chip.classList.add('active');
+
+  if (preset === 'deep-sleep') {
+    startChannel('binaural', ctx);
+    startChannel('rain', ctx);
+  } else if (preset === 'forest-night') {
+    startChannel('stream', ctx);
+    startChannel('wind', ctx);
+  } else if (preset === 'cozy-fire') {
+    startChannel('fire', ctx);
+    startChannel('ocean', ctx);
+  } else if (preset === 'zen-meditation') {
+    startChannel('theta', ctx);
+    startChannel('bowl', ctx);
+  }
+
+  syncAudioControlUI();
+  updateGlobalSoundIndicator();
+}
+
 async function toggleChannel(channel, btn) {
   if (!requireAuthGuard('bật âm thanh sóng não & thư giãn')) {
     return;
@@ -2708,11 +2816,16 @@ async function toggleChannel(channel, btn) {
 
   ensureIosAudioUnlocked();
   const chState = AppState.audio.channels[channel];
+  if (!chState) return;
+
+  const card = btn.closest('.channel-card');
 
   if (chState.isPlaying) {
     stopChannel(channel);
-    btn.innerHTML = '<i class="fa-solid fa-play"></i> Bật';
+    const defaultText = (channel === 'bowl') ? '<i class="fa-solid fa-play"></i> Rung chuông' : '<i class="fa-solid fa-play"></i> Bật';
+    btn.innerHTML = defaultText;
     btn.classList.remove('playing');
+    if (card) card.classList.remove('active-playing');
   } else {
     if (ctx.state === 'suspended') {
       try {
@@ -2723,13 +2836,18 @@ async function toggleChannel(channel, btn) {
     startChannel(channel, ctx);
     btn.innerHTML = '<i class="fa-solid fa-pause"></i> Tắt';
     btn.classList.add('playing');
+    if (card) card.classList.add('active-playing');
 
     if (window.SleepSyncDB) {
       const names = {
         binaural: 'Sóng Não Delta 4Hz ru ngủ',
         rain: 'Tiếng Mưa Rào Pink Noise',
         ocean: 'Sóng Biển Ban Đêm (Deep Ocean)',
-        bowl: 'Chuông Xoay Thiền Tây Tạng 432Hz'
+        bowl: 'Chuông Xoay Thiền Tây Tạng 432Hz',
+        stream: 'Suối Rừng Róc Rách (Forest Stream)',
+        fire: 'Lửa Trại Bập Bùng (Cozy Campfire)',
+        theta: 'Sóng Não Theta 6Hz Thiền Sâu',
+        wind: 'Gió Đêm & Tiếng Dế Rừng Dịu Êm'
       };
       SleepSyncDB.logServiceUsage('SOUND_PLAY', 'Phát âm thanh thư giãn', `Bật kênh âm thanh: ${names[channel] || channel}`);
     }
@@ -2740,7 +2858,7 @@ async function toggleChannel(channel, btn) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: 'Mavis chúc bạn ngủ ngon - Âm thanh ru ngủ thư giãn',
           artist: 'Mavis Chúc Bạn Ngủ Ngon',
-          album: 'Delta Waves & Pink Noise Soundscape'
+          album: 'Delta Waves & Natural Soundscape'
         });
         navigator.mediaSession.playbackState = 'playing';
       } catch (e) {}
@@ -2886,6 +3004,232 @@ function startChannel(channel, ctx) {
       playSingingBowlChime(ctx, chState.gainNode);
     }, 8500);
     chState.isPlaying = true;
+  } else if (channel === 'stream') {
+    // 5. Forest Stream: Resonant pink noise with organic gurgling modulation
+    const bufferSize = ctx.sampleRate * 2;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      b3 = 0.86650 * b3 + white * 0.3104856;
+      b4 = 0.55000 * b4 + white * 0.5329522;
+      b5 = -0.7616 * b5 - white * 0.0168980;
+      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.22;
+      b6 = white * 0.115926;
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+
+    const filter1 = ctx.createBiquadFilter();
+    filter1.type = 'bandpass';
+    filter1.frequency.setValueAtTime(780, ctx.currentTime);
+    filter1.Q.setValueAtTime(2.2, ctx.currentTime);
+
+    const filter2 = ctx.createBiquadFilter();
+    filter2.type = 'lowpass';
+    filter2.frequency.setValueAtTime(2400, ctx.currentTime);
+
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(0.28, ctx.currentTime);
+
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.setValueAtTime(160, ctx.currentTime);
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter1.frequency);
+
+    noise.connect(filter1);
+    filter1.connect(filter2);
+    filter2.connect(chState.gainNode);
+
+    noise.start();
+    lfo.start();
+
+    chState.sourceNode = noise;
+    chState.lfoNode = lfo;
+    chState.isPlaying = true;
+  } else if (channel === 'fire') {
+    // 6. Cozy Campfire: Low Brown Noise Rumble + Procedural Crackle Bursts
+    const bufferSize = ctx.sampleRate * 2;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    let lastOut = 0.0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      output[i] = (lastOut + (0.02 * white)) / 1.02;
+      lastOut = output[i];
+      output[i] *= 2.6;
+    }
+    const brownNoise = ctx.createBufferSource();
+    brownNoise.buffer = noiseBuffer;
+    brownNoise.loop = true;
+
+    const lowpass = ctx.createBiquadFilter();
+    lowpass.type = 'lowpass';
+    lowpass.frequency.setValueAtTime(220, ctx.currentTime);
+
+    brownNoise.connect(lowpass);
+    lowpass.connect(chState.gainNode);
+    brownNoise.start();
+
+    chState.sourceNode = brownNoise;
+    chState.isPlaying = true;
+
+    const triggerCrackle = () => {
+      if (!chState.isPlaying) return;
+      try {
+        const now = ctx.currentTime;
+        const popCount = Math.floor(Math.random() * 2) + 1;
+        for (let p = 0; p < popCount; p++) {
+          const osc = ctx.createOscillator();
+          const pGain = ctx.createGain();
+          const pFilter = ctx.createBiquadFilter();
+
+          const popTime = now + (p * 0.035) + (Math.random() * 0.02);
+          const freq = 1200 + Math.random() * 2200;
+
+          osc.type = Math.random() > 0.5 ? 'triangle' : 'square';
+          osc.frequency.setValueAtTime(freq, popTime);
+          osc.frequency.exponentialRampToValueAtTime(160, popTime + 0.015);
+
+          pFilter.type = 'bandpass';
+          pFilter.frequency.setValueAtTime(freq, popTime);
+          pFilter.Q.setValueAtTime(3.8, popTime);
+
+          const popVol = 0.08 + Math.random() * 0.12;
+          pGain.gain.setValueAtTime(popVol, popTime);
+          pGain.gain.exponentialRampToValueAtTime(0.0001, popTime + 0.024);
+
+          osc.connect(pFilter);
+          pFilter.connect(pGain);
+          pGain.connect(chState.gainNode);
+
+          osc.start(popTime);
+          osc.stop(popTime + 0.03);
+        }
+      } catch (e) {}
+
+      if (chState.isPlaying) {
+        const nextDelay = 140 + Math.random() * 460;
+        chState.crackleTimer = setTimeout(triggerCrackle, nextDelay);
+      }
+    };
+    triggerCrackle();
+  } else if (channel === 'theta') {
+    // 7. Deep Theta Waves 6Hz (Meditation & Pre-Sleep REM Induction)
+    // Left: 144Hz, Right: 150Hz -> Difference = 6Hz Theta frequency
+    const merger = ctx.createChannelMerger(2);
+    const leftOsc = ctx.createOscillator();
+    leftOsc.type = 'sine';
+    leftOsc.frequency.setValueAtTime(144, ctx.currentTime);
+
+    const rightOsc = ctx.createOscillator();
+    rightOsc.type = 'sine';
+    rightOsc.frequency.setValueAtTime(150, ctx.currentTime);
+
+    leftOsc.connect(merger, 0, 0);
+    rightOsc.connect(merger, 0, 1);
+    merger.connect(chState.gainNode);
+
+    leftOsc.start();
+    rightOsc.start();
+
+    // Harmonics for rich audible depth on all devices
+    const harmGain = ctx.createGain();
+    harmGain.gain.setValueAtTime(0.2, ctx.currentTime);
+
+    const harmFilter = ctx.createBiquadFilter();
+    harmFilter.type = 'lowpass';
+    harmFilter.frequency.setValueAtTime(360, ctx.currentTime);
+
+    const leftHarmonic = ctx.createOscillator();
+    leftHarmonic.type = 'triangle';
+    leftHarmonic.frequency.setValueAtTime(288, ctx.currentTime);
+
+    const rightHarmonic = ctx.createOscillator();
+    rightHarmonic.type = 'triangle';
+    rightHarmonic.frequency.setValueAtTime(300, ctx.currentTime);
+
+    const harmMerger = ctx.createChannelMerger(2);
+    leftHarmonic.connect(harmMerger, 0, 0);
+    rightHarmonic.connect(harmMerger, 0, 1);
+    harmMerger.connect(harmFilter);
+    harmFilter.connect(harmGain);
+    harmGain.connect(chState.gainNode);
+
+    leftHarmonic.start();
+    rightHarmonic.start();
+
+    chState.leftOsc = leftOsc;
+    chState.rightOsc = rightOsc;
+    chState.leftHarmonic = leftHarmonic;
+    chState.rightHarmonic = rightHarmonic;
+    chState.isPlaying = true;
+  } else if (channel === 'wind') {
+    // 8. Night Breeze & Gentle Crickets
+    const bufferSize = ctx.sampleRate * 2;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) output[i] = (Math.random() * 2 - 1) * 0.7;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(320, ctx.currentTime);
+
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.setValueAtTime(0.12, ctx.currentTime);
+
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.setValueAtTime(200, ctx.currentTime);
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+
+    noise.connect(filter);
+    filter.connect(chState.gainNode);
+
+    noise.start();
+    lfo.start();
+
+    chState.sourceNode = noise;
+    chState.lfoNode = lfo;
+
+    const playCricketChirp = () => {
+      if (!chState.isPlaying) return;
+      try {
+        const now = ctx.currentTime;
+        const chirpCount = 3 + Math.floor(Math.random() * 3);
+        for (let c = 0; c < chirpCount; c++) {
+          const osc = ctx.createOscillator();
+          const cGain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(4600 + (Math.random() * 260), now + c * 0.045);
+          cGain.gain.setValueAtTime(0.025, now + c * 0.045);
+          cGain.gain.exponentialRampToValueAtTime(0.0001, now + c * 0.045 + 0.035);
+          osc.connect(cGain);
+          cGain.connect(chState.gainNode);
+          osc.start(now + c * 0.045);
+          osc.stop(now + c * 0.045 + 0.04);
+        }
+      } catch (e) {}
+
+      if (chState.isPlaying) {
+        const nextCricket = 2400 + Math.random() * 3600;
+        chState.cricketTimer = setTimeout(playCricketChirp, nextCricket);
+      }
+    };
+
+    chState.isPlaying = true;
+    chState.cricketTimer = setTimeout(playCricketChirp, 1000);
   }
 
   resetAudioTimer();
@@ -2914,7 +3258,7 @@ function playSingingBowlChime(ctx, targetGain) {
 
 function stopChannel(channel) {
   const chState = AppState.audio.channels[channel];
-  if (!chState.isPlaying) return;
+  if (!chState || !chState.isPlaying) return;
 
   if (channel === 'binaural') {
     if (chState.leftOsc) { try { chState.leftOsc.stop(); } catch (e) {} }
@@ -2928,6 +3272,21 @@ function stopChannel(channel) {
     if (chState.lfoNode) { try { chState.lfoNode.stop(); } catch (e) {} }
   } else if (channel === 'bowl') {
     if (chState.intervalId) clearInterval(chState.intervalId);
+  } else if (channel === 'stream') {
+    if (chState.sourceNode) { try { chState.sourceNode.stop(); } catch (e) {} }
+    if (chState.lfoNode) { try { chState.lfoNode.stop(); } catch (e) {} }
+  } else if (channel === 'fire') {
+    if (chState.sourceNode) { try { chState.sourceNode.stop(); } catch (e) {} }
+    if (chState.crackleTimer) clearTimeout(chState.crackleTimer);
+  } else if (channel === 'theta') {
+    if (chState.leftOsc) { try { chState.leftOsc.stop(); } catch (e) {} }
+    if (chState.rightOsc) { try { chState.rightOsc.stop(); } catch (e) {} }
+    if (chState.leftHarmonic) { try { chState.leftHarmonic.stop(); } catch (e) {} }
+    if (chState.rightHarmonic) { try { chState.rightHarmonic.stop(); } catch (e) {} }
+  } else if (channel === 'wind') {
+    if (chState.sourceNode) { try { chState.sourceNode.stop(); } catch (e) {} }
+    if (chState.lfoNode) { try { chState.lfoNode.stop(); } catch (e) {} }
+    if (chState.cricketTimer) clearTimeout(chState.cricketTimer);
   }
 
   chState.isPlaying = false;
@@ -2936,8 +3295,12 @@ function stopChannel(channel) {
 function stopAllSounds() {
   Object.keys(AppState.audio.channels).forEach(stopChannel);
   document.querySelectorAll('.channel-toggle-btn').forEach(btn => {
-    btn.innerHTML = '<i class="fa-solid fa-play"></i> Bật';
+    const ch = btn.dataset.channel;
+    const defaultText = (ch === 'bowl') ? '<i class="fa-solid fa-play"></i> Rung chuông' : '<i class="fa-solid fa-play"></i> Bật';
+    btn.innerHTML = defaultText;
     btn.classList.remove('playing');
+    const card = btn.closest('.channel-card');
+    if (card) card.classList.remove('active-playing');
   });
 
   if (iosUnlockAudio && !iosUnlockAudio.paused) {
@@ -4306,7 +4669,7 @@ function initZenSleepMode() {
   });
 }
 
-function openZenSleepMode() {
+async function openZenSleepMode() {
   const overlay = document.getElementById('zen-sleep-overlay');
   if (!overlay) return;
   overlay.classList.add('active');
@@ -4324,11 +4687,12 @@ function openZenSleepMode() {
   _zenSleepClockTimer = setInterval(updateClock, 1000);
 
   try {
-    initAudioContext();
-    const ctx = AppState.audio.ctx;
+    const ctx = await getAudioContext();
     if (ctx && ctx.state === 'suspended') {
-      ctx.resume().catch(() => {});
+      await ctx.resume().catch(() => {});
     }
+    ensureIosAudioUnlocked();
+
     if (AppState.audio.channels.binaural && !AppState.audio.channels.binaural.isPlaying) {
       startChannel('binaural', ctx);
     }
@@ -4336,6 +4700,7 @@ function openZenSleepMode() {
       startChannel('rain', ctx);
     }
     updateGlobalSoundIndicator();
+    syncAudioControlUI();
   } catch (err) {
     console.warn('[Zen Sleep Audio]', err);
   }
@@ -4372,5 +4737,12 @@ function closeZenSleepMode() {
   stopAllSounds();
 }
 
+window.AppState = AppState;
+window.toggleChannel = toggleChannel;
+window.startChannel = startChannel;
+window.stopChannel = stopChannel;
+window.stopAllSounds = stopAllSounds;
+window.applySoundPreset = applySoundPreset;
+window.syncAudioControlUI = syncAudioControlUI;
 window.openZenSleepMode = openZenSleepMode;
 window.closeZenSleepMode = closeZenSleepMode;
